@@ -20,6 +20,18 @@ public class ConnectionsManager {
 
     public static MutableList<RoomModel> roomsList = Lists.mutable.empty();
 
+    public Optional<RoomModel> getRoomById(String roomId) {
+        return roomsList.detectOptional(room -> room.getRoomID().equals(roomId));
+    }
+
+    public void addRoom(RoomModel roomModel) {
+        roomsList.add(roomModel);
+    }
+
+    public void updateRoom(RoomModel room) {
+        roomsList.replaceAll(oldRoom -> oldRoom.getRoomID().equals(room.getRoomID()) ? room : oldRoom);
+    }
+
     private static MutableList<Client> clientsList = Lists.mutable.empty();
 
     public void addNewClient(Client client) {
@@ -41,7 +53,8 @@ public class ConnectionsManager {
         //  check if client exists using the clientid property
         return clientsList.anySatisfy(client -> client.clientId().equals(id));
     }
-  public Optional<Client> getClient(String id) {
+
+    public Optional<Client> getClient(String id) {
         //  check if client exists using the clientid property
         return clientsList.select(client -> client.clientId().equals(id)).stream().findFirst();
     }
@@ -69,7 +82,7 @@ public class ConnectionsManager {
      * */
     public void removeOrphanClients() {
         long currentTime = System.currentTimeMillis();
-      //  clientsList.removeIf(client -> (currentTime - client.lastTimeStamp()) > 30_000);
+        //  clientsList.removeIf(client -> (currentTime - client.lastTimeStamp()) > 30_000);
     }
 
     private static class Holder {

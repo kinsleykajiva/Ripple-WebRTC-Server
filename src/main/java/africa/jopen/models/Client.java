@@ -57,7 +57,13 @@ public final class Client implements PeerConnectionObserver{
         return trackCounter;
     }
 
+    public RTCModel getRtcModel() {
+        return rtcModel;
+    }
 
+    public void setRtcModel(RTCModel rtcModel) {
+        this.rtcModel = rtcModel;
+    }
 
     @Override
     public boolean equals(Object obj) {

@@ -138,14 +138,15 @@ public class RoomModel {
     public MutableList<Client> getParticipants() {
         return clients;
     }
- public   MutableList<Map<String, Object>> getParticipantsDto() {
-     MutableList<Map<String, Object>> returnVal = org.eclipse.collections.api.factory.Lists.mutable.empty();
-     clients.forEach(client -> returnVal.add(Map.of(
-             "clientID", client.clientId(),
-             "lastSeen", client.lastTimeStamp()
-     )));
 
-     return  returnVal;
+    public MutableList<Map<String, Object>> getParticipantsDto() {
+        MutableList<Map<String, Object>> returnVal = org.eclipse.collections.api.factory.Lists.mutable.empty();
+        clients.forEach(client -> returnVal.add(Map.of(
+                "clientID", client.clientId(),
+                "lastSeen", client.lastTimeStamp()
+        )));
+
+        return returnVal;
     }
 
     public RoomModel addParticipant(Client client) {
