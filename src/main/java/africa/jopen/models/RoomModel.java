@@ -12,21 +12,20 @@ import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.impl.factory.Lists;
 
 @ApplicationScoped
-public  class RoomModel {
+public class RoomModel {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private FeatureTypes featureTypes;
     private final String roomID;
-    private  String roomName="";
-    private  String roomDescription;
-    private  String creatorClientID;
-    private  String password;
-    private  String pin;
+    private String roomName = "";
+    private String roomDescription;
+    private String creatorClientID;
+    private String password;
+    private String pin;
     private int maximumCapacity = 4;
-    private final long createdTimeStamp = System. currentTimeMillis();
+    private final long createdTimeStamp = System.currentTimeMillis();
     private final MutableList<Client> clients = Lists.mutable.empty();
 
     public void onEvent(@Observes ClientsEvents event) {
-
 
 
         Client updatedClient = event.getClient();
@@ -36,7 +35,7 @@ public  class RoomModel {
         if (index >= 0) {
             clients.set(index, updatedClient);
             logger.atInfo().log("Updated client via an Event");
-        }else{
+        } else {
             logger.atInfo().log("failed to update client , is missing or gone");
         }
 
@@ -85,7 +84,7 @@ public  class RoomModel {
     }
 
     @Inject
-    public RoomModel(){
+    public RoomModel() {
         roomID = XUtils.IdGenerator();
     }
 
@@ -120,7 +119,6 @@ public  class RoomModel {
     }
 
 
-
     public String getPin() {
         return pin;
     }
@@ -131,7 +129,6 @@ public  class RoomModel {
     }
 
 
-
     public long getCreatedTimeStamp() {
         return createdTimeStamp;
     }
@@ -140,7 +137,13 @@ public  class RoomModel {
         return clients;
     }
 
-    public void addParticipant(Client client) {
-        this.clients.add(client);
+    public RoomModel addParticipant(Client client) {
+        boolean exists = clients.anySatisfy(client1 -> client1.clientId().equals(client.clientId()));
+        if (!exists) {
+            this.clients.add(client);
+        }
+
+        return this;
+
     }
 }
