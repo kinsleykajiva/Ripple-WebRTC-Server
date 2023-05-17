@@ -7,6 +7,7 @@ import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
 
 import java.util.Map;
+import java.util.Optional;
 
 @Singleton
 //@ApplicationScoped
@@ -36,6 +37,10 @@ public class ConnectionsManager {
         //  check if client exists using the clientid property
         return clientsList.anySatisfy(client -> client.clientId().equals(id));
     }
+  public Optional<Client> getClient(String id) {
+        //  check if client exists using the clientid property
+        return clientsList.select(client -> client.clientId().equals(id)).stream().findFirst();
+    }
 
     public Client updateClientWhenRemembered(String id) {
         // update client of the cleint object in the list and retunn the client object
@@ -60,7 +65,7 @@ public class ConnectionsManager {
      * */
     public void removeOrphanClients() {
         long currentTime = System.currentTimeMillis();
-        clientsList.removeIf(client -> (currentTime - client.lastTimeStamp()) > 30000);
+      //  clientsList.removeIf(client -> (currentTime - client.lastTimeStamp()) > 30_000);
     }
 
     private static class Holder {

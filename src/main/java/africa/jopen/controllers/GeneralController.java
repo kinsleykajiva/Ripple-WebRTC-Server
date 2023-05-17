@@ -1,8 +1,10 @@
 package africa.jopen.controllers;
 
+import africa.jopen.events.ClientsEvents;
 import africa.jopen.http.PostClient;
 import africa.jopen.http.PostClientRemember;
 import africa.jopen.utils.ConnectionsManager;
+import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -18,7 +20,8 @@ public class GeneralController {
 
     @Inject
     ConnectionsManager connectionsManager;
-
+    @Inject
+    Event<ClientsEvents> clientsEventsEvent;
 
     @GET
     @Path("/client/all")
@@ -52,6 +55,8 @@ public class GeneralController {
 
         var clientObject = connectionsManager.updateClientWhenRemembered(client.clientID());
 
+        ClientsEvents mClientsEvent = new ClientsEvents(clientObject);
+        clientsEventsEvent.fire(mClientsEvent);
 
         return Response.ok(Map.of(
                         "success", true,
