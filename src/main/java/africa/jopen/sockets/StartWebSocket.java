@@ -1,4 +1,4 @@
-package africa.jopen;
+package africa.jopen.sockets;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.websocket.EncodeException;

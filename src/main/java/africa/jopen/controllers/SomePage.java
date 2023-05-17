@@ -1,4 +1,4 @@
-package africa.jopen;
+package africa.jopen.controllers;
 
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;

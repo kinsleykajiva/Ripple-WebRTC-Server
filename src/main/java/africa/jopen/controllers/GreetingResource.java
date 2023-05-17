@@ -1,4 +1,4 @@
-package africa.jopen;
+package africa.jopen.controllers;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
