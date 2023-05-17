@@ -11,6 +11,8 @@ import jakarta.inject.Inject;
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.impl.factory.Lists;
 
+import java.util.Map;
+
 @ApplicationScoped
 public class RoomModel {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -135,6 +137,15 @@ public class RoomModel {
 
     public MutableList<Client> getParticipants() {
         return clients;
+    }
+ public   MutableList<Map<String, Object>> getParticipantsDto() {
+     MutableList<Map<String, Object>> returnVal = org.eclipse.collections.api.factory.Lists.mutable.empty();
+     clients.forEach(client -> returnVal.add(Map.of(
+             "clientID", client.clientId(),
+             "lastSeen", client.lastTimeStamp()
+     )));
+
+     return  returnVal;
     }
 
     public RoomModel addParticipant(Client client) {

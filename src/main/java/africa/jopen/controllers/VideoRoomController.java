@@ -33,6 +33,54 @@ public class VideoRoomController {
     ConnectionsManager connectionsManager;
 
     @POST
+    @Path("/room-info")
+    public Response RoomParticipants(String roomID) {
+
+        if (roomID == null || roomID.isEmpty()) {
+            return Response.ok(Map.of(
+                            "success", false,
+                            "code", 404,
+                            "message", " roomID is empty"
+                    )
+            ).build();
+        }
+
+
+        var roomModelOptional = ConnectionsManager.roomsList.select(roomM -> roomM.getRoomID().equals(roomID));
+        if (roomModelOptional.isEmpty()) {
+            return Response.ok(Map.of(
+                            "success", false,
+                            "code", 400,
+                            "message", " room not found!"
+                    )
+            ).build();
+        }
+        final var roomModel = roomModelOptional.getOnly();
+
+        return Response.ok(Map.of(
+                        "success", true,
+                        "code", 200,
+                        "message", " room Information",
+                "data", Map.of(
+                        "room", Map.of(
+                                "roomID", roomModel.getRoomID(),
+                                "roomName", roomModel.getRoomName(),
+                                "createdTimeStamp", roomModel.getCreatedTimeStamp(),
+                                "password", roomModel.getPassword(),
+                                "pin", roomModel.getPin(),
+                                "maximumCapacity", roomModel.getMaximumCapacity(),
+                                "roomDescription", roomModel.getRoomDescription(),
+                                "creatorClientID", roomModel.getCreatorClientID(),
+                                "participants", roomModel.getParticipantsDto()
+
+                        )
+                )
+                )
+        ).build();
+
+    }
+
+    @POST
     @Path("/join-room")
     public Response joineRoom(PostJoinRoom room) {
         if (room == null) {
