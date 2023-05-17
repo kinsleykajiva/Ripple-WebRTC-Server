@@ -32,9 +32,9 @@ public class VideoRoomController {
     @Inject
     ConnectionsManager connectionsManager;
 
-    @POST
+    @GET
     @Path("/room-info")
-    public Response RoomParticipants(String roomID) {
+    public Response RoomParticipants(@QueryParam("roomID")  String roomID) {
 
         if (roomID == null || roomID.isEmpty()) {
             return Response.ok(Map.of(
@@ -50,8 +50,8 @@ public class VideoRoomController {
         if (roomModelOptional.isEmpty()) {
             return Response.ok(Map.of(
                             "success", false,
-                            "code", 400,
-                            "message", " room not found!"
+                            "code", 404,
+                            "message", " room not found!.."
                     )
             ).build();
         }
@@ -147,6 +147,7 @@ public class VideoRoomController {
         int index = ConnectionsManager.roomsList.detectIndex(roomM -> roomM.getRoomID().equals(room.roomID()));
 
         if (index >= 0) {
+            logger.atInfo().log("Room updated");
             ConnectionsManager.roomsList.set(index, referedRoomModel);
         }
 
