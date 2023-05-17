@@ -2,6 +2,7 @@ package africa.jopen.utils;
 
 
 import africa.jopen.models.Client;
+import africa.jopen.models.RoomModel;
 import jakarta.inject.Singleton;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
@@ -15,6 +16,9 @@ public class ConnectionsManager {
     private ConnectionsManager() {
         // Private constructor to enforce singleton pattern
     }
+
+
+    public static MutableList<RoomModel> roomsList = Lists.mutable.empty();
 
     private static MutableList<Client> clientsList = Lists.mutable.empty();
 

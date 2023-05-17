@@ -25,7 +25,7 @@ import java.util.Map;
 public class VideoRoomController {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-    MutableList<RoomModel> roomsList = Lists.mutable.empty();
+
 
     @Inject
     Event<ClientsEvents> clientsEventsEvent;
@@ -59,7 +59,9 @@ public class VideoRoomController {
                     )
             ).build();
         }
-        var exists = roomsList.anySatisfy(roomModel -> roomModel.getRoomID().equals(room.roomID()));
+        var exists =
+                ConnectionsManager.roomsList
+                .anySatisfy(roomModel -> roomModel.getRoomID().equals(room.roomID()));
         if (!exists) {
             return Response.ok(Map.of(
                             "success", false,
@@ -69,7 +71,7 @@ public class VideoRoomController {
             ).build();
         }
 
-        var roomModelOptional = roomsList.select(roomM -> roomM.getRoomID().equals(room.roomID()));
+        var roomModelOptional = ConnectionsManager.roomsList.select(roomM -> roomM.getRoomID().equals(room.roomID()));
         if (roomModelOptional.isEmpty()) {
             return Response.ok(Map.of(
                             "success", false,
@@ -94,10 +96,10 @@ public class VideoRoomController {
         var clientObject = connectionsManager.updateClientWhenRemembered(room.clientID());
         var referedRoomModel = roomModelOptional.getOnly().addParticipant(clientObject);
 
-        int index = roomsList.detectIndex(roomM -> roomM.getRoomID().equals(room.roomID()));
+        int index = ConnectionsManager.roomsList.detectIndex(roomM -> roomM.getRoomID().equals(room.roomID()));
 
         if (index >= 0) {
-            roomsList.set(index, referedRoomModel);
+            ConnectionsManager.roomsList.set(index, referedRoomModel);
         }
 
         return Response.ok(Map.of(
@@ -164,9 +166,8 @@ public class VideoRoomController {
             roomModel.setPin(room.pin());
             roomModel.setCreatorClientID(clientOptional.get().clientId());
 
-
             roomModel.addParticipant(clientOptional.get());
-            roomsList.add(roomModel);
+            ConnectionsManager. roomsList.add(roomModel);
             //Todo: add handling events to notify the room of the the clients changes attributes as well .
             // ToDo : What wil happen if all the user have been removed by the Orphaning or deliberate exiting from the room of been removed  the admin
             return Response.ok(Map.of(
