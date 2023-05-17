@@ -1,48 +1,48 @@
 package africa.jopen.models;
 
-import africa.jopen.exceptions.ClientException;
 import africa.jopen.utils.XUtils;
-import dev.onvoid.webrtc.PeerConnectionObserver;
-import jakarta.websocket.Session;
+import com.google.common.flogger.FluentLogger;
+import dev.onvoid.webrtc.*;
 
 import java.util.Objects;
-import java.util.UUID;
 import java.util.Vector;
 
-public final class Client {
-    private final String clientId;
-    private final long lastTimeStamp;
-    private final Vector<String> messages;
-    private final Recorder recorder;
-    private final Integer trackCounter;
+public final class Client implements PeerConnectionObserver{
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+    private final String clientId = XUtils.IdGenerator();
+    private  String clientAgentName ;
+    private  long lastTimeStamp= System.currentTimeMillis();
+    private final Vector<String> messages=new Vector<>();
+    private final Recorder recorder= new Recorder();
+    private  Integer trackCounter=0;
+    private final RTCPeerConnection peerConnection;
+    private RTCModel rtcModel = new RTCModel();
 
 
-    public Client(String clientId, long lastTimeStamp, Vector<String> messages, Recorder recorder, Integer trackCounter) {
-        if (clientId == null) {
-            try {
-                throw new ClientException("clientId cannot be null");
-            } catch (ClientException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        this.clientId = clientId;
-        this.lastTimeStamp = lastTimeStamp;
-        this.messages = messages;
-        this.recorder = recorder;
-        this.trackCounter = trackCounter;
+    public Client(String clientAgentName) {
+        this.clientAgentName = clientAgentName;
+        RTCConfiguration rtcConfiguration = new RTCConfiguration();
+        RTCIceServer stunServer = new RTCIceServer();
+        stunServer.urls.add("stun:stun.l.google.com:19302");
+        PeerConnectionFactory peerConnectionFactory = new PeerConnectionFactory();
+        rtcConfiguration.iceServers.add(stunServer);
+        peerConnection = peerConnectionFactory.createPeerConnection(rtcConfiguration, this);
+        logger.atInfo().log("Creating peer connection");
     }
-
-    public Client() {
-        this(XUtils.IdGenerator(), System.currentTimeMillis(), new Vector<>(), new Recorder(), 0);
+    public RTCPeerConnection getPeerConnection() {
+        return peerConnection;
     }
 
     public String clientId() {
         return clientId;
+
     }
 
     public long lastTimeStamp() {
         return lastTimeStamp;
+    }
+ public void updateLastTimeStamp(long newTime) {
+         lastTimeStamp=newTime;
     }
 
     public Vector<String> messages() {
@@ -56,6 +56,8 @@ public final class Client {
     public Integer trackCounter() {
         return trackCounter;
     }
+
+
 
     @Override
     public boolean equals(Object obj) {
@@ -84,4 +86,8 @@ public final class Client {
                 "trackCounter=" + trackCounter + ']';
     }
 
+    @Override
+    public void onIceCandidate(RTCIceCandidate rtcIceCandidate) {
+
+    }
 }
