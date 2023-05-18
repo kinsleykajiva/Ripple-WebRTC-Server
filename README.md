@@ -1,6 +1,8 @@
 # Ripple-WebRTC-Server
 
 Ripple-WebRTC-Server is a Java-based WebRTC server built using the Quarkus framework. It provides support for video rooms and audio rooms. The server is still in development mode and aims to deliver a robust and efficient WebRTC experience.
+The primary goal is to use this app as an Native Image created by  GraalVM tools
+
 
 ## Cheat Sheet
 
@@ -18,7 +20,7 @@ To run the application in dev mode, enabling live coding, use the following comm
 ./mvnw compile quarkus:dev
 ```
 
-While in dev mode, you can access the Dev UI at [http://localhost:8080/q/dev/](http://localhost:8080/q/dev/).
+While in dev mode, you can access the Dev UI at [http://localhost:6060/q/dev/](http://localhost:6060/q/dev/).
 
 ### Packaging and Running
 
