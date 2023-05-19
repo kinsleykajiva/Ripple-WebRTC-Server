@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Path("/video")
 @Produces(MediaType.APPLICATION_JSON)
@@ -80,7 +81,7 @@ public class VideoRoomController {
     }
 
     @POST
-    @Path("/sendOffer")
+    @Path("/sendOfferxxxxxxxxxxxxx")
     public Response sendOfferRoom(PostSDPOffer payload) {
         if (payload == null) {
             return Response.ok(Map.of(
@@ -113,7 +114,9 @@ public class VideoRoomController {
 
         }
         roomModelOptional.getOnly().getParticipants().stream().filter(client -> client.clientId().equals(payload.clientID())).forEach(client -> {
-            client.getRtcModel().setOffer(new JSONObject(payload.offer()));
+            client.getRtcModel().setOffer((payload.offer()));
+            logger.atInfo().log("get the offer --- ", client.getRtcModel().offer());
+            client.processSdpOfferAsRemoteDescription();
         });
         // update the  ConnectionsManager.roomsList
 
@@ -151,12 +154,13 @@ public class VideoRoomController {
                 .filter(client -> client.clientId().equals(payload.clientID()))
                 .findFirst()
                 .ifPresent(client -> {
-                    client.getRtcModel().setAnswer(new JSONObject(payload.offer()));
+                    client.getRtcModel().setAnswer((payload.offer()));
                     connectionsManager.updateRoom(roomModel);
                 });
 
         return XUtils.buildSuccessResponse(true, 200, "SDP Answer shared", Map.of());
     }
+
     @POST
     @Path("/send-offer")
     public Response sendOffer(PostSDPOffer payload) {
@@ -178,18 +182,49 @@ public class VideoRoomController {
         }
 
         RoomModel roomModel = roomModelOptional.get();
+        Optional<Client> clientModelOptional = roomModel.getParticipants().stream()
+                .filter(client -> client.clientId().equals(payload.clientID()))
+                .findFirst();
+        if (clientModelOptional.isEmpty()) {
+            return XUtils.buildErrorResponse(false, 400, "Client not found!", Map.of());
+        }
+
+        Client clientModel = clientModelOptional.get();
+        clientModel.getRtcModel().setOffer(payload.offer());
+
+
+        CompletableFuture<Response> future = CompletableFuture.supplyAsync(() -> {
+            String responseAnswer = clientModel.processSdpOfferAsRemoteDescription();
+            connectionsManager.updateRoom(roomModel);
+
+            return XUtils.buildSuccessResponse(true, 200, "SDP Offer processed, here is the answer ", Map.of("sdp", responseAnswer));
+        });
+
+        try {
+            // Retrieve the response from the CompletableFuture
+            return future.get();
+        } catch (Exception e) {
+            logger.atInfo().withCause(e).log("Error");
+            return XUtils.buildErrorResponse(false, 500, "Error processing SDP Offer", Map.of());
+        }
+
+
+    
+
+/*
+        RoomModel roomModel = roomModelOptional.get();
         roomModel.getParticipants().stream()
                 .filter(client -> client.clientId().equals(payload.clientID()))
                 .findFirst()
                 .ifPresent(client -> {
-                    client.getRtcModel().setOffer(new JSONObject(payload.offer()));
+                    client.getRtcModel().setOffer((payload.offer()));
+                   // logger.atInfo().log("ge the offer"  + client.getRtcModel().offer());
+                    client.processSdpOfferAsRemoteDescription();
                     connectionsManager.updateRoom(roomModel);
                 });
 
-        return XUtils.buildSuccessResponse(true, 200, "SDP Offer shared", Map.of());
+        return XUtils.buildSuccessResponse(true, 200, "SDP Offer shared", Map.of());*/
     }
-
-
 
 
     @POST
@@ -226,7 +261,6 @@ public class VideoRoomController {
 
         return XUtils.buildSuccessResponse(true, 200, "Added to room", Map.of());
     }
-
 
 
     @POST
@@ -284,8 +318,6 @@ public class VideoRoomController {
             return XUtils.buildErrorResponse(false, 400, "Failed to create room!", Map.of());
         }
     }
-
-
 
 
     @POST

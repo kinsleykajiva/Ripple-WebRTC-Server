@@ -6,21 +6,21 @@ import java.util.Objects;
 
 
 public final class RTCModel {
-    private  JSONObject offer;
-    private  JSONObject answer;
+    private  String offer;
+    private  String answer;
 
-    public JSONObject offer() {
+    public String offer() {
         return offer;
     }
 
-    public JSONObject answer() {
+    public String  answer() {
         return answer;
     }
-    public JSONObject setAnswer( JSONObject answer) {
+    public String setAnswer( String answer) {
         return this.answer =answer;
     }
 
-   public JSONObject setOffer( JSONObject offer) {
+   public String setOffer( String offer) {
         return this.offer =offer;
     }
 

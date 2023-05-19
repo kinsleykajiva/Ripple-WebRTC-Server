@@ -151,7 +151,7 @@ const RippleSDK = {
                         });
                         console.log(result);
                         if (result.success) {
-                            RippleSDK.app.feature.videoRoom.room = result.data.room;
+
                             return true;
                         }
                         return false;
@@ -191,11 +191,18 @@ const RippleSDK = {
                     .then(async _sdp => {
                         await RippleSDK.app.webRTC.peerConnection.setLocalDescription(_sdp);
                         const payload = {
-                            type: "offer",
+
                             sdp: _sdp
                         };
                         console.log("local peer sdp set")
-                        console.log('2 post payload ', payload);
+                        console.log('2 post payload ', _sdp.sdp);
+                        //ToDo this add a condition check on this part as to avoid repeatiton
+                        const post = await RippleSDK.Utils.fetchWithTimeout('video/send-offer', {
+                            method: 'POST',
+                            body: {roomID: RippleSDK.app.feature.videoRoom.room.roomID ,offer : _sdp.sdp,
+                                clientID: RippleSDK.serverClientId}
+                        });
+                        console.log('XXXX post post ', post);
 
                     });
             },
@@ -337,8 +344,7 @@ const RippleSDK = {
                 RippleSDK.Utils.myMedia.getTracks().forEach(track => track.stop());
             }
             const localVideo = document.getElementById(RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID);
-            localVideo.video.pause();
-            localVideo.video.src = "";
+
             localVideo.srcObject = null;
             console.log("Stopped capturing my media , at there is no more rendering")
 

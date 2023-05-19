@@ -6,18 +6,26 @@ import dev.onvoid.webrtc.*;
 
 import java.util.Objects;
 import java.util.Vector;
+import java.util.concurrent.CompletableFuture;
 
-public final class Client implements PeerConnectionObserver{
+public final class Client implements PeerConnectionObserver {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final String clientId = XUtils.IdGenerator();
-    private  String clientAgentName ;
-    private  long lastTimeStamp= System.currentTimeMillis();
-    private final Vector<String> messages=new Vector<>();
-    private final Recorder recorder= new Recorder();
-    private  Integer trackCounter=0;
+    private String clientAgentName;
+    private long lastTimeStamp = System.currentTimeMillis();
+    private final Vector<String> messages = new Vector<>();
+    private final Recorder recorder = new Recorder();
+    private Integer trackCounter = 0;
     private final RTCPeerConnection peerConnection;
     private RTCModel rtcModel = new RTCModel();
 
+    final SetSessionDescriptionObserver localObserver = new SetSessionDescriptionObserver() {
+        public void onSuccess() {
+        }
+
+        public void onFailure(String s) {
+        }
+    };
 
     public Client(String clientAgentName) {
         this.clientAgentName = clientAgentName;
@@ -29,6 +37,54 @@ public final class Client implements PeerConnectionObserver{
         peerConnection = peerConnectionFactory.createPeerConnection(rtcConfiguration, this);
         logger.atInfo().log("Creating peer connection");
     }
+
+
+    public String processSdpOfferAsRemoteDescription() {
+        logger.atInfo().log("ProcesSdpOfferAsRemoteDescription" + rtcModel.offer());
+        RTCSessionDescription description = new RTCSessionDescription(RTCSdpType.OFFER, rtcModel.offer());
+
+        CompletableFuture<String> future = new CompletableFuture<>();
+
+        final var sdpObserver = new CreateSessionDescriptionObserver() {
+            @Override
+            public void onSuccess(RTCSessionDescription rtcSessionDescription) {
+                peerConnection.setLocalDescription(rtcSessionDescription, localObserver);
+                // now we are responding to this cleint with the remote description
+                rtcModel.setAnswer(rtcSessionDescription.sdp);
+                future.complete(rtcSessionDescription.sdp);
+            }
+
+            @Override
+            public void onFailure(String s) {
+                future.complete(null);
+            }
+        };
+
+        final var remoteSDP = new SetSessionDescriptionObserver() {
+            @Override
+            public void onSuccess() {
+                final RTCAnswerOptions answerOptions = new RTCAnswerOptions();
+                answerOptions.voiceActivityDetection = false;
+                peerConnection.createAnswer(answerOptions, sdpObserver);
+            }
+
+            @Override
+            public void onFailure(String s) {
+
+            }
+        };
+        peerConnection.setRemoteDescription(description, remoteSDP);
+        try {
+            // Wait for the CompletableFuture to complete (or complete exceptionally)
+           return future.get();
+        } catch (Exception e) {
+
+            logger.atInfo().withCause(e).log("Error");
+        }
+
+        return "";
+    }
+
     public RTCPeerConnection getPeerConnection() {
         return peerConnection;
     }
@@ -41,8 +97,9 @@ public final class Client implements PeerConnectionObserver{
     public long lastTimeStamp() {
         return lastTimeStamp;
     }
- public void updateLastTimeStamp(long newTime) {
-         lastTimeStamp=newTime;
+
+    public void updateLastTimeStamp(long newTime) {
+        lastTimeStamp = newTime;
     }
 
     public Vector<String> messages() {
