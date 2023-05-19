@@ -51,6 +51,7 @@ const RippleSDK = {
                 if (media && media.active) {
                     RippleSDK.hasAccessToVideoPermission = true;
                     RippleSDK.hasAccessToAudioPermission = true;
+                    RippleSDK.Utils.myMedia = media;
 
                     if (RippleSDK.app.featuresInUse.includes('VIDEO_ROOM')) {
                         if (!RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID || RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID.length === 0) {
@@ -329,6 +330,19 @@ const RippleSDK = {
         isWebRTCSupported: () => !!window.RTCPeerConnection,
         canAccessMedia: () => !!navigator.mediaDevices && !!navigator.mediaDevices.getUserMedia,
         onAccessMediaAllowedNotification: (mediaStream, wasAudioAllowed, wasVideoAllowed) => {
+        },
+        myMedia: null,
+        stopMyLocalMediaAccess: () => {
+            if (RippleSDK.Utils.myMedia) {
+                RippleSDK.Utils.myMedia.getTracks().forEach(track => track.stop());
+            }
+            const localVideo = document.getElementById(RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID);
+            localVideo.video.pause();
+            localVideo.video.src = "";
+            localVideo.srcObject = null;
+            console.log("Stopped capturing my media , at there is no more rendering")
+
+            //  this.localStream.getTracks().forEach(track => track.stop());
         },
         testMediaAccess: () => {
             let config = {audio: false, video: false};
