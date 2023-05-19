@@ -64,6 +64,7 @@ public class GeneralController {
                         "message", "Client  Remembered Successfully",
                         "data", Map.of(
                                 "client", Map.of(
+                                        "iceCandidates", clientObject.getCandidateMap(),
                                         "clientID", clientObject.clientId(),
                                         "lastSeen", clientObject.lastTimeStamp()
                                 )
