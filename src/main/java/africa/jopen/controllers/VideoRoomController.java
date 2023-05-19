@@ -129,7 +129,7 @@ public class VideoRoomController {
     }
 
 
-    @POST
+   /* @POST
     @Path("/send-answer")
     public Response sendAnswer(PostSDPAnswer payload) {
         if (payload == null) {
@@ -159,6 +159,42 @@ public class VideoRoomController {
                 });
 
         return XUtils.buildSuccessResponse(true, 200, "SDP Answer shared", Map.of());
+    }*/
+
+    @POST
+    @Path("/update-ice-candidate")
+    public Response updateIce(PostIceCandidate payload) {
+        if (payload == null) {
+            return XUtils.buildErrorResponse(false, 400, "Payload object is required!", Map.of());
+        }
+
+        if (payload.clientID() == null || payload.clientID().isEmpty()) {
+            return XUtils.buildErrorResponse(false, 400, "Client ID is required!", Map.of());
+        }
+
+
+        if (payload.iceCandidate().candidate() == null ) {
+            return XUtils.buildErrorResponse(false, 400, "icecandidate is required!", Map.of());
+        }
+        Optional<RoomModel> roomModelOptional = connectionsManager.getRoomById(payload.roomID());
+        if (roomModelOptional.isEmpty()) {
+            return XUtils.buildErrorResponse(false, 400, "Room not found!", Map.of());
+        }
+
+        RoomModel roomModel = roomModelOptional.get();
+        Optional<Client> clientModelOptional = roomModel.getParticipants().stream()
+                .filter(client -> client.clientId().equals(payload.clientID()))
+                .findFirst();
+        if (clientModelOptional.isEmpty()) {
+            return XUtils.buildErrorResponse(false, 400, "Client not found!", Map.of());
+        }
+        Client clientModel = clientModelOptional.get();
+        clientModel.addIceCandidate(payload.iceCandidate());
+        connectionsManager.updateRoom(roomModel, payload.clientID());
+
+        return XUtils.buildSuccessResponse(true, 200, "Updated Clients Ice Candidates ", Map.of());
+
+
     }
 
     @POST
@@ -195,7 +231,7 @@ public class VideoRoomController {
 
         CompletableFuture<Response> future = CompletableFuture.supplyAsync(() -> {
             String responseAnswer = clientModel.processSdpOfferAsRemoteDescription();
-            connectionsManager.updateRoom(roomModel);
+            connectionsManager.updateRoom(roomModel , payload.clientID());
 
             return XUtils.buildSuccessResponse(true, 200, "SDP Offer processed, here is the answer ", Map.of("sdp", responseAnswer));
         });
@@ -257,7 +293,7 @@ public class VideoRoomController {
 
         Client clientObject = connectionsManager.updateClientWhenRemembered(room.clientID());
         RoomModel updatedRoomModel = roomModel.addParticipant(clientObject);
-        connectionsManager.updateRoom(updatedRoomModel);
+        connectionsManager.updateRoom(updatedRoomModel, room.clientID());
 
         return XUtils.buildSuccessResponse(true, 200, "Added to room", Map.of());
     }

@@ -30,6 +30,13 @@ const RippleSDK = {
                     if (res.success) {
                         console.log("the Server still knows about me ")
                         RippleSDK.serverClientLastSeen = res.data.client.lastSeen;
+                        console.log('ice - ',res.data.client.iceCandidates)
+                        if(res.data.client.iceCandidates){
+                            if(RippleSDK.app.webRTC.peerConnection){
+                                RippleSDK.app.webRTC.peerConnection.addIceCandidate(res.data.client.iceCandidates);
+                            }
+
+                        }
                     } else {
                         alert("Client not found please re-connect this session is now invalid!")
                         console.error("Client not found please re-connect this session is now invalid!")
@@ -194,8 +201,8 @@ const RippleSDK = {
 
                             sdp: _sdp
                         };
-                        console.log("local peer sdp set")
-                        console.log('2 post payload ', _sdp.sdp);
+                       // console.log("local peer sdp set")
+                       // console.log('2 post payload ', _sdp.sdp);
                         //ToDo this add a condition check on this part as to avoid repeatiton
                         const post = await RippleSDK.Utils.fetchWithTimeout('video/send-offer', {
                             method: 'POST',
@@ -203,6 +210,10 @@ const RippleSDK = {
                                 clientID: RippleSDK.serverClientId}
                         });
                         console.log('XXXX post post ', post);
+                        RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
+                            sdp: post.data.sdp,
+                            type: 'answer',
+                        });
 
                     });
             },
@@ -218,7 +229,7 @@ const RippleSDK = {
                 console.log('make a peer connection ...');
 
                 RippleSDK.app.webRTC.peerConnection = new RTCPeerConnection(configuration);
-                RippleSDK.app.webRTC.peerConnection.onicecandidate = ev => {
+                RippleSDK.app.webRTC.peerConnection.onicecandidate = async ev => {
                     if (!ev.candidate || (ev.candidate.candidate && ev.candidate.candidate.indexOf('endOfCandidates') > 0)) {
                         console.log('End of candidates.');
                     } else {
@@ -229,7 +240,17 @@ const RippleSDK = {
                             sdpMid: ev.candidate.sdpMid,
                             sdpMLineIndex: ev.candidate.sdpMLineIndex
                         };
-                        console.log('1 post payload ', payload);
+                      //  console.log('1 post payload ', payload);
+                        console.log('1 ev.candidate', ev.candidate);
+
+                        const post = await RippleSDK.Utils.fetchWithTimeout('video/update-ice-candidate', {
+                            method: 'POST',
+                            body: {
+                                roomID: RippleSDK.app.feature.videoRoom.room.roomID, iceCandidate:payload,
+                                clientID: RippleSDK.serverClientId
+                            }
+                        });
+                        console.log('XXXX post post ', post);
                     }
 
                 };

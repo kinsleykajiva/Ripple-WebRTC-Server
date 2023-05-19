@@ -3,6 +3,7 @@ package africa.jopen.utils;
 
 import africa.jopen.models.Client;
 import africa.jopen.models.RoomModel;
+import com.google.common.flogger.FluentLogger;
 import jakarta.inject.Singleton;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
@@ -13,6 +14,7 @@ import java.util.Optional;
 @Singleton
 //@ApplicationScoped
 public class ConnectionsManager {
+      private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private ConnectionsManager() {
         // Private constructor to enforce singleton pattern
     }
@@ -28,8 +30,20 @@ public class ConnectionsManager {
         roomsList.add(roomModel);
     }
 
-    public void updateRoom(RoomModel room) {
+
+    public void updateRoom(RoomModel room, String clientID) {
+        int index = clientsList.detectIndex(client -> client.clientId().equals(clientID));
+        var updatedClient = room.getParticipants().detectOptional(client -> client.clientId().equals(clientID));
+        if (updatedClient.isPresent()) {
+            if (index >= 0) {
+                clientsList.set(index, updatedClient.get());
+                logger.atInfo().log("Updated client via an Room Accesss");
+            } else {
+                logger.atInfo().log("failed to update client , is missing or gone");
+            }
+        }
         roomsList.replaceAll(oldRoom -> oldRoom.getRoomID().equals(room.getRoomID()) ? room : oldRoom);
+
     }
 
     private static MutableList<Client> clientsList = Lists.mutable.empty();
