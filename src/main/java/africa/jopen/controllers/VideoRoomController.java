@@ -89,7 +89,7 @@ public class VideoRoomController {
 		
 		RoomModel roomModel = roomModelOptional.get();
 		Optional<Client> clientModelOptional = roomModel.getParticipants().stream()
-				.filter(client -> client.clientId().equals(payload.clientID()))
+				.filter(client -> client.getClientID().equals(payload.clientID()))
 				.findFirst();
 		if (clientModelOptional.isEmpty()) {
 			return XUtils.buildErrorResponse(false, 400, "Client not found!", Map.of());
@@ -126,7 +126,7 @@ public class VideoRoomController {
 		
 		RoomModel roomModel = roomModelOptional.get();
 		Optional<Client> clientModelOptional = roomModel.getParticipants().stream()
-				.filter(client -> client.clientId().equals(payload.clientID()))
+				.filter(client -> client.getClientID().equals(payload.clientID()))
 				.findFirst();
 		if (clientModelOptional.isEmpty()) {
 			return XUtils.buildErrorResponse(false, 400, "Client not found!", Map.of());
@@ -224,7 +224,7 @@ public class VideoRoomController {
 			roomModel.setRoomDescription(room.roomDescription());
 			roomModel.setPassword(room.password());
 			roomModel.setPin(room.pin());
-			roomModel.setCreatorClientID(clientOptional.get().clientId());
+			roomModel.setCreatorClientID(clientOptional.get().getClientID());
 			clientOptional.get().setFeatureType(FeatureTypes.VIDEO_ROOM);
 			roomModel.addParticipant(clientOptional.get());
 			connectionsManager.addRoom(roomModel);
@@ -267,7 +267,7 @@ public class VideoRoomController {
 		connectionsManager.addNewClient(clientObject);
 		
 		Map<String, Object> responseData = new HashMap<>();
-		responseData.put("clientID", clientObject.clientId());
+		responseData.put("clientID", clientObject.getClientID());
 		responseData.put("lastSeen", clientObject.lastTimeStamp());
 		
 		return XUtils.buildSuccessResponse(true, 200, "Client newly connected and recognized", responseData);

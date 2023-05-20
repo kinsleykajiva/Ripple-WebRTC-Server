@@ -150,7 +150,7 @@ public class VideoCallController {
 		long life = TimeUnit.SECONDS.toMillis(20);
 		long end = start + life;
 		
-		var notification = new VideCallNotification(XUtils.IdGenerator(), payload.fromClientID(), payload.toClientID(), start, end);
+		var notification = new VideCallNotification(XUtils.IdGenerator(),fromClientOptional.get().getClientAgentName(), payload.fromClientID(), payload.toClientID(), start, end);
 		connectionsManager.updateClientAboutVideoCall(payload.toClientID(), notification);
 		connectionsManager.updateClientAboutVideoCall(payload.fromClientID(), notification);
 		// both involved parties knows about this notification
@@ -196,7 +196,7 @@ public class VideoCallController {
 		return XUtils.buildSuccessResponse(true, 200, "Client  Ready To get calls", Map.of("client",
 				Map.of(
 						
-						"clientID", clientObject.clientId(),
+						"clientID", clientObject.getClientID(),
 						"featureInUse", clientObject.getFeatureType(),
 						"lastSeen", clientObject.lastTimeStamp()
 				)));

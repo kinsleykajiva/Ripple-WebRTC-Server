@@ -37,8 +37,8 @@ public class ConnectionsManager {
 	}
 	
 	public void updateRoom(RoomModel room, String clientID) {
-		int index = CLIENTS.detectIndex(client -> client.clientId().equals(clientID));
-		var updatedClient = room.getParticipants().detectOptional(client -> client.clientId().equals(clientID));
+		int index = CLIENTS.detectIndex(client -> client.getClientID().equals(clientID));
+		var updatedClient = room.getParticipants().detectOptional(client -> client.getClientID().equals(clientID));
 		if (updatedClient.isPresent()) {
 			if (index >= 0) {
 				CLIENTS.set(index, updatedClient.get());
@@ -58,7 +58,7 @@ public class ConnectionsManager {
 	public MutableList<Map<String, Object>> list() {
 		MutableList<Map<String, Object>> returnVal = Lists.mutable.empty();
 		CLIENTS.forEach(client -> returnVal.add(Map.of(
-								"clientID", client.clientId(),
+								"clientID", client.getClientID(),
 								"lastSeen", client.lastTimeStamp()
 						)
 				)
@@ -69,19 +69,19 @@ public class ConnectionsManager {
 	
 	public boolean checkIfClientExists(String id) {
 		//  check if client exists using the client d property
-		return CLIENTS.anySatisfy(client -> client.clientId().equals(id));
+		return CLIENTS.anySatisfy(client -> client.getClientID().equals(id));
 	}
 	
 	
 	public Optional<Client> getClient(String id) {
 		//  check if client exists using the client d property
-		return CLIENTS.select(client -> client.clientId().equals(id)).stream().findFirst();
+		return CLIENTS.select(client -> client.getClientID().equals(id)).stream().findFirst();
 	}
 	
 	public Client updateClientWhenRemembered(String id) {
 		// update client of the client object in the list and return the client object
 		for (Client client : CLIENTS) {
-			if (client.clientId().equals(id)) {
+			if (client.getClientID().equals(id)) {
 				client.updateLastTimeStamp(System.currentTimeMillis());
 				return client;
 			}
@@ -94,7 +94,7 @@ public class ConnectionsManager {
 	public Client updateClientAboutVideoCall(String id, VideCallNotification notification) {
 		// update client of the client object in the list and return the client object
 		for (Client client : CLIENTS) {
-			if (client.clientId().equals(id)) {
+			if (client.getClientID().equals(id)) {
 				client.setVideCallNotification(notification);
 				return updateClientWhenRemembered(id);
 				
@@ -106,9 +106,9 @@ public class ConnectionsManager {
 	
 	public Client updateClient(Client client_) {
 		
-		CLIENTS.replaceAll(oldClient -> oldClient.clientId().equals(client_.clientId()) ? client_ : oldClient);
+		CLIENTS.replaceAll(oldClient -> oldClient.getClientID().equals(client_.getClientID()) ? client_ : oldClient);
 		
-		return updateClientWhenRemembered(client_.clientId());
+		return updateClientWhenRemembered(client_.getClientID());
 	}
 	
 	public void removeClient(Client client) {

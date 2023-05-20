@@ -319,14 +319,15 @@ const RippleSDK = {
                 }
 
                 const json = await response.json();
+                if(json.serverName){
+                    RippleSDK.serverName = json.serverName;
+                }
                 console.log('json-ttp', json)
                 // process the response
                 if (json.success) {
                     if (json.data.type === 'icecandidate') {
                         RippleSDK.app.rootCallbacks.icecandidate(json.data.candidate)
                     }
-
-
                 }
                 return json;
             } catch (error) {

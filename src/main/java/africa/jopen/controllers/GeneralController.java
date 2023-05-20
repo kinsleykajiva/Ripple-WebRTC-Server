@@ -65,7 +65,7 @@ public class GeneralController {
 			responseMap.put("videoCall", clientObject.getVideCallNotification());
 		}
 		
-		responseMap.put("clientID", clientObject.clientId());
+		responseMap.put("clientID", clientObject.getClientID());
 		responseMap.put("featureInUse", clientObject.getFeatureType());
 		responseMap.put("lastSeen", clientObject.lastTimeStamp());
 		
@@ -89,7 +89,7 @@ public class GeneralController {
 		connectionsManager.addNewClient(clientObject);
 		
 		Map<String, Object> responseData = new HashMap<>();
-		responseData.put("clientID", clientObject.clientId());
+		responseData.put("clientID", clientObject.getClientID());
 		responseData.put("lastSeen", clientObject.lastTimeStamp());
 		
 		return XUtils.buildSuccessResponse(true, 200, "Client newly connected and recognized", responseData);

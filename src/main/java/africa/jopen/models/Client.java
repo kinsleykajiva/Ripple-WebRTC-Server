@@ -22,7 +22,7 @@ public final class Client implements PeerConnectionObserver {
 		public void onFailure(String s) {
 		}
 	};
-	private final String clientId = XUtils.IdGenerator();
+	private final String clientID = XUtils.IdGenerator();
 	private final Vector<String> messages = new Vector<>();
 	private final Recorder recorder = new Recorder();
 	private final RTCPeerConnection peerConnection;
@@ -45,6 +45,8 @@ public final class Client implements PeerConnectionObserver {
 		peerConnection = peerConnectionFactory.createPeerConnection(rtcConfiguration, this);
 		logger.atInfo().log("Creating peer connection");
 	}
+	
+	
 	
 	
 	public void addIceCandidate(IceCandidate candidate) {
@@ -112,8 +114,8 @@ public final class Client implements PeerConnectionObserver {
 		return peerConnection;
 	}
 	
-	public String clientId() {
-		return clientId;
+	public String getClientID() {
+		return clientID;
 		
 	}
 	
@@ -153,12 +155,16 @@ public final class Client implements PeerConnectionObserver {
 		this.rtcModel = rtcModel;
 	}
 	
+	public String getClientAgentName() {
+		return clientAgentName;
+	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == this) return true;
 		if (obj == null || obj.getClass() != this.getClass()) return false;
 		var that = (Client) obj;
-		return Objects.equals(this.clientId, that.clientId) &&
+		return Objects.equals(this.clientID, that.clientID) &&
 				this.lastTimeStamp == that.lastTimeStamp &&
 				Objects.equals(this.messages, that.messages) &&
 				Objects.equals(this.recorder, that.recorder) &&
@@ -167,13 +173,13 @@ public final class Client implements PeerConnectionObserver {
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(clientId, lastTimeStamp, messages, recorder, trackCounter);
+		return Objects.hash(clientID, lastTimeStamp, messages, recorder, trackCounter);
 	}
 	
 	@Override
 	public String toString() {
 		return "Client[" +
-				"clientId=" + clientId + ", " +
+				"clientId=" + clientID + ", " +
 				"lastTimeStamp=" + lastTimeStamp + ", " +
 				"messages=" + messages + ", " +
 				"recorder=" + recorder + ", " +

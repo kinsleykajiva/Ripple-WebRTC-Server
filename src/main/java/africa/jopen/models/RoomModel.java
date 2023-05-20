@@ -51,7 +51,7 @@ public class RoomModel {
 		
 		Client updatedClient = event.getClient();
 		
-		int index = clients.detectIndex(client -> client.clientId().equals(updatedClient.clientId()));
+		int index = clients.detectIndex(client -> client.getClientID().equals(updatedClient.getClientID()));
 		
 		if (index >= 0) {
 			clients.set(index, updatedClient);
@@ -136,7 +136,7 @@ public class RoomModel {
 	public MutableList<Map<String, Object>> getParticipantsDto() {
 		MutableList<Map<String, Object>> returnVal = org.eclipse.collections.api.factory.Lists.mutable.empty();
 		clients.forEach(client -> returnVal.add(Map.of(
-				"clientID", client.clientId(),
+				"clientID", client.getClientID(),
 				"lastSeen", client.lastTimeStamp()
 		)));
 		
@@ -144,7 +144,7 @@ public class RoomModel {
 	}
 	
 	public RoomModel addParticipant(Client client) {
-		boolean exists = clients.anySatisfy(client1 -> client1.clientId().equals(client.clientId()));
+		boolean exists = clients.anySatisfy(client1 -> client1.getClientID().equals(client.getClientID()));
 		if (!exists) {
 			this.clients.add(client);
 		}
