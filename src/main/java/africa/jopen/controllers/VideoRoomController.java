@@ -43,8 +43,6 @@ public class VideoRoomController {
 			return XUtils.buildErrorResponse(false, 400, "Room ID is required!", Map.of());
 			
 		}
-		
-		
 		var roomModelOptional = ConnectionsManager.ROOMS.select(roomM -> roomM.getRoomID().equals(roomID));
 		if (roomModelOptional.isEmpty()) {
 			

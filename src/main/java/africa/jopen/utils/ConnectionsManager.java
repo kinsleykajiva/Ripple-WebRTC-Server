@@ -101,7 +101,7 @@ public class ConnectionsManager {
 			}
 		}
 		
-		throw new RuntimeException("Client not found ,IllegalStateException");
+		throw new ClientException("Client not found ,IllegalStateException");
 	}
 	
 	public Client updateClient(Client client_) {
