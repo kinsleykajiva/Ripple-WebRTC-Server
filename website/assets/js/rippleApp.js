@@ -6,6 +6,8 @@ const RippleSDK = {
     hasAccessToVideoPermission: false,
     hasAccessToAudioPermission: false,
     serverUrl: '',
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    serverName: '',
     clientID: '',
     serverClientId: '',
     serverClientLastSeen: 0,
@@ -49,6 +51,13 @@ const RippleSDK = {
         },
         maxRetries: 10,
         rootCallbacks: {
+            networkError:error=>{
+                console.error(error);
+                if(RippleSDK.isDebugSession){
+                    alert(error)
+                }
+
+            },
             answer: answer => {
                 console.log('answer', answer)
             },
@@ -286,6 +295,9 @@ const RippleSDK = {
                 options.headers = {
                     'Content-Type': 'application/json',
                 }
+                options.body.timeStamp = new Date().getTime();
+                options.body.timeZone = RippleSDK.timeZone;
+                options.body.serverName =RippleSDK.serverName;
                 options.body = JSON.stringify(options.body);
             }
 
@@ -301,7 +313,9 @@ const RippleSDK = {
                 clearTimeout(id);
 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
+                    console.warn("An error has occurred")
+                    RippleSDK.app.rootCallbacks.networkError(`HTTP error! Status: ${response.status}`);
+                   // throw new Error(`HTTP error! Status: ${response.status}`);
                 }
 
                 const json = await response.json();
@@ -317,7 +331,8 @@ const RippleSDK = {
                 return json;
             } catch (error) {
                 clearTimeout(id);
-                throw new Error(`Request failed: ${error.message}`);
+                RippleSDK.app.rootCallbacks.networkError(`Request failed: ${error.message}`);
+               // throw new Error(`Request failed: ${error.message}`);
             }
         },
         isChromeOrFirefox: () => {

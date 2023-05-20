@@ -4,6 +4,7 @@ import jakarta.ws.rs.core.Response;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.UUID;
 
 public class XUtils {
@@ -40,8 +41,8 @@ public class XUtils {
 	private static Map<String, Object> buildResponseMap(boolean success, int code, String message, Map<String, Object> data) {
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", success);
-		response.put("timeZone", "utc");
-		response.put("server", SERVER_NAME);
+		response.put("timeZone", TimeZone.getDefault().getDisplayName() /*"Africa/Johannesburg"*/);
+		response.put("serverName", SERVER_NAME);
 		response.put("timeStamp", System.currentTimeMillis());
 		response.put("code", code);
 		response.put("message", message);

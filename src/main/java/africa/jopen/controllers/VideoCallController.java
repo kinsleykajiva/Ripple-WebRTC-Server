@@ -155,10 +155,14 @@ public class VideoCallController {
 		connectionsManager.updateClientAboutVideoCall(payload.fromClientID(), notification);
 		// both involved parties knows about this notification
 		// we need to exchange the sdp with the caller remote description
-		return XUtils.buildSuccessResponse(true, 200, "Client notified, call in progress!", Map.of(
-				"callerSdp", fromClientOptional.get().getRtcModel().offer(),
-				"serverRemoteSdp", fromClientOptional.get().getRtcModel().answer()
-		));
+		return XUtils.buildSuccessResponse(true, 200, "Client notified, call in progress!",Map.of()
+				/*
+					,Map.of(
+					"callerSdp", fromClientOptional.get().getRtcModel().offer(),
+					"serverRemoteSdp", fromClientOptional.get().getRtcModel().answer()
+					)
+				*/
+		);
 		
 	}
 	
