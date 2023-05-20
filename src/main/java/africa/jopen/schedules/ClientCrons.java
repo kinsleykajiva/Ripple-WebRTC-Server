@@ -12,9 +12,14 @@ public class ClientCrons {
     ConnectionsManager connectionsManager;
 
 
-    @Scheduled(every = "60s") // Run the task every 10 seconds
+    @Scheduled(every = "60s")
     void executeTask() {
         connectionsManager.removeOrphanClients();
+    }
+
+    @Scheduled(every = "10s")
+    void executeCallNotificationsTask() {
+        connectionsManager.removeDeadCallNotifications();
     }
 
 

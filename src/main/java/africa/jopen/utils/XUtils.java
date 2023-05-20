@@ -8,6 +8,8 @@ import java.util.UUID;
 
 public class XUtils {
 
+    public static String SERVER_NAME = "SERVER_ONE";
+
   public static   String IdGenerator(){
         UUID uuid = UUID.randomUUID();
 
@@ -38,6 +40,9 @@ public class XUtils {
     private static Map<String, Object> buildResponseMap(boolean success, int code, String message,Map<String, Object> data) {
         Map<String, Object> response = new HashMap<>();
         response.put("success", success);
+        response.put("timeZone", "utc");
+        response.put("server",SERVER_NAME);
+        response.put("timeStamp", System.currentTimeMillis());
         response.put("code", code);
         response.put("message", message);
         response.put("data", data);

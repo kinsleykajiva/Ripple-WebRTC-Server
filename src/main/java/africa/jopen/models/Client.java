@@ -8,7 +8,7 @@ import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.ImmutableList;
 import org.eclipse.collections.api.list.MutableList;
 import org.json.JSONObject;
-
+import africa.jopen.utils.FeatureTypes;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -20,14 +20,18 @@ import java.util.concurrent.CompletableFuture;
 public final class Client implements PeerConnectionObserver {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final String clientId = XUtils.IdGenerator();
-    private String clientAgentName;
+    private String clientAgentName;// this si the display name that will be used
+    private FeatureTypes featureType;
     private long lastTimeStamp = System.currentTimeMillis();
     private final Vector<String> messages = new Vector<>();
     private final Recorder recorder = new Recorder();
     private Integer trackCounter = 0;
     private final RTCPeerConnection peerConnection;
     private RTCModel rtcModel = new RTCModel();
- private Map<String, Object> candidateMap = new HashMap<>();
+    private Map<String, Object> candidateMap = new HashMap<>();
+    private VideCallNotification videCallNotification ;
+
+
 
 
     final SetSessionDescriptionObserver localObserver = new SetSessionDescriptionObserver() {
@@ -40,6 +44,7 @@ public final class Client implements PeerConnectionObserver {
 
     public Client(String clientAgentName) {
         this.clientAgentName = clientAgentName;
+        this.featureType = featureType;
         RTCConfiguration rtcConfiguration = new RTCConfiguration();
         RTCIceServer stunServer = new RTCIceServer();
         stunServer.urls.add("stun:stun.l.google.com:19302");
@@ -103,6 +108,14 @@ public final class Client implements PeerConnectionObserver {
         return "";
     }
 
+    public FeatureTypes getFeatureType() {
+        return featureType;
+    }
+
+    public void setFeatureType(FeatureTypes featureType) {
+        this.featureType = featureType;
+    }
+
     public RTCPeerConnection getPeerConnection() {
         return peerConnection;
     }
@@ -110,6 +123,14 @@ public final class Client implements PeerConnectionObserver {
     public String clientId() {
         return clientId;
 
+    }
+
+    public VideCallNotification getVideCallNotification() {
+        return videCallNotification;
+    }
+
+    public void setVideCallNotification(VideCallNotification videCallNotification) {
+        this.videCallNotification = videCallNotification;
     }
 
     public long lastTimeStamp() {

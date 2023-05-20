@@ -37,31 +37,18 @@ public class VideoRoomController {
     public Response RoomParticipants(@QueryParam("roomID") String roomID) {
 
         if (roomID == null || roomID.isEmpty()) {
-            return Response.ok(Map.of(
-                            "success", false,
-                            "code", 404,
-                            "message", " roomID is empty"
-                    )
-            ).build();
+            return XUtils.buildErrorResponse(false, 400, "Room ID is required!", Map.of());
+
         }
 
 
         var roomModelOptional = ConnectionsManager.roomsList.select(roomM -> roomM.getRoomID().equals(roomID));
         if (roomModelOptional.isEmpty()) {
-            return Response.ok(Map.of(
-                            "success", false,
-                            "code", 404,
-                            "message", " room not found!.."
-                    )
-            ).build();
+
+            return XUtils.buildErrorResponse(false, 400, "Room Not found!", Map.of());
         }
         final var roomModel = roomModelOptional.getOnly();
-
-        return Response.ok(Map.of(
-                        "success", true,
-                        "code", 200,
-                        "message", " room Information",
-                        "data", Map.of(
+        return XUtils.buildSuccessResponse(true, 200, "Room Information ",Map.of(
                                 "room", Map.of(
                                         "roomID", roomModel.getRoomID(),
                                         "roomName", roomModel.getRoomName(),
@@ -74,92 +61,11 @@ public class VideoRoomController {
                                         "participants", roomModel.getParticipantsDto()
 
                                 )
-                        )
-                )
-        ).build();
+        ));
+
+
 
     }
-
-    @POST
-    @Path("/sendOfferxxxxxxxxxxxxx")
-    public Response sendOfferRoom(PostSDPOffer payload) {
-        if (payload == null) {
-            return Response.ok(Map.of(
-                            "success", false,
-                            "code", 400,
-                            "message", "payload Object is required!"
-                    )
-            ).build();
-        }
-        if (payload.clientID() == null || payload.clientID().isEmpty()) {
-            return Response.ok(Map.of(
-                            "success", false,
-                            "code", 400,
-                            "message", "clientID is required!"
-                    )
-            ).build();
-        }
-
-        if (payload.offer() == null || payload.offer().isEmpty()) {
-            return Response.ok(Map.of(
-                            "success", false,
-                            "code", 400,
-                            "message", "offer is required!"
-                    )
-            ).build();
-        }
-        var roomModelOptional = ConnectionsManager.roomsList.select(roomM -> roomM.getRoomID().equals(payload.roomID()));
-
-        if (roomModelOptional.isEmpty()) {
-
-        }
-        roomModelOptional.getOnly().getParticipants().stream().filter(client -> client.clientId().equals(payload.clientID())).forEach(client -> {
-            client.getRtcModel().setOffer((payload.offer()));
-            logger.atInfo().log("get the offer --- ", client.getRtcModel().offer());
-            client.processSdpOfferAsRemoteDescription();
-        });
-        // update the  ConnectionsManager.roomsList
-
-        return Response.ok(Map.of(
-                        "success", true,
-                        "code", 400,
-                        "message", "SDP Offer Shared"
-                )
-        ).build();
-    }
-
-
-   /* @POST
-    @Path("/send-answer")
-    public Response sendAnswer(PostSDPAnswer payload) {
-        if (payload == null) {
-            return XUtils.buildErrorResponse(false, 400, "Payload object is required!", Map.of());
-        }
-
-        if (payload.clientID() == null || payload.clientID().isEmpty()) {
-            return XUtils.buildErrorResponse(false, 400, "Client ID is required!", Map.of());
-        }
-
-        if (payload.offer() == null || payload.offer().isEmpty()) {
-            return XUtils.buildErrorResponse(false, 400, "Answer is required!", Map.of());
-        }
-
-        Optional<RoomModel> roomModelOptional = connectionsManager.getRoomById(payload.roomID());
-        if (roomModelOptional.isEmpty()) {
-            return XUtils.buildErrorResponse(false, 400, "Room not found!", Map.of());
-        }
-
-        RoomModel roomModel = roomModelOptional.get();
-        roomModel.getParticipants().stream()
-                .filter(client -> client.clientId().equals(payload.clientID()))
-                .findFirst()
-                .ifPresent(client -> {
-                    client.getRtcModel().setAnswer((payload.offer()));
-                    connectionsManager.updateRoom(roomModel);
-                });
-
-        return XUtils.buildSuccessResponse(true, 200, "SDP Answer shared", Map.of());
-    }*/
 
     @POST
     @Path("/update-ice-candidate")
@@ -190,6 +96,7 @@ public class VideoRoomController {
         }
         Client clientModel = clientModelOptional.get();
         clientModel.addIceCandidate(payload.iceCandidate());
+        clientModel.setFeatureType(FeatureTypes.VIDEO_ROOM);// Todo Review if we need to always set this at this point
         connectionsManager.updateRoom(roomModel, payload.clientID());
 
         return XUtils.buildSuccessResponse(true, 200, "Updated Clients Ice Candidates ", Map.of());
@@ -226,6 +133,7 @@ public class VideoRoomController {
         }
 
         Client clientModel = clientModelOptional.get();
+        clientModel.setFeatureType(FeatureTypes.VIDEO_ROOM);
         clientModel.getRtcModel().setOffer(payload.offer());
 
 
@@ -245,21 +153,6 @@ public class VideoRoomController {
         }
 
 
-    
-
-/*
-        RoomModel roomModel = roomModelOptional.get();
-        roomModel.getParticipants().stream()
-                .filter(client -> client.clientId().equals(payload.clientID()))
-                .findFirst()
-                .ifPresent(client -> {
-                    client.getRtcModel().setOffer((payload.offer()));
-                   // logger.atInfo().log("ge the offer"  + client.getRtcModel().offer());
-                    client.processSdpOfferAsRemoteDescription();
-                    connectionsManager.updateRoom(roomModel);
-                });
-
-        return XUtils.buildSuccessResponse(true, 200, "SDP Offer shared", Map.of());*/
     }
 
 
@@ -292,6 +185,7 @@ public class VideoRoomController {
         }
 
         Client clientObject = connectionsManager.updateClientWhenRemembered(room.clientID());
+        clientObject.setFeatureType(FeatureTypes.VIDEO_ROOM);
         RoomModel updatedRoomModel = roomModel.addParticipant(clientObject);
         connectionsManager.updateRoom(updatedRoomModel, room.clientID());
 
@@ -331,7 +225,7 @@ public class VideoRoomController {
             roomModel.setPassword(room.password());
             roomModel.setPin(room.pin());
             roomModel.setCreatorClientID(clientOptional.get().clientId());
-
+            clientOptional.get().setFeatureType(FeatureTypes.VIDEO_ROOM);
             roomModel.addParticipant(clientOptional.get());
             connectionsManager.addRoom(roomModel);
             //Todo: add handling events to notify the room of the the clients changes attributes as well .
@@ -358,7 +252,9 @@ public class VideoRoomController {
 
     @POST
     @Path("/connect")
+    //@Deprecated
     public Response connectClient(PostClient client) {
+        // ToDo : this is now moved to the general controller
         if (client == null) {
             return XUtils.buildErrorResponse(false, 400, "Client object is required!", Map.of());
         }
