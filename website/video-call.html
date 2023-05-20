@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Video Call Demo - App RTC Demo</title>
 
     <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
@@ -27,14 +27,19 @@
 <div class="row">
     <div  class="card col-lg-4 "></div>
 <div  class="card col-lg-4">
-            <span id="MyAgentName">--</span><br/>
+            <span id="MyAgentName"></span><br/>
             <video id="localVideo" autoplay playsinline muted></video><br/>
+        <div class="row" >
+            <label for="targetAgentId">The person to call</label> <br/>
+            <input class="form-control" type="text" id="targetAgentId" placeholder="the person to call Id or Agent Name">
+        </div><br/>
             <div class="row" >
                 <button type="button" class="col-md-auto btn btn-success" onclick="onStartAction()" id="startButton">1. Start</button>
-<!--                <button type="button"  class="col-md-auto btn btn-success"  onclick="onMirrorAction()"  id="mirrorButton" disabled>mirror</button>-->
+
                 <button type="button" class="col-auto btn btn-success"   onclick="onConnectAction()" id="connectButton" disabled>2. connect</button>
+                <button type="button" class="col-auto btn btn-success"   onclick="onCallAction()" id="callButton" disabled> 3. Call</button>
 <!--                <button type="button" class="col-auto btn btn-success"   onclick="onRecordAction()" id="recordButton" disabled>Record</button>-->
-                <button type="button" class="col-auto btn btn-danger"   onclick="onStopCameraAction()" id="stopButton" disabled>3 .Stop My Camera Acceess</button>
+                <button type="button" class="col-auto btn btn-danger"   onclick="onStopCameraAction()" id="stopButton" disabled>Stop My Camera Access</button>
             </div>
         </div>
         <div id="remoteVideos">
@@ -57,6 +62,8 @@
 <script src="assets/js/rippleApp.js"></script>
 <script>
     'use strict'
+
+    const targetAgentId = document.getElementById('targetAgentId');
     RippleSDK.serverUrl="http://localhost:6060"
     RippleSDK.isVideoAccessRequired=true;
     RippleSDK.isAudioAccessRequired=true;
@@ -66,7 +73,7 @@
 
     function onStartAction(){
         RippleSDK.Utils.testMediaAccess();
-        RippleSDK.app.featuresInUse.push('VIDEO_ROOM')
+        RippleSDK.app.featuresInUse.push('VIDEO_CALL')
         RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID = 'localVideo'
         RippleSDK.Utils.onAccessMediaAllowedNotification = (mediaStream,wasAudioAllowed,wasVideoAllowed)=>{
             console.log('Media access allowed!');
@@ -82,6 +89,15 @@
     }
 
  function onMirrorAction(){
+    const targetPerson = targetAgentId.value ;
+    if(targetPerson===''){
+        alert("targetPerson Cant be empty");
+        return
+    }
+
+
+ }
+ function onCallAction(){
 
  }
 

@@ -18,7 +18,7 @@ const RippleSDK = {
     remindServerTimeoutInSeconds: 26,
     iceServerArray              : [],
     app: {
-        featuresAvailable : ["VIDEO_ROOM", "AUDIO_ROOM"],
+        featuresAvailable : ["VIDEO_ROOM", "AUDIO_ROOM", "VIDEO_CALL"],
         featuresInUse     : [],
         notificationsTypes: Object.freeze({VIDEO_CALL: 'videoCall',VIDEO_ROOM: 'videoRoom',AUDIO_ROOM: 'audioRoom',}),
         notifications     : [{id: '', type: RippleSDK.app.notificationsTypes.VIDEO_CALL, data: null}],
@@ -38,7 +38,6 @@ const RippleSDK = {
                             if (RippleSDK.app.webRTC.peerConnection) {
                                 RippleSDK.app.webRTC.peerConnection.addIceCandidate(res.data.client.iceCandidates);
                             }
-
                         }
                     } else {
                         alert("Client not found please re-connect this session is now invalid!")

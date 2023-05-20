@@ -41,7 +41,8 @@ public class XUtils {
 	private static Map<String, Object> buildResponseMap(boolean success, int code, String message, Map<String, Object> data) {
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", success);
-		response.put("timeZone", TimeZone.getDefault().getDisplayName() /*"Africa/Johannesburg"*/);
+		response.put("timeZoneName", TimeZone.getDefault().getDisplayName() );
+		response.put("timeZone", TimeZone.getDefault().toZoneId() /*"Africa/Johannesburg"*/);
 		response.put("serverName", SERVER_NAME);
 		response.put("timeStamp", System.currentTimeMillis());
 		response.put("code", code);
