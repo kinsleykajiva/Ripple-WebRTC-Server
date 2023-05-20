@@ -1,6 +1,7 @@
 package africa.jopen.utils;
 
 
+import africa.jopen.exceptions.ClientException;
 import africa.jopen.models.Client;
 import africa.jopen.models.RoomModel;
 import africa.jopen.models.VideCallNotification;
@@ -67,29 +68,31 @@ public class ConnectionsManager {
 	}
 	
 	public boolean checkIfClientExists(String id) {
-		//  check if client exists using the clientid property
+		//  check if client exists using the client d property
 		return CLIENTS.anySatisfy(client -> client.clientId().equals(id));
 	}
 	
+	
 	public Optional<Client> getClient(String id) {
-		//  check if client exists using the clientid property
+		//  check if client exists using the client d property
 		return CLIENTS.select(client -> client.clientId().equals(id)).stream().findFirst();
 	}
 	
 	public Client updateClientWhenRemembered(String id) {
-		// update client of the cleint object in the list and retunn the client object
+		// update client of the client object in the list and return the client object
 		for (Client client : CLIENTS) {
 			if (client.clientId().equals(id)) {
 				client.updateLastTimeStamp(System.currentTimeMillis());
 				return client;
 			}
+			
 		}
 		
-		throw new RuntimeException("Client not found ,IllegalStateException");
+		throw new ClientException("Client not found ,IllegalStateException");
 	}
 	
 	public Client updateClientAboutVideoCall(String id, VideCallNotification notification) {
-		// update client of the cleint object in the list and retunn the client object
+		// update client of the client object in the list and return the client object
 		for (Client client : CLIENTS) {
 			if (client.clientId().equals(id)) {
 				client.setVideCallNotification(notification);

@@ -2,6 +2,10 @@ package africa.jopen.controllers;
 
 import africa.jopen.events.ClientsEvents;
 import africa.jopen.http.*;
+import africa.jopen.http.videoroom.PostCreateRoom;
+import africa.jopen.http.videoroom.PostIceCandidate;
+import africa.jopen.http.videoroom.PostJoinRoom;
+import africa.jopen.http.videoroom.PostSDPOffer;
 import africa.jopen.models.Client;
 import africa.jopen.models.RoomModel;
 import africa.jopen.utils.ConnectionsManager;
