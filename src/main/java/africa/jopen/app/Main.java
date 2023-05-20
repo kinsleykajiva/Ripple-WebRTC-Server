@@ -1,6 +1,8 @@
-package africa.jopen;
+package africa.jopen.app;
 
 
+import africa.jopen.controllers.SimpleGreetService;
+import africa.jopen.controllers.GreetService;
 import io.helidon.media.jsonp.JsonpSupport;
 import io.helidon.metrics.MetricsSupport;
 import io.helidon.health.HealthSupport;

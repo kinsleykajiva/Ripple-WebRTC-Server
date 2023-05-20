@@ -1,5 +1,5 @@
 
-package africa.jopen;
+package africa.jopen.controllers;
 
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
@@ -44,7 +44,7 @@ public class GreetService implements Service {
 
     private static final Logger LOGGER = Logger.getLogger(GreetService.class.getName());
 
-    GreetService(Config config) {
+    public GreetService(Config config) {
         greeting.set(config.get("app.greeting").asString().orElse("Ciao"));
     }
 

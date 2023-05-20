@@ -1,4 +1,4 @@
-package africa.jopen;
+package africa.jopen.controllers;
 
 import java.util.Collections;
 import java.util.logging.Logger;
@@ -35,7 +35,7 @@ public class SimpleGreetService implements Service {
 
     private final String greeting;
 
-    SimpleGreetService(Config config) {
+    public SimpleGreetService(Config config) {
         greeting = config.get("app.greeting").asString().orElse("Ciao");
     }
 
