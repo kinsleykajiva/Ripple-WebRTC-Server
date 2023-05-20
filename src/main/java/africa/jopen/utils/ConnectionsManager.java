@@ -16,7 +16,8 @@ import java.util.concurrent.TimeUnit;
 @Singleton
 //@ApplicationScoped
 public class ConnectionsManager {
-      private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
     private ConnectionsManager() {
         // Private constructor to enforce singleton pattern
     }
@@ -98,14 +99,14 @@ public class ConnectionsManager {
             }
         }
 
-
         throw new RuntimeException("Client not found ,IllegalStateException");
     }
- public Client updateClient(Client client_) {
 
-     clientsList.replaceAll(oldClient -> oldClient.clientId().equals(client_.clientId()) ? client_ : oldClient);
+    public Client updateClient(Client client_) {
 
-     return updateClientWhenRemembered(client_.clientId());
+        clientsList.replaceAll(oldClient -> oldClient.clientId().equals(client_.clientId()) ? client_ : oldClient);
+
+        return updateClientWhenRemembered(client_.clientId());
     }
 
 
@@ -122,11 +123,13 @@ public class ConnectionsManager {
         //  clientsList.removeIf(client -> (currentTime - client.lastTimeStamp()) > 30_000);
     }
 
-/**This has to be reset the client notification for calls, it won't be sent when we remember this client*/
-public void removeDeadCallNotifications() {
-    clientsList.stream()
-            .filter(client -> System.currentTimeMillis()>client.getVideCallNotification().end() )
-            .forEach(client-> client.setVideCallNotification(null));
+    /**
+     * This has to be reset the client notification for calls, it won't be sent when we remember this client
+     */
+    public void removeDeadCallNotifications() {
+        clientsList.stream()
+                .filter(client -> System.currentTimeMillis() > client.getVideCallNotification().end())
+                .forEach(client -> client.setVideCallNotification(null));
 
     }
 
