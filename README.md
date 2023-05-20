@@ -10,11 +10,11 @@
 Ripple-WebRTC-Server is a Java-based WebRTC server built using the Quarkus framework. It provides support for video rooms and audio rooms. The server is still in development mode and aims to deliver a robust and efficient WebRTC experience.
 The primary goal is to use this app as an Native Image created by [ GraalVM tools](https://github.com/graalvm)
 
-Check the branch before cloning this . This app is developed based on two web-based frameworks : Helidon and Quarkus
+Check the branch before cloning this . This app is developed based on two web-based frameworks : [Helidon](https://helidon.io/) and [Quarkus](https://quarkus.io/)
 
 The goal of the project is to provide a new alternative  to WebRTC severs powered by java .Application will be easy to set up  and run . Will provide client SDKs to use .
 
-We aim to keep the memory foot print down and Image size to a very small app still giving you the best performance to scale .
+We aim to keep the memory footprint down and Image size to a very small app still giving you the best performance to scale .
 
 Deployment and configuration should take less than 30 mins to get you going.
 
@@ -29,7 +29,7 @@ There will be some form SDK/Library to help implement or utilise the server .
 
 ![](https://placehold.it/400x90/ff0000/000000?text=STILL_IN_DEVELOPMENT!)
 
-The code dont make sense as much yet or not functional as required! There will be code example on how to set and run this.
+The code don't make sense as much yet or not functional as required! There will be code example on how to set and run this.
 
 ## Cheat Sheet
 
