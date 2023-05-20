@@ -20,9 +20,7 @@ const RippleSDK = {
     app: {
         featuresAvailable : ["VIDEO_ROOM", "AUDIO_ROOM"],
         featuresInUse     : [],
-        notificationsTypes: Object.freeze({
-                                VIDEO_CALL: 'videoCall',
-                            }),
+        notificationsTypes: Object.freeze({VIDEO_CALL: 'videoCall',VIDEO_ROOM: 'videoRoom',AUDIO_ROOM: 'audioRoom',}),
         notifications     : [{id: '', type: RippleSDK.app.notificationsTypes.VIDEO_CALL, data: null}],
         reminderInterval  : null,
         startToRemindServerOfMe: () => {
