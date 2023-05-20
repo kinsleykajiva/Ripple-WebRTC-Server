@@ -58,10 +58,12 @@ public class ConnectionsManager {
 
     public MutableList<Map<String, Object>> list() {
         MutableList<Map<String, Object>> returnVal = Lists.mutable.empty();
-        clientsList.forEach(client -> returnVal.add(Map.of(
-                "clientID", client.clientId(),
-                "lastSeen", client.lastTimeStamp()
-        )));
+        clientsList.forEach(client -> returnVal.add( Map.of(
+                                "clientID", client.clientId(),
+                                "lastSeen", client.lastTimeStamp()
+                        )
+                )
+        );
 
         return returnVal;
     }
