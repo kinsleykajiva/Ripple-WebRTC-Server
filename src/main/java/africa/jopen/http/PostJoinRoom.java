@@ -1,4 +1,4 @@
 package africa.jopen.http;
 
-public record PostJoinRoom (String roomID , String  password,String clientID){
+public record PostJoinRoom(String roomID, String password, String clientID) {
 }

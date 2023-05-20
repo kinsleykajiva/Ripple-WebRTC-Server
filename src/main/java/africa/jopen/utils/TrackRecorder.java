@@ -8,20 +8,19 @@ import dev.onvoid.webrtc.media.video.VideoFrame;
 import dev.onvoid.webrtc.media.video.VideoTrack;
 import dev.onvoid.webrtc.media.video.VideoTrackSink;
 
-
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class TrackRecorder implements AudioTrackSink, VideoTrackSink {
 	private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 	private final File file;
 	private final MediaStreamTrack mediaStreamTrack;
-
-	private final String mediaKind;
 	
+	private final String mediaKind;
+	private final VideoFileRenderer videoFileRenderer;
 	private Boolean recording = false;
 	private Boolean infoWritten = false;
-	
-	private final VideoFileRenderer videoFileRenderer;
 	
 	public TrackRecorder(String fileName, MediaStreamTrack mediaStreamTrack) {
 		
@@ -31,39 +30,38 @@ public class TrackRecorder implements AudioTrackSink, VideoTrackSink {
 		this.mediaStreamTrack = mediaStreamTrack;
 		this.mediaKind = mediaStreamTrack.getKind();
 		logger.atInfo().log("Track Recorder: tracks is %s", mediaKind);
-
+		
 		if (mediaKind.equals(MediaStreamTrack.VIDEO_TRACK_KIND)) {
 			videoFileRenderer = new VideoFileRenderer(file);
-		}
-		else {
+		} else {
 			videoFileRenderer = null;
 		}
 		
 	}
 	
 	public void start() {
-
+		
 		if (mediaKind.equals(MediaStreamTrack.AUDIO_TRACK_KIND))
-			((AudioTrack)mediaStreamTrack).addSink(this);
+			((AudioTrack) mediaStreamTrack).addSink(this);
 		
 		else if (mediaKind.equals(MediaStreamTrack.VIDEO_TRACK_KIND))
-			((VideoTrack)mediaStreamTrack).addSink(this);
+			((VideoTrack) mediaStreamTrack).addSink(this);
 		
-		else return;	// unknown type, recording didn't start
+		else return;    // unknown type, recording didn't start
 		
 		this.recording = true;
-
+		
 	}
 	
 	public void stop() {
-
+		
 		if (!this.recording) return;
 		
 		if (mediaKind.equals(MediaStreamTrack.AUDIO_TRACK_KIND))
-			((AudioTrack)mediaStreamTrack).removeSink(this);
+			((AudioTrack) mediaStreamTrack).removeSink(this);
 		
 		if (mediaKind.equals(MediaStreamTrack.VIDEO_TRACK_KIND))
-			((VideoTrack)mediaStreamTrack).removeSink(this);
+			((VideoTrack) mediaStreamTrack).removeSink(this);
 		
 		this.recording = false;
 	}
@@ -71,24 +69,24 @@ public class TrackRecorder implements AudioTrackSink, VideoTrackSink {
 	@Override
 	public void onData(byte[] data, int bitsPerSample, int sampleRate, int channels, int frames) {
 		
-		if (!infoWritten)				
+		if (!infoWritten)
 			writeInfo("bitsPerSample: %d, sampleRate: %d, channels %d", bitsPerSample, sampleRate, channels);
-
-        try (FileOutputStream fos = new FileOutputStream(file, true)) {
-
-        	fos.write(data);
-	            
-        } catch (IOException ex) {
-        	ex.printStackTrace();
-        }
+		
+		try (FileOutputStream fos = new FileOutputStream(file, true)) {
+			
+			fos.write(data);
+			
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
 	}
 	
 	@Override
 	public void onVideoFrame(VideoFrame frame) {
-
-		if (!infoWritten)				
+		
+		if (!infoWritten)
 			writeInfo("");
-
+		
 		try {
 			videoFileRenderer.queue(frame);
 		} catch (IOException e) {
@@ -96,7 +94,7 @@ public class TrackRecorder implements AudioTrackSink, VideoTrackSink {
 			e.printStackTrace();
 		}
 	}
-
+	
 	void writeInfo(final String message, Object... args) {
 		
 		/*if (infoWritten) return;
@@ -122,6 +120,6 @@ public class TrackRecorder implements AudioTrackSink, VideoTrackSink {
 		
 		infoWritten = true;*/
 	}
-
-
+	
+	
 }

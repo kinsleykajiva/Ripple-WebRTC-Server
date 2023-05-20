@@ -1,4 +1,4 @@
 package africa.jopen.http.videocall;
 
-public record PostSDPOffer(String offer, String clientID){
+public record PostSDPOffer(String offer, String clientID) {
 }
