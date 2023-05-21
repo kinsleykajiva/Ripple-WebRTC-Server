@@ -65,7 +65,7 @@ public final class Main {
         // print a message at shutdown. If unsuccessful, print the exception.
         webserver.forSingle(ws -> {
             logger.atInfo().log("WEB server is up! http://localhost:" + ws.port());
-            System.out.println("WEB server is up! http://localhost:" + ws.port() + "/greet");
+           // System.out.println("WEB server is up! http://localhost:" + ws.port() + "/greet");
             ws.whenShutdown().thenRun(() -> System.out.println("WEB server is DOWN. Good bye!"));
         })
         .exceptionallyAccept(t -> {

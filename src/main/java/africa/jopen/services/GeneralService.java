@@ -90,7 +90,7 @@ public class GeneralService implements Service {
                     }
                     
                     responseMap.put("clientID", clientObject.getClientID());
-                    responseMap.put("featureInUse", clientObject.getFeatureType());
+                    responseMap.put("featureInUse", clientObject.getFeatureType().toString());/*this is a specific case I still need to investigate why enums would fail , could it be a Json lin issue or framework issue */
                     responseMap.put("lastSeen", clientObject.lastTimeStamp());
                   
                     

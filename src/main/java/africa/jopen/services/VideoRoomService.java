@@ -47,38 +47,39 @@ public class VideoRoomService implements Service {
     }
 
     private void RoomParticipants(ServerRequest request, ServerResponse response) {
-        String roomID = request.path().param("roomID");
-
-        if (roomID == null || roomID.isEmpty()) {
+        var roomID = request.queryParams().first("roomID");
+        logger.atInfo().log(" roomID " + roomID);
+        if (roomID.isEmpty()) {
 
             XUtils.buildErrorResponse(null, response, 400, "Room ID is required!");
+            return;
+        } else {
+            var roomModelOptional = ConnectionsManager.ROOMS.select(roomM -> roomM.getRoomID().equals(roomID.get()));
+            if (roomModelOptional.isEmpty()) {
 
+                XUtils.buildErrorResponse(null, response, 400, "Room Not found!");
+            } else {
+                final var roomModel = roomModelOptional.getOnly();
+
+                JsonObject data = JSON.createObjectBuilder()
+                        .add("room", JSON.createObjectBuilder(Map.of(
+                                "roomID", roomModel.getRoomID(),
+                                "roomName", roomModel.getRoomName(),
+                                "createdTimeStamp", roomModel.getCreatedTimeStamp(),
+                                "password", roomModel.getPassword(),
+                                "pin", roomModel.getPin(),
+                                "maximumCapacity", roomModel.getMaximumCapacity(),
+                                "roomDescription", roomModel.getRoomDescription(),
+                                "creatorClientID", roomModel.getCreatorClientID(),
+                                "participants", roomModel.getParticipantsDto()
+
+                        )))
+                        .build();
+
+                XUtils.buildSuccessResponse(response, 200, "Room Information ", data);
+            }
         }
-        var roomModelOptional = ConnectionsManager.ROOMS.select(roomM -> roomM.getRoomID().equals(roomID));
-        if (roomModelOptional.isEmpty()) {
-
-            XUtils.buildErrorResponse(null, response, 400, "Room Not found!");
-        }
-        final var roomModel = roomModelOptional.getOnly();
-
-
-        JsonObject data = JSON.createObjectBuilder()
-                .add("room", JSON.createObjectBuilder(Map.of(
-                        "roomID", roomModel.getRoomID(),
-                        "roomName", roomModel.getRoomName(),
-                        "createdTimeStamp", roomModel.getCreatedTimeStamp(),
-                        "password", roomModel.getPassword(),
-                        "pin", roomModel.getPin(),
-                        "maximumCapacity", roomModel.getMaximumCapacity(),
-                        "roomDescription", roomModel.getRoomDescription(),
-                        "creatorClientID", roomModel.getCreatorClientID(),
-                        "participants", roomModel.getParticipantsDto()
-
-                )))
-                .build();
-
-        XUtils.buildSuccessResponse(response, 200, "Room Information ", data);
-
+        return;
 
     }
 
@@ -255,7 +256,7 @@ public class VideoRoomService implements Service {
 
                     if (room.password() == null || room.password().isEmpty()) {
 
-                        XUtils.buildErrorResponse(null, response, 400, "Room password is required!" );
+                        XUtils.buildErrorResponse(null, response, 400, "Room password is required!");
                     }
 
                     Optional<Client> clientOptional = connectionsManager.getClient(room.creatorClientID());
@@ -288,7 +289,6 @@ public class VideoRoomService implements Service {
                         responseData.put("maximumCapacity", roomModel.getMaximumCapacity());
                         responseData.put("roomDescription", roomModel.getRoomDescription());
                         responseData.put("creatorClientID", roomModel.getCreatorClientID());
-
 
                         JsonObject data = JSON.createObjectBuilder()
                                 .add("room", JSON.createObjectBuilder(responseData))
