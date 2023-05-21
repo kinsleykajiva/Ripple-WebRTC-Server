@@ -2,7 +2,7 @@ package africa.jopen.app;
 
 
 import africa.jopen.events.EventService;
-import africa.jopen.http.PostClient;
+import africa.jopen.utils.BannerTxT;
 import africa.jopen.services.GeneralService;
 import africa.jopen.services.SimpleGreetService;
 import africa.jopen.services.GreetService;
@@ -64,8 +64,9 @@ public final class Main {
         // Try to start the server. If successful, print some info and arrange to
         // print a message at shutdown. If unsuccessful, print the exception.
         webserver.forSingle(ws -> {
-            logger.atInfo().log("WEB server is up! http://localhost:" + ws.port());
-           // System.out.println("WEB server is up! http://localhost:" + ws.port() + "/greet");
+           //System.out.println("WEB server is up! http://localhost:" + ws.port() + "/greet");
+           System.out.println(BannerTxT.BANNER_TEXT);
+           logger.atInfo().log("WEB server is up! http://localhost:" + ws.port());
             ws.whenShutdown().thenRun(() -> System.out.println("WEB server is DOWN. Good bye!"));
         })
         .exceptionallyAccept(t -> {
