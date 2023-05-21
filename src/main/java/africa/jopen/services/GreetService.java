@@ -1,5 +1,5 @@
 
-package africa.jopen.controllers;
+package africa.jopen.services;
 
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;

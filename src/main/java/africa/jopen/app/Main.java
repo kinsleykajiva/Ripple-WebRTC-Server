@@ -1,8 +1,10 @@
 package africa.jopen.app;
 
 
-import africa.jopen.controllers.SimpleGreetService;
-import africa.jopen.controllers.GreetService;
+import africa.jopen.services.GeneralService;
+import africa.jopen.services.SimpleGreetService;
+import africa.jopen.services.GreetService;
+import com.google.common.flogger.FluentLogger;
 import io.helidon.media.jsonp.JsonpSupport;
 import io.helidon.metrics.MetricsSupport;
 import io.helidon.health.HealthSupport;
@@ -19,26 +21,21 @@ import io.helidon.webserver.WebServer;
  * The application main class.
  */
 public final class Main {
-
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     /**
      * Cannot be instantiated.
      */
     private Main() {
     }
 
-    /**
-     * Application main entry point.
-     * @param args command line arguments.
-     */
     public static void main(final String[] args) {
         startServer();
     }
 
     /**
      * Start the server.
-     * @return the created {@link WebServer} instance
      */
-    static Single<WebServer> startServer() {
+    static void startServer() {
 
         // load logging configuration
         LogConfig.configureRuntime();
@@ -64,12 +61,10 @@ public final class Main {
             t.printStackTrace(System.err);
         });
 
-        return webserver;
     }
 
     /**
      * Creates new {@link Routing}.
-     *
      * @return routing configured with JSON support, a health check, and a service
      * @param config configuration of this server
      */
@@ -84,8 +79,9 @@ public final class Main {
         Routing.Builder builder = Routing.builder()
                 .register(MetricsSupport.create()) // Metrics at "/metrics"
                 .register(health) // Health at "/health"
+                .register("/app", GeneralService::new)
                 .register("/simple-greet", simpleGreetService)
-                .register("/greet", greetService); 
+                .register("/greet", greetService);
 
 
         return builder.build();
