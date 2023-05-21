@@ -100,7 +100,10 @@
       <version>12.0.0.M1</version>
     </dependency>
 
-
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-websockets</artifactId>
+    </dependency>
 
 <!---->
     <dependency>
