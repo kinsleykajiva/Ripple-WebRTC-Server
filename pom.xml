@@ -43,6 +43,10 @@
             <artifactId>helidon-media-jsonp</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.helidon.media</groupId>
+            <artifactId>helidon-media-jsonb</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <scope>test</scope>
@@ -57,7 +61,11 @@
             <artifactId>helidon-webclient</artifactId>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.greenrobot</groupId>
+            <artifactId>eventbus-java</artifactId>
+            <version>3.3.1</version>
+        </dependency>
 
         <!--Start Third Party Library-->
         <dependency>

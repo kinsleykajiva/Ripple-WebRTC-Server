@@ -1,10 +1,18 @@
 package africa.jopen.app;
 
 
+import africa.jopen.events.EventService;
+import africa.jopen.http.PostClient;
 import africa.jopen.services.GeneralService;
 import africa.jopen.services.SimpleGreetService;
 import africa.jopen.services.GreetService;
+import africa.jopen.utils.ConnectionsManager;
 import com.google.common.flogger.FluentLogger;
+import io.helidon.common.GenericType;
+import io.helidon.common.http.DataChunk;
+import io.helidon.media.common.MessageBodyReader;
+import io.helidon.media.common.MessageBodyReaderContext;
+import io.helidon.media.jsonb.JsonbSupport;
 import io.helidon.media.jsonp.JsonpSupport;
 import io.helidon.metrics.MetricsSupport;
 import io.helidon.health.HealthSupport;
@@ -15,6 +23,7 @@ import io.helidon.config.Config;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.WebServer;
 
+import java.util.concurrent.Flow;
 
 
 /**
@@ -27,7 +36,7 @@ public final class Main {
      */
     private Main() {
     }
-
+   
     public static void main(final String[] args) {
         startServer();
     }
@@ -35,7 +44,7 @@ public final class Main {
     /**
      * Start the server.
      */
-    static void startServer() {
+     public static Single<WebServer> startServer() {
 
         // load logging configuration
         LogConfig.configureRuntime();
@@ -46,6 +55,7 @@ public final class Main {
         WebServer server = WebServer.builder(createRouting(config))
                 .config(config.get("server"))
                 .addMediaSupport(JsonpSupport.create())
+                .addMediaSupport(JsonbSupport.create())
                 .build();
 
         Single<WebServer> webserver = server.start();
@@ -53,6 +63,7 @@ public final class Main {
         // Try to start the server. If successful, print some info and arrange to
         // print a message at shutdown. If unsuccessful, print the exception.
         webserver.forSingle(ws -> {
+            logger.atInfo().log("WEB server is up! http://localhost:" + ws.port());
             System.out.println("WEB server is up! http://localhost:" + ws.port() + "/greet");
             ws.whenShutdown().thenRun(() -> System.out.println("WEB server is DOWN. Good bye!"));
         })
@@ -60,6 +71,7 @@ public final class Main {
             System.err.println("Startup failed: " + t.getMessage());
             t.printStackTrace(System.err);
         });
+        return webserver;
 
     }
 
@@ -69,9 +81,14 @@ public final class Main {
      * @param config configuration of this server
      */
     private static Routing createRouting(Config config) {
+        ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
+        EventService eventService = new EventService(); // Create an instance of EventService
+
         SimpleGreetService simpleGreetService = new SimpleGreetService(config);
         GreetService greetService = new GreetService(config);
-
+      
+        
+        
         HealthSupport health = HealthSupport.builder()
                 .addLiveness(HealthChecks.healthChecks()) // Adds a convenient set of checks
                 .build();
@@ -79,7 +96,7 @@ public final class Main {
         Routing.Builder builder = Routing.builder()
                 .register(MetricsSupport.create()) // Metrics at "/metrics"
                 .register(health) // Health at "/health"
-                .register("/app", GeneralService::new)
+                .register("/app", new GeneralService(connectionsManager, eventService))
                 .register("/simple-greet", simpleGreetService)
                 .register("/greet", greetService);
 
