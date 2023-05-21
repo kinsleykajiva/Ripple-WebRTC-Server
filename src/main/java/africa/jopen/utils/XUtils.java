@@ -1,6 +1,7 @@
 package africa.jopen.utils;
 
 import jakarta.ws.rs.core.Response;
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -50,4 +51,32 @@ public class XUtils {
 		response.put("data", data);
 		return response;
 	}
+	public static JSONObject buildJsonErrorResponse(int code,String messageTypeTitle, String messageType, String message, JSONObject data) {
+		JSONObject response = new JSONObject();
+		response.put("timeZoneName", TimeZone.getDefault().getDisplayName() );
+		response.put("timeZone", TimeZone.getDefault().toZoneId() /*"Africa/Johannesburg"*/);
+		response.put("serverName", SERVER_NAME);
+		response.put("timeStamp", System.currentTimeMillis());
+		response.put(messageTypeTitle,messageType);
+		response.put("message", message);
+		response.put("success", false);
+		response.put("code", code);
+		response.put("data",data);
+		return  response;
+	}
+	public static JSONObject buildJsonSuccessResponse(int code,String messageTypeTitle, String messageType, String message, JSONObject data) {
+		JSONObject response = new JSONObject();
+		response.put("timeZoneName", TimeZone.getDefault().getDisplayName() );
+		response.put("timeZone", TimeZone.getDefault().toZoneId() /*"Africa/Johannesburg"*/);
+		response.put("serverName", SERVER_NAME);
+		response.put("timeStamp", System.currentTimeMillis());
+		response.put(messageTypeTitle,messageType);
+		response.put("message", message);
+		response.put("success", true);
+		response.put("code", code);
+		response.put("data",data);
+		return  response;
+	}
+	
+	
 }

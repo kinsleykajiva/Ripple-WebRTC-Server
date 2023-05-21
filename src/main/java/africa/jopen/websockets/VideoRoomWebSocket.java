@@ -2,6 +2,7 @@ package africa.jopen.websockets;
 
 import africa.jopen.models.Client;
 import africa.jopen.utils.ConnectionsManager;
+import africa.jopen.utils.XUtils;
 import com.google.common.flogger.FluentLogger;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -87,28 +88,23 @@ public class VideoRoomWebSocket {
 			messageObject = new JSONObject(message);
 			if (!messageObject.has("requestType")) {
 				response.put("clientID", clientObject.getClientID());
-				response.put("eventType", "message");
-				response.put("message", "Failed to understand the purpose of the request");
-				response.put("code", 400);
+				response = XUtils.buildJsonErrorResponse(400, "eventType", "message",
+						"Failed to understand the purpose of the request", response);
 				broadcast(clientObject, response.toString());
 				return;
 			}
-			switch (messageObject.getString("requestType")){
+			switch (messageObject.getString("requestType")) {
 				case "remember":
 					break;
-					case "joinRoom":
+				case "joinRoom":
 					break;
-					case "createRoom":
+				case "createRoom":
 					break;
-					case "sendOffer":
+				case "sendOffer":
 					break;
-					
-					
-					
+				
+				
 			}
-			
-			
-			
 			
 			
 		} catch (Exception ex) {
