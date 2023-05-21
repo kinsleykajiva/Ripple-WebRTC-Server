@@ -12,27 +12,27 @@ import jakarta.websocket.server.ServerEndpoint;
 
 import static java.util.Objects.requireNonNull;
 
-@ServerEndpoint("/video-room/{name}")
+@ServerEndpoint("/video-room/{clientID}")
 @ApplicationScoped
 public class VideoRoomWebSocket {
 	private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 	@OnOpen
-	public void onOpen(Session session, @PathParam("name") String name) {
-		System.out.println("onOpen> " + name);
+	public void onOpen(Session session, @PathParam("clientID") String clientID) {
+		System.out.println("onOpen> " + clientID);
 	}
 	
 	@OnClose
-	public void onClose(Session session, @PathParam("name") String name) {
-		System.out.println("onClose> " + name);
+	public void onClose(Session session, @PathParam("clientID") String clientID) {
+		System.out.println("onClose> " + clientID);
 	}
 	
 	@OnError
-	public void onError(Session session, @PathParam("name") String name, Throwable throwable) {
-		System.out.println("onError> " + name + ": " + throwable);
+	public void onError(Session session, @PathParam("clientID") String clientID, Throwable throwable) {
+		System.out.println("onError> " + clientID + ": " + throwable);
 	}
 	
 	@OnMessage
-	public void onMessage(String message, @PathParam("name") String name) {
-		System.out.println("onMessage> " + name + ": " + message);
+	public void onMessage(String message, @PathParam("clientID") String clientID) {
+		System.out.println("onMessage> " + clientID + ": " + message);
 	}
 }
