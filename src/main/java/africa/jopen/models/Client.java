@@ -5,6 +5,7 @@ import africa.jopen.utils.FeatureTypes;
 import africa.jopen.utils.XUtils;
 import com.google.common.flogger.FluentLogger;
 import dev.onvoid.webrtc.*;
+import jakarta.websocket.Session;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +27,7 @@ public final class Client implements PeerConnectionObserver {
 	private final Vector<String> messages = new Vector<>();
 	private final Recorder recorder = new Recorder();
 	private final RTCPeerConnection peerConnection;
+	private  Session socketSession;
 	private String clientAgentName;// this si the display name that will be used
 	private FeatureTypes featureType;
 	private long lastTimeStamp = System.currentTimeMillis();
@@ -117,6 +119,14 @@ public final class Client implements PeerConnectionObserver {
 	public String getClientID() {
 		return clientID;
 		
+	}
+	
+	public Session getSocketSession() {
+		return socketSession;
+	}
+	
+	public void setSocketSession(Session socketSession) {
+		this.socketSession = socketSession;
 	}
 	
 	public VideCallNotification getVideCallNotification() {
