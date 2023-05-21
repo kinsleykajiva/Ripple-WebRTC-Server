@@ -77,15 +77,40 @@ public class VideoRoomWebSocket {
 			// we cant risk to run other existing sessions in the connections list , in-case we send to the wrong client that may have high jacked the session data by some means that i have not yet determined as much yet .
 			return;
 		}
-		Client clientObject;
+		
+		var clientObjectOptional = connectionsManager.getClient(clientID);
+		assert clientObjectOptional.isPresent();
+		Client clientObject = clientObjectOptional.get();
+		JSONObject response = new JSONObject();
 		try {
 			logger.atInfo().log("..." + clientID);
 			messageObject = new JSONObject(message);
 			if (!messageObject.has("requestType")) {
-				var clientObjectOptional = connectionsManager.getClient(clientID);
-				assert clientObjectOptional.isPresent();
-				clientObject = clientObjectOptional.get();
+				response.put("clientID", clientObject.getClientID());
+				response.put("eventType", "message");
+				response.put("message", "Failed to understand the purpose of the request");
+				response.put("code", 400);
+				broadcast(clientObject, response.toString());
+				return;
 			}
+			switch (messageObject.getString("requestType")){
+				case "remember":
+					break;
+					case "joinRoom":
+					break;
+					case "createRoom":
+					break;
+					case "sendOffer":
+					break;
+					
+					
+					
+			}
+			
+			
+			
+			
+			
 		} catch (Exception ex) {
 			logger.atSevere().withCause(ex).log("onMessage Error");
 		}
