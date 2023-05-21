@@ -45,21 +45,7 @@ public class XUtils {
 		// Deprecated method implementation
 	}
 	
-	
-	/**
-	 * [Brief description of the deprecated method]
-	 * <p>
-	 * [Explanation of the deprecation and reason behind it]
-	 * <p>
-	 * [Provide any relevant context or background information]
-	 * @deprecated [Explanation of the deprecation]
-	 * [Mention the alternative method or approach]
-	 * Please use {@link XUtils#buildErrorResponse2(Throwable, ServerResponse, int, String)} ()} instead.
-	 * [Provide guidance on migrating from the deprecated method to the new one]
-	 * [Include examples or code snippets if necessary]
-	 * [Specify version information]
-	 */
-	@Deprecated
+
 	public static <T> T buildErrorResponse(Throwable ex, ServerResponse response, int code, String message) {
 		
 		if (Objects.isNull(ex)) {

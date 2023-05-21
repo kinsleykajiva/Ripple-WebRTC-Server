@@ -6,6 +6,7 @@ import africa.jopen.http.PostClient;
 import africa.jopen.services.GeneralService;
 import africa.jopen.services.SimpleGreetService;
 import africa.jopen.services.GreetService;
+import africa.jopen.services.VideoRoomService;
 import africa.jopen.utils.ConnectionsManager;
 import com.google.common.flogger.FluentLogger;
 import io.helidon.common.GenericType;
@@ -97,6 +98,7 @@ public final class Main {
                 .register(MetricsSupport.create()) // Metrics at "/metrics"
                 .register(health) // Health at "/health"
                 .register("/app", new GeneralService(connectionsManager, eventService))
+                .register("/video", new VideoRoomService(connectionsManager, eventService))
                 .register("/simple-greet", simpleGreetService)
                 .register("/greet", greetService);
 

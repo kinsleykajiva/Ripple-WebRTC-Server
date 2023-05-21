@@ -8,6 +8,7 @@ import africa.jopen.http.PostClientRemember;
 import africa.jopen.models.Client;
 import africa.jopen.utils.ConnectionsManager;
 import africa.jopen.utils.XUtils;
+import com.google.common.flogger.FluentLogger;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.ServerRequest;
 import io.helidon.webserver.ServerResponse;
@@ -20,7 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class GeneralService implements Service {
-    
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     
     private static final JsonBuilderFactory JSON = Json.createBuilderFactory(Collections.emptyMap());
     
