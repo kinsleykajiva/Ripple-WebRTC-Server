@@ -95,6 +95,12 @@ public class VideoRoomWebSocket {
 			}
 			switch (messageObject.getString("requestType")) {
 				case "remember":
+					clientObject =connectionsManager.updateClientWhenRemembered(clientID);
+					response.put("clientID",clientID);
+					response.put("lastSeen",clientObject.lastTimeStamp());
+					response.put("featureInUse",clientObject.getFeatureType());
+					response = XUtils.buildJsonSuccessResponse(200, "eventType", "remember",
+							"Client  Remembered Successfully", response);
 					break;
 				case "joinRoom":
 					break;
@@ -105,6 +111,7 @@ public class VideoRoomWebSocket {
 				
 				
 			}
+			broadcast(clientObject, response.toString());
 			
 			
 		} catch (Exception ex) {
