@@ -64,13 +64,12 @@ public final class Main {
         // Try to start the server. If successful, print some info and arrange to
         // print a message at shutdown. If unsuccessful, print the exception.
         webserver.forSingle(ws -> {
-           //System.out.println("WEB server is up! http://localhost:" + ws.port() + "/greet");
            System.out.println(BannerTxT.BANNER_TEXT);
            logger.atInfo().log("WEB server is up! http://localhost:" + ws.port());
             ws.whenShutdown().thenRun(() -> System.out.println("WEB server is DOWN. Good bye!"));
         })
         .exceptionallyAccept(t -> {
-            System.err.println("Startup failed: " + t.getMessage());
+            logger.atSevere().log("Startup failed: " + t.getMessage());
             t.printStackTrace(System.err);
         });
         return webserver;
