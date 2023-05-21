@@ -74,12 +74,9 @@ public class GeneralService implements Service {
                     }
                     
                     var clientObject = connectionsManager.updateClientWhenRemembered(client.clientID());
-                    
 
                     ClientsEvents clientsEvent = new ClientsEvents(clientObject);
                     eventService.fireEvent(clientsEvent);
-
-
 
                     Map<String, Object> responseMap = new HashMap<>();
                     if (!clientObject.getCandidateMap().isEmpty()) {

@@ -2,11 +2,8 @@ package africa.jopen.app;
 
 
 import africa.jopen.events.EventService;
+import africa.jopen.services.*;
 import africa.jopen.utils.BannerTxT;
-import africa.jopen.services.GeneralService;
-import africa.jopen.services.SimpleGreetService;
-import africa.jopen.services.GreetService;
-import africa.jopen.services.VideoRoomService;
 import africa.jopen.utils.ConnectionsManager;
 import com.google.common.flogger.FluentLogger;
 import io.helidon.common.GenericType;
@@ -99,6 +96,7 @@ public final class Main {
                 .register(health) // Health at "/health"
                 .register("/app", new GeneralService(connectionsManager, eventService))
                 .register("/video", new VideoRoomService(connectionsManager, eventService))
+                .register("/video-call", new VideoCallService(connectionsManager, eventService))
                 .register("/simple-greet", simpleGreetService)
                 .register("/greet", greetService);
 
