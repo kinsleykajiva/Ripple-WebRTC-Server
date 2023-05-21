@@ -5,6 +5,7 @@ import africa.jopen.events.EventService;
 import africa.jopen.services.*;
 import africa.jopen.utils.BannerTxT;
 import africa.jopen.utils.ConnectionsManager;
+import africa.jopen.utils.XUtils;
 import com.google.common.flogger.FluentLogger;
 import io.helidon.common.GenericType;
 import io.helidon.common.http.DataChunk;
@@ -49,6 +50,7 @@ public final class Main {
 
         // By default this will pick up application.yaml from the classpath
         Config config = Config.create();
+         XUtils.SERVER_VERSION= String.valueOf(config.get("app.version").asString());
 
         WebServer server = WebServer.builder(createRouting(config))
                 .config(config.get("server"))
@@ -62,7 +64,7 @@ public final class Main {
         // print a message at shutdown. If unsuccessful, print the exception.
         webserver.forSingle(ws -> {
            System.out.println(BannerTxT.BANNER_TEXT);
-           logger.atInfo().log("WEB server is up! http://localhost:" + ws.port());
+           logger.atInfo().log( "WEB " + XUtils.SERVER_VERSION +" server is up! http://localhost:" + ws.port());
             ws.whenShutdown().thenRun(() -> System.out.println("WEB server is DOWN. Good bye!"));
         })
         .exceptionallyAccept(t -> {

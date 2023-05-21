@@ -18,6 +18,7 @@ public class XUtils {
 	private static final JsonBuilderFactory JSON = Json.createBuilderFactory(Collections.emptyMap());
 	
 	public static String SERVER_NAME = "SERVER_ONE";
+	public static String SERVER_VERSION = "";
 	
 	public static String IdGenerator() {
 		UUID uuid = UUID.randomUUID();
@@ -45,15 +46,16 @@ public class XUtils {
 		// Deprecated method implementation
 	}
 	
-
+	
 	public static <T> T buildErrorResponse(Throwable ex, ServerResponse response, int code, String message) {
 		
 		if (Objects.isNull(ex)) {
 			JsonObject jsonErrorObject = JSON.createObjectBuilder()
-					.add("success", false)
-					.add("message", message)
-					.add("code", code)
-					.build();
+					                             .add("meta", XUtils.SERVER_VERSION)
+					                             .add("success", false)
+					                             .add("message", message)
+					                             .add("code", code)
+					                             .build();
 			response.status(Http.Status.BAD_REQUEST_400).send(jsonErrorObject);
 		} else {
 			
@@ -61,22 +63,24 @@ public class XUtils {
 				
 				logger.atFine().withCause(ex).log("Invalid JSON");
 				JsonObject jsonErrorObject = JSON.createObjectBuilder()
-						.add("error", "Invalid JSON")
-						.add("success", false)
-						.add("message", message)
-						.add("code", Http.Status.BAD_REQUEST_400.code())
-						.build();
+						                             .add("meta", XUtils.SERVER_VERSION)
+						                             .add("error", "Invalid JSON")
+						                             .add("success", false)
+						                             .add("message", message)
+						                             .add("code", Http.Status.BAD_REQUEST_400.code())
+						                             .build();
 				response.status(Http.Status.BAD_REQUEST_400).send(jsonErrorObject);
 			} else {
 				
 				logger.atSevere().withCause(ex).log("Internal error");
-
+				
 				JsonObject jsonErrorObject = JSON.createObjectBuilder()
-						.add("error", ex.getMessage())
-						.add("success", false)
-						.add("message", message)
-						.add("code", Http.Status.BAD_REQUEST_400.code())
-						.build();
+						                             .add("meta", XUtils.SERVER_VERSION)
+						                             .add("error", ex.getMessage())
+						                             .add("success", false)
+						                             .add("message", message)
+						                             .add("code", Http.Status.BAD_REQUEST_400.code())
+						                             .build();
 				response.status(Http.Status.INTERNAL_SERVER_ERROR_500).send(jsonErrorObject);
 			}
 		}
@@ -86,9 +90,10 @@ public class XUtils {
 	
 	public static <T> T buildErrorResponse2(Throwable ex, ServerResponse response, int code, String message) {
 		JsonObjectBuilder jsonErrorBuilder = JSON.createObjectBuilder()
-				.add("success", false)
-				.add("message", message)
-				.add("code", code);
+				                                     .add("meta", XUtils.SERVER_VERSION)
+				                                     .add("success", false)
+				                                     .add("message", message)
+				                                     .add("code", code);
 		
 		if (Objects.isNull(ex)) {
 			jsonErrorBuilder.add("error", "Unknown error");
@@ -111,15 +116,16 @@ public class XUtils {
 	
 	public static void buildSuccessResponse(ServerResponse response, int code, String message, JsonObject data) {
 		JsonObject returnObject = JSON.createObjectBuilder()
-				.add("success", true)
-				.add("timeZoneName", TimeZone.getDefault().getDisplayName())
-				.add("timeZone", TimeZone.getDefault().toZoneId().toString())
-				.add("serverName", SERVER_NAME)
-				.add("timeStamp", System.currentTimeMillis())
-				.add("code", code)
-				.add("message", message)
-				.add("data", data)
-				.build();
+				                          .add("meta", XUtils.SERVER_VERSION)
+				                          .add("success", true)
+				                          .add("timeZoneName", TimeZone.getDefault().getDisplayName())
+				                          .add("timeZone", TimeZone.getDefault().toZoneId().toString())
+				                          .add("serverName", SERVER_NAME)
+				                          .add("timeStamp", System.currentTimeMillis())
+				                          .add("code", code)
+				                          .add("message", message)
+				                          .add("data", data)
+				                          .build();
 		response.send(returnObject);
 	}
 	
