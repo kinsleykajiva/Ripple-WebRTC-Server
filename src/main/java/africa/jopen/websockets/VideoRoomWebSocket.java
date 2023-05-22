@@ -197,7 +197,7 @@ public class VideoRoomWebSocket {
 							messageObject.getString("offer"),
 							messageObject.getString("clientID")
 					);
-					 roomModelOptional = connectionsManager.getRoomById(payload.roomID());
+					roomModelOptional = connectionsManager.getRoomById(payload.roomID());
 					if (roomModelOptional.isEmpty()) {
 						response = XUtils.buildJsonErrorResponse(404, "room", "validation",
 								"Room not found!", response);
@@ -216,7 +216,7 @@ public class VideoRoomWebSocket {
 						return;
 					}
 					
-					CompletableFuture<String> future = VideoRoomController.getResponseCompletableFuture(connectionsManager,payload,clientModelOptional ,roomModel);
+					CompletableFuture<String> future = VideoRoomController.getResponseCompletableFuture(connectionsManager, payload, clientModelOptional, roomModel);
 					
 					response.put("sdp", future.get());
 					response = XUtils.buildJsonSuccessResponse(200, "eventType", "SDP",

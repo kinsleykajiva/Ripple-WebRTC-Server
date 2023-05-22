@@ -88,8 +88,8 @@ public class VideoRoomController {
 		
 		RoomModel roomModel = roomModelOptional.get();
 		Optional<Client> clientModelOptional = roomModel.getParticipants().stream()
-				.filter(client -> client.getClientID().equals(payload.clientID()))
-				.findFirst();
+				                                       .filter(client -> client.getClientID().equals(payload.clientID()))
+				                                       .findFirst();
 		if (clientModelOptional.isEmpty()) {
 			return XUtils.buildErrorResponse(false, 400, "Client not found!", Map.of());
 		}
@@ -125,17 +125,15 @@ public class VideoRoomController {
 		
 		RoomModel roomModel = roomModelOptional.get();
 		Optional<Client> clientModelOptional = roomModel.getParticipants().stream()
-				.filter(client -> client.getClientID().equals(payload.clientID()))
-				.findFirst();
+				                                       .filter(client -> client.getClientID().equals(payload.clientID()))
+				                                       .findFirst();
 		if (clientModelOptional.isEmpty()) {
 			return XUtils.buildErrorResponse(false, 400, "Client not found!", Map.of());
 		}
 		
-		CompletableFuture<String> future = getResponseCompletableFuture(connectionsManager,payload, clientModelOptional, roomModel);
+		CompletableFuture<String> future = getResponseCompletableFuture(connectionsManager, payload, clientModelOptional, roomModel);
 		
 		try {
-			// Retrieve the response from the CompletableFuture
-			
 			return XUtils.buildSuccessResponse(true, 200, "SDP Offer processed, here is the answer ", Map.of("sdp", future.get()));
 		} catch (Exception e) {
 			logger.atInfo().withCause(e).log("Error");
@@ -145,7 +143,7 @@ public class VideoRoomController {
 		
 	}
 	
-	public static CompletableFuture<String> getResponseCompletableFuture(ConnectionsManager connectionsManager , PostSDPOffer payload, Optional<Client> clientModelOptional, RoomModel roomModel) {
+	public static CompletableFuture<String> getResponseCompletableFuture(ConnectionsManager connectionsManager, PostSDPOffer payload, Optional<Client> clientModelOptional, RoomModel roomModel) {
 		Client clientModel = clientModelOptional.get();
 		clientModel.setFeatureType(FeatureTypes.VIDEO_ROOM);
 		clientModel.getRtcModel().setOffer(payload.offer());
@@ -188,12 +186,12 @@ public class VideoRoomController {
 			return XUtils.buildErrorResponse(false, 400, "Room authentication failed! Access rejected.", Map.of());
 		}
 		
-		joinRoom(connectionsManager,room, roomModel);
+		joinRoom(connectionsManager, room, roomModel);
 		
 		return XUtils.buildSuccessResponse(true, 200, "Added to room", Map.of());
 	}
 	
-	public static void joinRoom(ConnectionsManager connectionsManager,  PostJoinRoom room, RoomModel roomModel) {
+	public static void joinRoom(ConnectionsManager connectionsManager, PostJoinRoom room, RoomModel roomModel) {
 		Client clientObject = connectionsManager.updateClientWhenRemembered(room.clientID());
 		clientObject.setFeatureType(FeatureTypes.VIDEO_ROOM);
 		RoomModel updatedRoomModel = roomModel.addParticipant(clientObject);
@@ -226,7 +224,7 @@ public class VideoRoomController {
 		}
 		
 		try {
-			Map<String, Object> responseData = createRoom(connectionsManager,room, clientOptional.get());
+			Map<String, Object> responseData = createRoom(connectionsManager, room, clientOptional.get());
 			
 			return XUtils.buildSuccessResponse(true, 200, "Room created successfully", responseData);
 		} catch (Exception e) {
@@ -235,7 +233,7 @@ public class VideoRoomController {
 		}
 	}
 	
-	public static Map<String, Object> createRoom(ConnectionsManager connectionsManager,PostCreateRoom room, Client client) {
+	public static Map<String, Object> createRoom(ConnectionsManager connectionsManager, PostCreateRoom room, Client client) {
 		RoomModel roomModel = new RoomModel();
 		roomModel.setFeatureTypes(FeatureTypes.VIDEO_ROOM);
 		roomModel.setRoomName(room.roomName());
