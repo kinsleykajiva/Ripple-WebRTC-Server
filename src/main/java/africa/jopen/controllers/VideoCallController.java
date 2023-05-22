@@ -197,7 +197,7 @@ public class VideoCallController {
 				Map.of(
 						
 						"clientID", clientObject.getClientID(),
-						"featureInUse", clientObject.getFeatureType(),
+						"featureInUse", clientObject.getFeatureType().toString(),
 						"lastSeen", clientObject.lastTimeStamp()
 				)));
 		

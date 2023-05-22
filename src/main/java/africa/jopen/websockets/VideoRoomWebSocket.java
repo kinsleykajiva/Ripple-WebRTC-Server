@@ -1,6 +1,10 @@
 package africa.jopen.websockets;
 
+import africa.jopen.controllers.VideoRoomController;
+import africa.jopen.http.videoroom.PostCreateRoom;
+import africa.jopen.http.videoroom.PostJoinRoom;
 import africa.jopen.models.Client;
+import africa.jopen.models.RoomModel;
 import africa.jopen.utils.ConnectionsManager;
 import africa.jopen.utils.XUtils;
 import com.google.common.flogger.FluentLogger;
@@ -16,6 +20,8 @@ import jakarta.websocket.server.ServerEndpoint;
 import org.json.JSONObject;
 
 import java.math.BigInteger;
+import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
@@ -88,23 +94,87 @@ public class VideoRoomWebSocket {
 			messageObject = new JSONObject(message);
 			if (!messageObject.has("requestType")) {
 				response.put("clientID", clientObject.getClientID());
-				response = XUtils.buildJsonErrorResponse(400, "eventType", "message",
+				response = XUtils.buildJsonErrorResponse(400, "eventType", "validation",
 						"Failed to understand the purpose of the request", response);
 				broadcast(clientObject, response.toString());
 				return;
 			}
 			switch (messageObject.getString("requestType")) {
 				case "remember":
-					clientObject =connectionsManager.updateClientWhenRemembered(clientID);
-					response.put("clientID",clientID);
-					response.put("lastSeen",clientObject.lastTimeStamp());
-					response.put("featureInUse",clientObject.getFeatureType());
+					clientObject = connectionsManager.updateClientWhenRemembered(clientID);
+					response.put("clientID", clientID);
+					response.put("lastSeen", clientObject.lastTimeStamp());
+					response.put("featureInUse", clientObject.getFeatureType().toString());
 					response = XUtils.buildJsonSuccessResponse(200, "eventType", "remember",
 							"Client  Remembered Successfully", response);
 					break;
 				case "joinRoom":
+					if (!messageObject.has("password")) {
+						response = XUtils.buildJsonErrorResponse(400, "password", "validation",
+								"password is required", response);
+						broadcast(clientObject, response.toString());
+						return;
+					}
+					if (!messageObject.has("clientID")) {
+						response = XUtils.buildJsonErrorResponse(400, "clientID", "validation",
+								"clientID is required", response);
+						broadcast(clientObject, response.toString());
+						return;
+					}
+					var room = new PostJoinRoom(
+							messageObject.getString("roomID"),
+							messageObject.getString("password"),
+							messageObject.getString("clientID")
+					);
+					Optional<RoomModel> roomModelOptional = connectionsManager.getRoomById(room.roomID());
+					if (roomModelOptional.isEmpty()) {
+						response = XUtils.buildJsonErrorResponse(400, "room", "validation",
+								"Invalid room ID!", response);
+						broadcast(clientObject, response.toString());
+						return;
+					}
+					RoomModel roomModel = roomModelOptional.get();
+					if (!roomModel.getPassword().equals(room.password())) {
+						response = XUtils.buildJsonErrorResponse(400, "password", "authentication",
+								"Room authentication failed! Access rejected.", response);
+						broadcast(clientObject, response.toString());
+						return;
+					}
+					VideoRoomController.joinRoom(connectionsManager, room, roomModel);
+					response = XUtils.buildJsonSuccessResponse(200, "eventType", "joinRoom",
+							"Added to room", response);
+					
 					break;
 				case "createRoom":
+					if (!messageObject.has("pin")) {
+						response = XUtils.buildJsonErrorResponse(400, "pin", "validation",
+								"Pin is required", response);
+						broadcast(clientObject, response.toString());
+						return;
+					}
+					if (!messageObject.has("password")) {
+						response = XUtils.buildJsonErrorResponse(400, "password", "validation",
+								"password is required", response);
+						broadcast(clientObject, response.toString());
+						return;
+					}
+					if (!messageObject.has("creatorClientID")) {
+						response = XUtils.buildJsonErrorResponse(400, "creatorClientID", "validation",
+								"creatorClientID is required", response);
+						broadcast(clientObject, response.toString());
+						return;
+					}
+					var post = new PostCreateRoom(messageObject.getString("roomName"),
+							messageObject.getString("roomDescription"),
+							messageObject.getString("creatorClientID"),
+							messageObject.getString("password"),
+							messageObject.getString("pin")
+					);
+					Map<String, Object> resultRoom = VideoRoomController.createRoom(connectionsManager, post, clientObject);
+					response.put("room", resultRoom);
+					response = XUtils.buildJsonSuccessResponse(200, "eventType", "createRoom",
+							"Room created successfully", response);
+					
 					break;
 				case "sendOffer":
 					break;

@@ -183,12 +183,16 @@ public class VideoRoomController {
 			return XUtils.buildErrorResponse(false, 400, "Room authentication failed! Access rejected.", Map.of());
 		}
 		
+		joinRoom(connectionsManager,room, roomModel);
+		
+		return XUtils.buildSuccessResponse(true, 200, "Added to room", Map.of());
+	}
+	
+	public static void joinRoom(ConnectionsManager connectionsManager,  PostJoinRoom room, RoomModel roomModel) {
 		Client clientObject = connectionsManager.updateClientWhenRemembered(room.clientID());
 		clientObject.setFeatureType(FeatureTypes.VIDEO_ROOM);
 		RoomModel updatedRoomModel = roomModel.addParticipant(clientObject);
 		connectionsManager.updateRoom(updatedRoomModel, room.clientID());
-		
-		return XUtils.buildSuccessResponse(true, 200, "Added to room", Map.of());
 	}
 	
 	
@@ -217,35 +221,40 @@ public class VideoRoomController {
 		}
 		
 		try {
-			RoomModel roomModel = new RoomModel();
-			roomModel.setFeatureTypes(FeatureTypes.VIDEO_ROOM);
-			roomModel.setRoomName(room.roomName());
-			roomModel.setRoomDescription(room.roomDescription());
-			roomModel.setPassword(room.password());
-			roomModel.setPin(room.pin());
-			roomModel.setCreatorClientID(clientOptional.get().getClientID());
-			clientOptional.get().setFeatureType(FeatureTypes.VIDEO_ROOM);
-			roomModel.addParticipant(clientOptional.get());
-			connectionsManager.addRoom(roomModel);
-			//Todo: add handling events to notify the room of the the clients changes attributes as well .
-			// ToDo : What wil happen if all the user have been removed by the Orphaning or deliberate exiting from the room of been removed  the admin
-			
-			
-			Map<String, Object> responseData = new HashMap<>();
-			responseData.put("roomID", roomModel.getRoomID());
-			responseData.put("roomName", roomModel.getRoomName());
-			responseData.put("createdTimeStamp", roomModel.getCreatedTimeStamp());
-			responseData.put("password", roomModel.getPassword());
-			responseData.put("pin", roomModel.getPin());
-			responseData.put("maximumCapacity", roomModel.getMaximumCapacity());
-			responseData.put("roomDescription", roomModel.getRoomDescription());
-			responseData.put("creatorClientID", roomModel.getCreatorClientID());
+			Map<String, Object> responseData = createRoom(connectionsManager,room, clientOptional.get());
 			
 			return XUtils.buildSuccessResponse(true, 200, "Room created successfully", responseData);
 		} catch (Exception e) {
 			logger.atWarning().withCause(e).log("Error while creating room: " + room);
 			return XUtils.buildErrorResponse(false, 400, "Failed to create room!", Map.of());
 		}
+	}
+	
+	public static Map<String, Object> createRoom(ConnectionsManager connectionsManager,PostCreateRoom room, Client client) {
+		RoomModel roomModel = new RoomModel();
+		roomModel.setFeatureTypes(FeatureTypes.VIDEO_ROOM);
+		roomModel.setRoomName(room.roomName());
+		roomModel.setRoomDescription(room.roomDescription());
+		roomModel.setPassword(room.password());
+		roomModel.setPin(room.pin());
+		roomModel.setCreatorClientID(client.getClientID());
+		client.setFeatureType(FeatureTypes.VIDEO_ROOM);
+		roomModel.addParticipant(client);
+		connectionsManager.addRoom(roomModel);
+		//Todo: add handling events to notify the room of the the clients changes attributes as well .
+		// ToDo : What wil happen if all the user have been removed by the Orphaning or deliberate exiting from the room of been removed  the admin
+		
+		
+		Map<String, Object> responseData = new HashMap<>();
+		responseData.put("roomID", roomModel.getRoomID());
+		responseData.put("roomName", roomModel.getRoomName());
+		responseData.put("createdTimeStamp", roomModel.getCreatedTimeStamp());
+		responseData.put("password", roomModel.getPassword());
+		responseData.put("pin", roomModel.getPin());
+		responseData.put("maximumCapacity", roomModel.getMaximumCapacity());
+		responseData.put("roomDescription", roomModel.getRoomDescription());
+		responseData.put("creatorClientID", roomModel.getCreatorClientID());
+		return responseData;
 	}
 	
 	

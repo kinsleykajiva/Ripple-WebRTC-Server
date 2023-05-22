@@ -66,7 +66,7 @@ public class GeneralController {
 		}
 		
 		responseMap.put("clientID", clientObject.getClientID());
-		responseMap.put("featureInUse", clientObject.getFeatureType());
+		responseMap.put("featureInUse", clientObject.getFeatureType().toString());
 		responseMap.put("lastSeen", clientObject.lastTimeStamp());
 		
 		return XUtils.buildSuccessResponse(true, 200, "Client  Remembered Successfully", Map.of("client",
