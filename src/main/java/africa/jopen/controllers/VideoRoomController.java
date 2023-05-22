@@ -131,27 +131,32 @@ public class VideoRoomController {
 			return XUtils.buildErrorResponse(false, 400, "Client not found!", Map.of());
 		}
 		
-		Client clientModel = clientModelOptional.get();
-		clientModel.setFeatureType(FeatureTypes.VIDEO_ROOM);
-		clientModel.getRtcModel().setOffer(payload.offer());
-		
-		
-		CompletableFuture<Response> future = CompletableFuture.supplyAsync(() -> {
-			String responseAnswer = clientModel.processSdpOfferAsRemoteDescription();
-			connectionsManager.updateRoom(roomModel, payload.clientID());
-			
-			return XUtils.buildSuccessResponse(true, 200, "SDP Offer processed, here is the answer ", Map.of("sdp", responseAnswer));
-		});
+		CompletableFuture<String> future = getResponseCompletableFuture(connectionsManager,payload, clientModelOptional, roomModel);
 		
 		try {
 			// Retrieve the response from the CompletableFuture
-			return future.get();
+			
+			return XUtils.buildSuccessResponse(true, 200, "SDP Offer processed, here is the answer ", Map.of("sdp", future.get()));
 		} catch (Exception e) {
 			logger.atInfo().withCause(e).log("Error");
 			return XUtils.buildErrorResponse(false, 500, "Error processing SDP Offer", Map.of());
 		}
 		
 		
+	}
+	
+	public static CompletableFuture<String> getResponseCompletableFuture(ConnectionsManager connectionsManager , PostSDPOffer payload, Optional<Client> clientModelOptional, RoomModel roomModel) {
+		Client clientModel = clientModelOptional.get();
+		clientModel.setFeatureType(FeatureTypes.VIDEO_ROOM);
+		clientModel.getRtcModel().setOffer(payload.offer());
+		
+		CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+			String responseAnswer = clientModel.processSdpOfferAsRemoteDescription();
+			connectionsManager.updateRoom(roomModel, payload.clientID());
+			
+			return responseAnswer;
+		});
+		return future;
 	}
 	
 	

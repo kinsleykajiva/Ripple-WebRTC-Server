@@ -3,6 +3,7 @@ package africa.jopen.websockets;
 import africa.jopen.controllers.VideoRoomController;
 import africa.jopen.http.videoroom.PostCreateRoom;
 import africa.jopen.http.videoroom.PostJoinRoom;
+import africa.jopen.http.videoroom.PostSDPOffer;
 import africa.jopen.models.Client;
 import africa.jopen.models.RoomModel;
 import africa.jopen.utils.ConnectionsManager;
@@ -17,11 +18,13 @@ import jakarta.websocket.OnOpen;
 import jakarta.websocket.Session;
 import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
+import jakarta.ws.rs.core.Response;
 import org.json.JSONObject;
 
 import java.math.BigInteger;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static java.util.Objects.requireNonNull;
 
@@ -177,6 +180,48 @@ public class VideoRoomWebSocket {
 					
 					break;
 				case "sendOffer":
+					if (!messageObject.has("clientID")) {
+						response = XUtils.buildJsonErrorResponse(400, "clientID", "validation",
+								"clientID is required", response);
+						broadcast(clientObject, response.toString());
+						return;
+					}
+					if (!messageObject.has("offer")) {
+						response = XUtils.buildJsonErrorResponse(400, "offer", "validation",
+								"offer is required", response);
+						broadcast(clientObject, response.toString());
+						return;
+					}
+					var payload = new PostSDPOffer(
+							messageObject.getString("roomID"),
+							messageObject.getString("offer"),
+							messageObject.getString("clientID")
+					);
+					 roomModelOptional = connectionsManager.getRoomById(payload.roomID());
+					if (roomModelOptional.isEmpty()) {
+						response = XUtils.buildJsonErrorResponse(404, "room", "validation",
+								"Room not found!", response);
+						broadcast(clientObject, response.toString());
+						return;
+					}
+					
+					roomModel = roomModelOptional.get();
+					Optional<Client> clientModelOptional = roomModel.getParticipants().stream()
+							                                       .filter(client -> client.getClientID().equals(payload.clientID()))
+							                                       .findFirst();
+					if (clientModelOptional.isEmpty()) {
+						response = XUtils.buildJsonErrorResponse(404, "client", "validation",
+								"Client not found!", response);
+						broadcast(clientObject, response.toString());
+						return;
+					}
+					
+					CompletableFuture<String> future = VideoRoomController.getResponseCompletableFuture(connectionsManager,payload,clientModelOptional ,roomModel);
+					
+					response.put("sdp", future.get());
+					response = XUtils.buildJsonSuccessResponse(200, "eventType", "SDP",
+							"SDP Offer processed, here is the answer ", response);
+					
 					break;
 				
 				
