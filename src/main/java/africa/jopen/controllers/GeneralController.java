@@ -6,6 +6,7 @@ import africa.jopen.http.PostClientRemember;
 import africa.jopen.models.Client;
 import africa.jopen.utils.ConnectionsManager;
 import africa.jopen.utils.XUtils;
+import com.google.common.flogger.FluentLogger;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -19,7 +20,7 @@ import java.util.Objects;
 
 @Path("/app")
 public class GeneralController {
-	
+	private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 	@Inject
 	ConnectionsManager connectionsManager;
 	@Inject

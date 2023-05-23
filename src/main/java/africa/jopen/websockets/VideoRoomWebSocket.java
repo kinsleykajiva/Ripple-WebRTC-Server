@@ -83,7 +83,7 @@ public class VideoRoomWebSocket {
 		
 		var testExists = connectionsManager.checkIfClientExists(clientID);
 		if (!testExists) {
-			logger.atInfo().log("This ID is illigal, the client will not be notified as we dont have a way to notify the client session");
+			logger.atInfo().log("This ID is illegal, the client will not be notified as we dont have a way to notify the client session");
 			// we cant risk to run other existing sessions in the connections list , in-case we send to the wrong client that may have high jacked the session data by some means that i have not yet determined as much yet .
 			return;
 		}

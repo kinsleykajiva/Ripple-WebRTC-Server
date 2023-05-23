@@ -9,6 +9,9 @@ import com.google.common.flogger.FluentLogger;
 import jakarta.inject.Singleton;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
+import org.freedesktop.gstreamer.Gst;
+import org.freedesktop.gstreamer.Version;
+import org.freedesktop.gstreamer.glib.GLib;
 
 import java.util.Map;
 import java.util.Optional;
@@ -22,6 +25,10 @@ public class ConnectionsManager {
 	
 	private ConnectionsManager() {
 		// Private constructor to enforce singleton pattern
+		logger.atInfo().log("started now ConnectionsManager");
+		XUtils.GStreamerUtils.configurePaths();
+		GLib.setEnv("GST_DEBUG", "4", true);
+		Gst.init(Version.of(1, 16));
 	}
 	
 	public static ConnectionsManager getInstance() {
@@ -128,6 +135,7 @@ public class ConnectionsManager {
 	 */
 	public void removeDeadCallNotifications() {
 		CLIENTS.stream()
+				.filter(client ->  client.getVideCallNotification()!=null)
 				.filter(client -> System.currentTimeMillis() > client.getVideCallNotification().end())
 				.forEach(client -> client.setVideCallNotification(null));
 		
