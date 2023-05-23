@@ -50,16 +50,11 @@ public class WebRTCSendRecv {
 
     private void endCall() {
         pipe.setState(State.NULL);
-        // httpClient.close();
         //  Gst.quit();
     }
 
     public void handleSdp(String sdpStr) {
         try {
-
-           // JSONObject answer = new JSONObject(payload);
-
-          //  String sdpStr = answer.getJSONObject("sdp").getString("sdp");
             logger.atInfo().log("Answer SDP:\n" + sdpStr);
             SDPMessage sdpMessage = new SDPMessage();
             sdpMessage.parseBuffer(sdpStr);
@@ -71,12 +66,8 @@ public class WebRTCSendRecv {
         }
     }
 
-    public void handleIceSdp(String candidate,int sdpMLineIndex) {
+    public void handleIceSdp(String candidate, int sdpMLineIndex) {
         try {
-
-         //   JSONObject answer = new JSONObject(payload);
-           /* String candidate = answer.getJSONObject("ice").getString("candidate");
-            int sdpMLineIndex = answer.getJSONObject("ice").getInt("sdpMLineIndex");*/
             logger.atInfo().log("Adding ICE candidate : " + candidate);
             webRTCBin.addIceCandidate(sdpMLineIndex, candidate);
         } catch (Exception exception) {
@@ -106,7 +97,7 @@ public class WebRTCSendRecv {
 
     private WebRTCBin.CREATE_OFFER onOfferCreated = offer -> {
         webRTCBin.setLocalDescription(offer);
-        String  sdpp = offer.getSDPMessage().toString() ;
+        String sdpp = offer.getSDPMessage().toString();
         var sdp = new JSONObject();
         sdp.put("sdp", new JSONObject()
                 .put("type", "offer")
