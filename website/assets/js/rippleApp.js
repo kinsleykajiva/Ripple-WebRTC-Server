@@ -330,7 +330,16 @@ const RippleSDK = {
 
                 RippleSDK.app.webRTC.peerConnection.ontrack = ev => {
                     // this will be used to render remote peers track audio and video
-                    console.log('onTrack event ', ev)
+                    console.log('onTrack event ', ev);
+                    if(RippleSDK.app.featuresInUse==='G_STREAM') {
+
+                        const localVideo     = document.getElementById(RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID);
+                        if (ev.track.kind === 'audio') {
+                            localVideo.style = 'display: none;';
+                        }
+                        localVideo.srcObject = new MediaStream([ev.track]);
+                    }
+
 
                 };
 

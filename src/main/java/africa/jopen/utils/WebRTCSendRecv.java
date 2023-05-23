@@ -54,12 +54,12 @@ public class WebRTCSendRecv {
         //  Gst.quit();
     }
 
-    public void handleSdp(String payload) {
+    public void handleSdp(String sdpStr) {
         try {
 
-            JSONObject answer = new JSONObject(payload);
+           // JSONObject answer = new JSONObject(payload);
 
-            String sdpStr = answer.getJSONObject("sdp").getString("sdp");
+          //  String sdpStr = answer.getJSONObject("sdp").getString("sdp");
             logger.atInfo().log("Answer SDP:\n" + sdpStr);
             SDPMessage sdpMessage = new SDPMessage();
             sdpMessage.parseBuffer(sdpStr);
@@ -71,12 +71,12 @@ public class WebRTCSendRecv {
         }
     }
 
-    public void handleIceSdp(String payload) {
+    public void handleIceSdp(String candidate,int sdpMLineIndex) {
         try {
 
-            JSONObject answer = new JSONObject(payload);
-            String candidate = answer.getJSONObject("ice").getString("candidate");
-            int sdpMLineIndex = answer.getJSONObject("ice").getInt("sdpMLineIndex");
+         //   JSONObject answer = new JSONObject(payload);
+           /* String candidate = answer.getJSONObject("ice").getString("candidate");
+            int sdpMLineIndex = answer.getJSONObject("ice").getInt("sdpMLineIndex");*/
             logger.atInfo().log("Adding ICE candidate : " + candidate);
             webRTCBin.addIceCandidate(sdpMLineIndex, candidate);
         } catch (Exception exception) {

@@ -43,8 +43,10 @@ public class GStreamingController {
         }
         var clientObject = connectionsManager.updateClientWhenRemembered(payload.clientID());
 
+        System.out.println("XXX=>    "+payload.iceCandidate().candidate());
+
         clientObject.getWebRTCSendRecv()
-                .handleIceSdp(payload.iceCandidate().candidate());
+                .handleIceSdp(payload.iceCandidate().candidate() ,payload.iceCandidate().sdpMidLineIndex());
         return XUtils.buildSuccessResponse(true, 200, "Updated Clients Ice Candidates ", Map.of());
     }
 
@@ -63,10 +65,7 @@ public class GStreamingController {
         connectionsManager.updateClient(clientObject);
         clientObject.setWebRTCSendRecv();
         clientObject.getWebRTCSendRecv().handleSdp(
-                new JSONObject()
-                        .put("type", "offer")
-                        .put("sdp", payload.offer())
-                        .toString()
+                payload.offer()
         );
 
         clientObject.getWebRTCSendRecv().startCall();
