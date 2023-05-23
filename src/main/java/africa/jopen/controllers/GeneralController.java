@@ -65,10 +65,17 @@ public class GeneralController {
 		if (Objects.nonNull(clientObject.getVideCallNotification())) {
 			responseMap.put("videoCall", clientObject.getVideCallNotification());
 		}
+		if ( Objects.nonNull(clientObject.getRtcModel().answer()) && !clientObject.getRtcModel().answer().isEmpty()) {
+			responseMap.put("sdpAnswer", clientObject.getRtcModel().answer());
+		}
 		
 		responseMap.put("clientID", clientObject.getClientID());
 		responseMap.put("featureInUse", clientObject.getFeatureType().toString());
 		responseMap.put("lastSeen", clientObject.lastTimeStamp());
+
+		clientObject.resetCandidateMap();
+		clientObject.setVideCallNotification(null);
+		connectionsManager.updateClient(clientObject);
 		
 		return XUtils.buildSuccessResponse(true, 200, "Client  Remembered Successfully", Map.of("client",
 				responseMap));

@@ -3,6 +3,7 @@ package africa.jopen.utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.flogger.FluentLogger;
+import jakarta.inject.Inject;
 import org.freedesktop.gstreamer.*;
 import org.freedesktop.gstreamer.elements.DecodeBin;
 import org.freedesktop.gstreamer.webrtc.WebRTCBin;
@@ -11,13 +12,17 @@ import org.freedesktop.gstreamer.webrtc.WebRTCSessionDescription;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
 public class WebRTCSendRecv {
-
+    @Inject
+    ConnectionsManager connectionsManager;
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private Pipeline pipe;
     private WebRTCBin webRTCBin;
+    private String clientID;
     private final String PIPELINE_DESCRIPTION
             = "videotestsrc is-live=true pattern=ball ! videoconvert ! queue ! vp8enc deadline=1 ! rtpvp8pay"
             + " ! queue ! application/x-rtp,media=video,encoding-name=VP8,payload=97 ! webrtcbin. "
@@ -25,7 +30,8 @@ public class WebRTCSendRecv {
             + " ! queue ! application/x-rtp,media=audio,encoding-name=OPUS,payload=96 ! webrtcbin. "
             + "webrtcbin name=webrtcbin bundle-policy=max-bundle stun-server=stun://stun.l.google.com:19302 ";
 
-    public WebRTCSendRecv() {
+    public WebRTCSendRecv(String clientID) {
+        this.clientID = clientID;
         pipe = (Pipeline) Gst.parseLaunch(PIPELINE_DESCRIPTION);
         webRTCBin = (WebRTCBin) pipe.getElementByName("webrtcbin");
         setupPipeLogging(pipe);
@@ -35,35 +41,44 @@ public class WebRTCSendRecv {
         webRTCBin.connect(onNegotiationNeeded);
         webRTCBin.connect(onIceCandidate);
         webRTCBin.connect(onIncomingStream);
+        // startCall();
     }
 
-    private void startCall() {
-
+    public void startCall() {
+        pipe.play();
     }
 
     private void endCall() {
         pipe.setState(State.NULL);
         // httpClient.close();
-      //  Gst.quit();
+        //  Gst.quit();
     }
 
-    private void handleSdp(String payload) {
+    public void handleSdp(String payload) {
         try {
 
             JSONObject answer = new JSONObject(payload);
-            if (answer.has("sdp")) {
-                String sdpStr = answer.getJSONObject("sdp").getString("sdp");
-                logger.atInfo().log("Answer SDP:\n" + sdpStr);
-                SDPMessage sdpMessage = new SDPMessage();
-                sdpMessage.parseBuffer(sdpStr);
-                WebRTCSessionDescription description = new WebRTCSessionDescription(WebRTCSDPType.ANSWER, sdpMessage);
-                webRTCBin.setRemoteDescription(description);
-            } else if (answer.has("ice")) {
-                String candidate = answer.getJSONObject("ice").getString("candidate");
-                int sdpMLineIndex = answer.getJSONObject("ice").getInt("sdpMLineIndex");
-                logger.atInfo().log("Adding ICE candidate : " + candidate);
-                webRTCBin.addIceCandidate(sdpMLineIndex, candidate);
-            }
+
+            String sdpStr = answer.getJSONObject("sdp").getString("sdp");
+            logger.atInfo().log("Answer SDP:\n" + sdpStr);
+            SDPMessage sdpMessage = new SDPMessage();
+            sdpMessage.parseBuffer(sdpStr);
+            WebRTCSessionDescription description = new WebRTCSessionDescription(WebRTCSDPType.ANSWER, sdpMessage);
+            webRTCBin.setRemoteDescription(description);
+
+        } catch (Exception exception) {
+            logger.atSevere().withCause(exception).log(exception.getLocalizedMessage());
+        }
+    }
+
+    public void handleIceSdp(String payload) {
+        try {
+
+            JSONObject answer = new JSONObject(payload);
+            String candidate = answer.getJSONObject("ice").getString("candidate");
+            int sdpMLineIndex = answer.getJSONObject("ice").getInt("sdpMLineIndex");
+            logger.atInfo().log("Adding ICE candidate : " + candidate);
+            webRTCBin.addIceCandidate(sdpMLineIndex, candidate);
         } catch (Exception exception) {
             logger.atSevere().withCause(exception).log(exception.getLocalizedMessage());
         }
@@ -98,6 +113,10 @@ public class WebRTCSendRecv {
         String json = sdp.toString();
         logger.atInfo().log("Sending offer:\n" + json);
         // websocket.sendTextFrame(json);
+        var clientObject = connectionsManager.getClient(clientID);
+        assert clientObject.isPresent();
+        clientObject.get().getRtcModel().setAnswer(offer.getSDPMessage().toString());
+        connectionsManager.updateClient(clientObject.get());
     };
     private final WebRTCBin.ON_NEGOTIATION_NEEDED onNegotiationNeeded = elem -> {
         logger.atInfo().log("onNegotiationNeeded: " + elem.getName());
@@ -110,7 +129,14 @@ public class WebRTCSendRecv {
         var ice = new JSONObject().put("candidate", candidate).put("sdpMLineIndex", sdpMLineIndex);
         String json = new JSONObject().put("ice", ice).toString();
         logger.atInfo().log("ON_ICE_CANDIDATE: " + json);
-        //  websocket.sendTextFrame(json);
+        Map<String, Object> candidateMap = new HashMap<>();
+        candidateMap.put("sdpMLineIndex", sdpMLineIndex);
+        candidateMap.put("candidate", candidate);
+
+        var clientObject = connectionsManager.getClient(clientID);
+        assert clientObject.isPresent();
+        clientObject.get().setCandidateMap(candidateMap);
+        connectionsManager.updateClient(clientObject.get());
 
     };
     private final Element.PAD_ADDED onDecodedStream = (element, pad) -> {

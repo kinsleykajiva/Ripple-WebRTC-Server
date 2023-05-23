@@ -2,6 +2,7 @@ package africa.jopen.models;
 
 import africa.jopen.http.IceCandidate;
 import africa.jopen.utils.FeatureTypes;
+import africa.jopen.utils.WebRTCSendRecv;
 import africa.jopen.utils.XUtils;
 import com.google.common.flogger.FluentLogger;
 import dev.onvoid.webrtc.*;
@@ -23,6 +24,8 @@ public final class Client implements PeerConnectionObserver {
 		public void onFailure(String s) {
 		}
 	};
+
+	private WebRTCSendRecv webRTCSendRecv;
 	private final String clientID = XUtils.IdGenerator();
 	private final Vector<String> messages = new Vector<>();
 	private final Recorder recorder = new Recorder();
@@ -38,7 +41,7 @@ public final class Client implements PeerConnectionObserver {
 	
 	public Client(String clientAgentName) {
 		this.clientAgentName = clientAgentName;
-		this.featureType = featureType;
+
 		RTCConfiguration rtcConfiguration = new RTCConfiguration();
 		RTCIceServer stunServer = new RTCIceServer();
 		stunServer.urls.add("stun:stun.l.google.com:19302");
@@ -47,10 +50,18 @@ public final class Client implements PeerConnectionObserver {
 		peerConnection = peerConnectionFactory.createPeerConnection(rtcConfiguration, this);
 		logger.atInfo().log("Creating peer connection");
 	}
-	
-	
-	
-	
+
+
+	public WebRTCSendRecv getWebRTCSendRecv() {
+		return webRTCSendRecv;
+	}
+
+	public void setWebRTCSendRecv() {
+		peerConnection.close();
+		setSocketSession(null);// not-really necessary to set to null really , just doing it just incase to save memory in the mean time
+		this.webRTCSendRecv = new WebRTCSendRecv(clientID);
+	}
+
 	public void addIceCandidate(IceCandidate candidate) {
 		
 		RTCIceCandidate rtcCandidate = new RTCIceCandidate(candidate.sdpMid(), candidate.sdpMidLineIndex(), candidate.candidate());
@@ -211,4 +222,14 @@ public final class Client implements PeerConnectionObserver {
 	public Map<String, Object> getCandidateMap() {
 		return candidateMap;
 	}
+	public void  resetCandidateMap() {
+		 candidateMap.clear();
+	}
+	public void setCandidateMap(Map<String,Object> candits) {
+		// ToDo check if this will require a review  during multi-threading case
+		 this.candidateMap=candits;
+	}
+
+
+
 }

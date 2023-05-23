@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Optional;
 
 @Singleton
-//@ApplicationScoped
 public class ConnectionsManager {
 	private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 	private static final MutableList<Client> CLIENTS = Lists.mutable.empty();
@@ -84,6 +83,8 @@ public class ConnectionsManager {
 		//  check if client exists using the client d property
 		return CLIENTS.select(client -> client.getClientID().equals(id)).stream().findFirst();
 	}
+
+
 	
 	public Client updateClientWhenRemembered(String id) {
 		// update client of the client object in the list and return the client object
