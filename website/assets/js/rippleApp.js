@@ -258,7 +258,7 @@ const RippleSDK = {
                             body
                         });
                         console.log('XXXX post post ', post);
-                        if(post.data.sdp){ // accoomodates videoroom , videocall
+                        if(post.data.sdp){ // accommodates video room , video call
                             RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
                                 sdp : post.data.sdp,
                                 type: 'answer',
