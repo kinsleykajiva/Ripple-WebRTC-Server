@@ -1,4 +1,7 @@
 'use strict';
+const RippleSDK_CONST={
+    notificationsTypes: Object.freeze({VIDEO_CALL: 'videoCall',VIDEO_ROOM: 'videoRoom',AUDIO_ROOM: 'audioRoom',}),
+};
 const RippleSDK = {
     accessPassword              : '',
     isAudioAccessRequired       : false,
@@ -18,27 +21,44 @@ const RippleSDK = {
     remindServerTimeoutInSeconds: 26,
     iceServerArray              : [],
     app: {
-        featuresAvailable : ["VIDEO_ROOM", "AUDIO_ROOM", "VIDEO_CALL"],
-        featuresInUse     : [],
+        featuresAvailable : ["VIDEO_ROOM", "AUDIO_ROOM", "VIDEO_CALL","G_STREAM"],
+        featuresInUse     : '',
         notificationsTypes: Object.freeze({VIDEO_CALL: 'videoCall',VIDEO_ROOM: 'videoRoom',AUDIO_ROOM: 'audioRoom',}),
-        notifications     : [{id: '', type: RippleSDK.app.notificationsTypes.VIDEO_CALL, data: null}],
+        notifications     : [{id: '', type: RippleSDK_CONST.notificationsTypes.VIDEO_CALL, data: null}],
         reminderInterval  : null,
         startToRemindServerOfMe: () => {
             RippleSDK.app.reminderInterval = setInterval(() => {
                 RippleSDK.Utils.fetchWithTimeout('/app/client/remember', {
                     method: 'POST',
                     body  : {clientID: RippleSDK.serverClientId}
-                }).then(res => {
-
+                }).then(async res => {
                     if (res.success) {
                         console.log("the Server still knows about me ")
                         RippleSDK.serverClientLastSeen = res.data.client.lastSeen;
                         console.log('ice - ', res.data.client.iceCandidates)
                         if (res.data.client.iceCandidates) {
+
                             if (RippleSDK.app.webRTC.peerConnection) {
-                                RippleSDK.app.webRTC.peerConnection.addIceCandidate(res.data.client.iceCandidates);
+                                if (res.data.client.iceCandidates) {
+                                    RippleSDK.app.webRTC.peerConnection.addIceCandidate(res.data.client.iceCandidates);
+                                }
+                                if (res.data.client.sdpAnswer) {
+                                    // finally got our answer from the remote sever
+                                    await RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
+                                        sdp : res.data.sdpAnswer,
+                                        type: 'answer',
+                                    });
+                                    RippleSDK.Utils.onRemoteSDPReady();
+                                    // ice candidates could have been sent or flowing by nuw
+
+                                }
+
+
                             }
+
+
                         }
+
                     } else {
                         alert("Client not found please re-connect this session is now invalid!")
                         console.error("Client not found please re-connect this session is now invalid!")
@@ -50,6 +70,29 @@ const RippleSDK = {
             clearInterval(RippleSDK.app.reminderInterval)
         },
         maxRetries: 10,
+        makeConnection: async () => {
+
+            try {
+                const result = await RippleSDK.Utils.fetchWithTimeout('/app/connect', {
+                    method: 'POST',
+                    body: {clientAgentName: RippleSDK.clientID}
+                });
+                console.log(result);
+                RippleSDK.serverClientId = result.data.clientID;
+                RippleSDK.serverClientLastSeen = result.data.lastSeen;
+                if(!RippleSDK.isWebSocketAccess) {// we are doing this remember that we are still need an id , as we first attempt to
+                    // connect to the websocket sevrer we already need a ID , currenlty this is the best way of doing it.
+                    // trigger to start the remember-me calls
+                    RippleSDK.app.startToRemindServerOfMe();
+                }
+                return true;
+            } catch (e) {
+                console.error(e)
+            }
+
+            return false;
+
+        },
         rootCallbacks: {
             networkError: error => {
                 console.error(error);
@@ -97,6 +140,11 @@ const RippleSDK = {
             }
         },
         feature: {
+            gStream:{
+                startStreaming:()=>{
+                    RippleSDK.app.webRTC.createPeerconnection();
+                },
+            },
             videoRoom: {
                 room: {
                     pin             : '',
@@ -110,6 +158,10 @@ const RippleSDK = {
                 },
                 loadMyLocalVideoObjectID: '',
                 createRoom: async (roomName, password, pin) => {
+                    if(RippleSDK.app.featuresInUse ==='G_STREAM'){
+                        alert("This has nothing to do with the feature in use please read docs!");
+                        return ;
+                    }
 
                     if (!roomName || roomName === '') {
                         console.error("room name is required");
@@ -173,26 +225,7 @@ const RippleSDK = {
 
                     return false;
                 },
-                makeConnection: async () => {
 
-                    try {
-                        const result = await RippleSDK.Utils.fetchWithTimeout('/video/connect', {
-                            method: 'POST',
-                            body: {clientAgentName: RippleSDK.clientID}
-                        });
-                        console.log(result);
-                        RippleSDK.serverClientId = result.data.clientID;
-                        RippleSDK.serverClientLastSeen = result.data.lastSeen;
-                        // trigger to start the remember-me calls
-                        RippleSDK.app.startToRemindServerOfMe();
-                        return true;
-                    } catch (e) {
-                        console.error(e)
-                    }
-
-                    return false;
-
-                },
             },
         },
         webRTC: {
@@ -208,18 +241,30 @@ const RippleSDK = {
                             console.info("createOffer sdp",_sdp);
                         }
                         // ToDo this add a condition check on this part as to avoid repeatiton
-                        const post = await RippleSDK.Utils.fetchWithTimeout('video/send-offer', {
+                        let featureResourceUrl = '';
+                        const body = {
+                            clientID: RippleSDK.serverClientId,
+                            offer:_sdp.sdp
+                        };
+                        if(RippleSDK.app.featuresInUse==='G_STREAM'){
+                            featureResourceUrl = 'streams/send-offer';
+                        }
+                        if(RippleSDK.app.featuresInUse==='VIDEO_ROOM'){
+                            featureResourceUrl = 'video/send-offer';
+                            body.roomID = RippleSDK.app.feature.videoRoom.room.roomID;
+                        }
+                        const post = await RippleSDK.Utils.fetchWithTimeout(featureResourceUrl, {
                             method: 'POST',
-                            body: {
-                                roomID: RippleSDK.app.feature.videoRoom.room.roomID, offer: _sdp.sdp,
-                                clientID: RippleSDK.serverClientId
-                            }
+                            body
                         });
                         console.log('XXXX post post ', post);
-                        RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
-                            sdp : post.data.sdp,
-                            type: 'answer',
-                        });
+                        if(post.data.sdp){ // accoomodates videoroom , videocall
+                            RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
+                                sdp : post.data.sdp,
+                                type: 'answer',
+                            });
+                        }
+
 
                     });
             },
@@ -246,18 +291,29 @@ const RippleSDK = {
                             sdpMid: ev.candidate.sdpMid,
                             sdpMLineIndex: ev.candidate.sdpMLineIndex
                         };
+                        let featureResourceUrl = '';
                         if(RippleSDK.isDebugSession){
                             console.log('onicecandidate  payload ', payload);
                         }else {
                             console.info('onicecandidate  payload ', payload);
                         }
+                        const body = {
+                            clientID: RippleSDK.serverClientId,
+                            iceCandidate:payload ,
 
-                        const post = await RippleSDK.Utils.fetchWithTimeout('video/update-ice-candidate', {
+                        };
+
+                        if(RippleSDK.app.featuresInUse==='G_STREAM'){
+                            featureResourceUrl = 'streams/update-ice-candidate';
+                        }
+                        if(RippleSDK.app.featuresInUse==='VIDEO_ROOM'){
+                            body.roomID= RippleSDK.app.feature.videoRoom.room.roomID ;
+                            featureResourceUrl = 'video/update-ice-candidate';
+                        }
+
+                        const post = await RippleSDK.Utils.fetchWithTimeout(featureResourceUrl, {
                             method: 'POST',
-                            body: {
-                                roomID  : RippleSDK.app.feature.videoRoom.room.roomID, iceCandidate: payload,
-                                clientID: RippleSDK.serverClientId
-                            }
+                            body
                         });
                         if(RippleSDK.isDebugSession){ console.log('fetchWithTimeout post  ', post);}else{console.info('fetchWithTimeout post  ', post);}
                     }
@@ -377,6 +433,9 @@ const RippleSDK = {
         canAccessMedia: () => !!navigator.mediaDevices && !!navigator.mediaDevices.getUserMedia,
         onAccessMediaAllowedNotification: (mediaStream, wasAudioAllowed, wasVideoAllowed) => {
         },
+        onRemoteSDPReady: () => {
+        },
+
         myMedia: null,
         stopMyLocalMediaAccess: () => {
             if (RippleSDK.Utils.myMedia) {
@@ -388,6 +447,13 @@ const RippleSDK = {
             console.log("Stopped capturing my media , at there is no more rendering")
         },
         testMediaAccess: () => {
+            if(RippleSDK.app.featuresInUse !=='G_STREAM'){
+                console.error("Failed to test please set the feature in use first")
+                if(RippleSDK.isDebugSession){
+                    alert("Set feature in use first before using media")
+                    return
+                }
+            }
             let config = {audio: false, video: false};
             if (RippleSDK.isAudioAccessRequired) {
                 config.audio = true;

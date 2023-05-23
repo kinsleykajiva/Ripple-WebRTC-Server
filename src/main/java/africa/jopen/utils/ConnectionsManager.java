@@ -16,7 +16,8 @@ import org.freedesktop.gstreamer.glib.GLib;
 import java.util.Map;
 import java.util.Optional;
 
-@Singleton
+
+
 public class ConnectionsManager {
 	private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 	private static final MutableList<Client> CLIENTS = Lists.mutable.empty();
@@ -26,10 +27,12 @@ public class ConnectionsManager {
 		// Private constructor to enforce singleton pattern
 		logger.atInfo().log("started now ConnectionsManager");
 		XUtils.GStreamerUtils.configurePaths();
-		GLib.setEnv("GST_DEBUG", "4", true);
+		//GLib.setEnv("GST_DEBUG", "4", true);
 		Gst.init(Version.of(1, 16));
 	}
-	
+	private static class Holder {
+		private static final ConnectionsManager INSTANCE = new ConnectionsManager();
+	}
 	public static ConnectionsManager getInstance() {
 		return Holder.INSTANCE;
 	}
@@ -142,7 +145,5 @@ public class ConnectionsManager {
 		
 	}
 	
-	private static class Holder {
-		private static final ConnectionsManager INSTANCE = new ConnectionsManager();
-	}
+
 }

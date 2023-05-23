@@ -12,6 +12,7 @@ import africa.jopen.utils.ConnectionsManager;
 import africa.jopen.utils.FeatureTypes;
 import africa.jopen.utils.XUtils;
 import com.google.common.flogger.FluentLogger;
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -27,13 +28,15 @@ import java.util.concurrent.CompletableFuture;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class VideoRoomController {
+
+
 	private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 	
 	
 	@Inject
 	Event<ClientsEvents> clientsEventsEvent;
-	@Inject
-	ConnectionsManager connectionsManager;
+
+	ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
 	
 	@GET
 	@Path("/room-info")
@@ -48,6 +51,7 @@ public class VideoRoomController {
 			
 			return XUtils.buildErrorResponse(false, 400, "Room Not found!", Map.of());
 		}
+
 		final var roomModel = roomModelOptional.getOnly();
 		return XUtils.buildSuccessResponse(true, 200, "Room Information ", Map.of(
 				"room", Map.of(

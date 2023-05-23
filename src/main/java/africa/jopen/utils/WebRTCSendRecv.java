@@ -17,8 +17,8 @@ import java.util.Map;
 import java.util.logging.Level;
 
 public class WebRTCSendRecv {
-    @Inject
-    ConnectionsManager connectionsManager;
+
+    ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private Pipeline pipe;
     private WebRTCBin webRTCBin;
@@ -106,17 +106,19 @@ public class WebRTCSendRecv {
 
     private WebRTCBin.CREATE_OFFER onOfferCreated = offer -> {
         webRTCBin.setLocalDescription(offer);
+        String  sdpp = offer.getSDPMessage().toString() ;
         var sdp = new JSONObject();
         sdp.put("sdp", new JSONObject()
                 .put("type", "offer")
-                .put("sdp", offer.getSDPMessage().toString()));
+                .put("sdp", sdpp));
         String json = sdp.toString();
         logger.atInfo().log("Sending offer:\n" + json);
         // websocket.sendTextFrame(json);
         var clientObject = connectionsManager.getClient(clientID);
         assert clientObject.isPresent();
-        clientObject.get().getRtcModel().setAnswer(offer.getSDPMessage().toString());
+        clientObject.get().getRtcModel().setAnswer(sdpp);
         connectionsManager.updateClient(clientObject.get());
+
     };
     private final WebRTCBin.ON_NEGOTIATION_NEEDED onNegotiationNeeded = elem -> {
         logger.atInfo().log("onNegotiationNeeded: " + elem.getName());

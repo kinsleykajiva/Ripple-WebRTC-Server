@@ -8,8 +8,7 @@ import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ClientCrons {
-	@Inject
-	ConnectionsManager connectionsManager;
+	ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
 	
 	
 	@Scheduled(every = "60s")

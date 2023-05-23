@@ -4,6 +4,7 @@ import africa.jopen.http.PostClientRemember;
 import africa.jopen.http.videocall.PostSDPOffer;
 import africa.jopen.http.videoroom.PostIceCandidate;
 import africa.jopen.utils.ConnectionsManager;
+import africa.jopen.utils.FeatureTypes;
 import africa.jopen.utils.XUtils;
 import com.google.common.flogger.FluentLogger;
 import jakarta.inject.Inject;
@@ -17,16 +18,10 @@ import java.util.Map;
 import java.util.Objects;
 
 
-@Path("/streams/g")
+@Path("/streams")
 
 public class GStreamingController {
-    @Inject
-    ConnectionsManager connectionsManager;
-
-    private String sessionId;
-
-    public record GStreamPost(String clientID) {
-    }
+    ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
 
     public record GStreamPostEvent(String clientID, String event) {
     }
@@ -43,13 +38,13 @@ public class GStreamingController {
             return XUtils.buildErrorResponse(false, 400, "Client ID is required!", Map.of());
         }
 
-
         if (payload.iceCandidate().candidate() == null) {
             return XUtils.buildErrorResponse(false, 400, "icecandidate is required!", Map.of());
         }
         var clientObject = connectionsManager.updateClientWhenRemembered(payload.clientID());
 
-        clientObject.getWebRTCSendRecv().handleIceSdp(payload.iceCandidate().candidate());
+        clientObject.getWebRTCSendRecv()
+                .handleIceSdp(payload.iceCandidate().candidate());
         return XUtils.buildSuccessResponse(true, 200, "Updated Clients Ice Candidates ", Map.of());
     }
 
@@ -62,18 +57,20 @@ public class GStreamingController {
         var clientObject = connectionsManager.updateClientWhenRemembered(payload.clientID());
 
         clientObject.getRtcModel().setOffer(payload.offer());
+        clientObject.setFeatureType(FeatureTypes.G_STREAM);
 
 
         connectionsManager.updateClient(clientObject);
-
+        clientObject.setWebRTCSendRecv();
         clientObject.getWebRTCSendRecv().handleSdp(
                 new JSONObject()
                         .put("type", "offer")
                         .put("sdp", payload.offer())
                         .toString()
         );
-        clientObject.setWebRTCSendRecv();
+
         clientObject.getWebRTCSendRecv().startCall();
+        connectionsManager.updateClient(clientObject);
 
         Map<String, Object> responseMap = new HashMap<>();
 

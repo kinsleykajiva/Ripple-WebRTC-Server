@@ -21,8 +21,7 @@ import java.util.Objects;
 @Path("/app")
 public class GeneralController {
 	private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-	@Inject
-	ConnectionsManager connectionsManager;
+	ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
 	@Inject
 	Event<ClientsEvents> clientsEventsEvent;
 	

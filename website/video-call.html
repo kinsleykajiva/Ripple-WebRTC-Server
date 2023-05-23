@@ -72,8 +72,8 @@
     console.log("isWebRTCSupported " ,RippleSDK.Utils.isWebRTCSupported())
 
     function onStartAction(){
+        RippleSDK.app.featuresInUse='VIDEO_CALL';
         RippleSDK.Utils.testMediaAccess();
-        RippleSDK.app.featuresInUse.push('VIDEO_CALL')
         RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID = 'localVideo'
         RippleSDK.Utils.onAccessMediaAllowedNotification = (mediaStream,wasAudioAllowed,wasVideoAllowed)=>{
             console.log('Media access allowed!');
@@ -103,7 +103,7 @@
 
 
  async function onConnectAction() {
-     let canProceed = await RippleSDK.app.feature.videoRoom.makeConnection();
+     let canProceed = await RippleSDK.app.makeConnection();
      if(canProceed){
          canProceed =  await RippleSDK.app.feature.videoRoom.createRoom("Meeting At Twitter","qwerty" ,222);
          if(canProceed){

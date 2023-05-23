@@ -21,8 +21,7 @@ import java.util.concurrent.TimeUnit;
 @Path("/video-call")
 public class VideoCallController {
 	private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-	@Inject
-	ConnectionsManager connectionsManager;
+	ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
 	
 	@POST
 	@Path("/update-ice-candidate")

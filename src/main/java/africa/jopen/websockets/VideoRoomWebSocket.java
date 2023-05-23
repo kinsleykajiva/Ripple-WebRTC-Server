@@ -31,8 +31,7 @@ import static java.util.Objects.requireNonNull;
 @ServerEndpoint("/video-room/{clientID}")
 @ApplicationScoped
 public class VideoRoomWebSocket {
-	@Inject
-	ConnectionsManager connectionsManager;
+	ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
 	private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 	
 	@OnOpen
