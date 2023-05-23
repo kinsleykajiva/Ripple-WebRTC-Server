@@ -1,17 +1,13 @@
 package africa.jopen.controllers;
 
-import africa.jopen.http.PostClientRemember;
 import africa.jopen.http.videocall.PostSDPOffer;
 import africa.jopen.http.videoroom.PostIceCandidate;
 import africa.jopen.utils.ConnectionsManager;
 import africa.jopen.utils.FeatureTypes;
 import africa.jopen.utils.XUtils;
-import com.google.common.flogger.FluentLogger;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
-import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
