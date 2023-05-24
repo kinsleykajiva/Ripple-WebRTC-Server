@@ -17,6 +17,9 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
+
+/**
+ * */
 public class WebRTCSendRecv {
 
     ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
@@ -24,6 +27,11 @@ public class WebRTCSendRecv {
     private Pipeline pipe;
     private WebRTCBin webRTCBin;
     private String clientID;
+
+    /**
+     * max-size-buffers  set to 1000, which determines the maximum number of buffers that can be held in the queue.
+     * The buffering element helps in smoothing out the stream by allowing a certain number of buffers to be accumulated before passing them downstream
+     * */
     private final String PIPELINE_DESCRIPTION= """
            filesrc location="C:\\\\Users\\\\Kinsl\\\\Videos\\\\target.mp4" ! decodebin name=decoder
                       
@@ -55,7 +63,8 @@ public class WebRTCSendRecv {
         webRTCBin.connect(onIceCandidate);
         webRTCBin.connect(onIncomingStream);
         logger.atInfo().log("initiating call");
-        startCall();
+        //Todo remove some of the code here is useless
+        startCall(); // called to trigger the ice process and sdp offer to the client
     }
     public String startWebRTCDescriptions(){
         logger.atInfo().log("starting the webtc iside .....xx");
@@ -72,6 +81,7 @@ public class WebRTCSendRecv {
                         .put("sdp", sdpp));
                 String json = sdp.toString();
                 logger.atInfo().log("Sending answer:\n" + json);
+                //Todo remove some of the code here is useless
                 // websocket.sendTextFrame(json);
               //  var clientObject = connectionsManager.getClient(clientID);
                // assert clientObject.isPresent();
@@ -111,6 +121,7 @@ public class WebRTCSendRecv {
             sdpMessage.parseBuffer(sdpStr);
             WebRTCSessionDescription description = new WebRTCSessionDescription(WebRTCSDPType.ANSWER, sdpMessage);
             webRTCBin.setRemoteDescription(description);
+            //Todo remove some of the code here is useless
 
         } catch (Exception exception) {
             logger.atSevere().withCause(exception).log(exception.getLocalizedMessage());
@@ -155,7 +166,7 @@ public class WebRTCSendRecv {
                 .put("sdp", sdpp));
         String json = sdp.toString();*/
         logger.atInfo().log("Sending answer:\n" + sdpp);
-
+//Todo remove some of the code here is useless
         var clientObject = connectionsManager.getClient(clientID);
         assert clientObject.isPresent();
         clientObject.get().getRtcModel().setOffer(sdpp);
