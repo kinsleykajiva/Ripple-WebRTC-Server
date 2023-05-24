@@ -97,12 +97,22 @@ The Ripple-WebRTC-Server aims to provide the following main features:
 
 
 Access transport that will be support to above features are :
-- Rest API 
+- Rest HTTP 
 - Websockets
+
+Primary transport focus is  Rest HTTP for now  . Demo pages are so far  that are still in progress are : 
+
+* ![Video-Room Page](/website/video-room.html)
+* ![Video-Call Page](/website/video-call.html)
+* ![G-Streamer Page](/website/G-Streamer.html)
+
+Client Javascript SDK/Lib -  ![Ripple JS](/website/assets/js/rippleApp.js)
 
 Please note that this server is still under development, and additional features and improvements are planned for future releases.
 
 Feel free to explore and contribute to the development of the Ripple-WebRTC-Server.
+
+
 
 
 ###### Website Theme Credit founder under the website folder

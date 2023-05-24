@@ -185,15 +185,15 @@ public class VideoRoomWebSocket {
 						broadcast(clientObject, response.toString());
 						return;
 					}
-					if (!messageObject.has("offer")) {
-						response = XUtils.buildJsonErrorResponse(400, "offer", "validation",
-								"offer is required", response);
+					if (!messageObject.has("answer")) {
+						response = XUtils.buildJsonErrorResponse(400, "answer", "validation",
+								"answer is required", response);
 						broadcast(clientObject, response.toString());
 						return;
 					}
 					var payload = new PostSDPOffer(
 							messageObject.getString("roomID"),
-							messageObject.getString("offer"),
+							messageObject.getString("answer"),
 							messageObject.getString("clientID")
 					);
 					roomModelOptional = connectionsManager.getRoomById(payload.roomID());

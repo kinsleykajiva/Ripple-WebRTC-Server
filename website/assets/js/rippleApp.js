@@ -7,17 +7,17 @@ const RippleSDK_CONST={
 const RippleSDK = {
     log: function() {
         const logMessage = Array.from(arguments).join(' ');
-        console.log("['😄'RippleSDK]",logMessage );
+        console.log("['😄'RippleSDK]",{...arguments} );
 
     },
     error: function() {
         const errorMessage = Array.from(arguments).join(' ');
-        console.error("'😡'[RippleSDK]",errorMessage  );
+        console.error("'😡'[RippleSDK]",{...arguments}  );
 
     },
     warn: function() {
         const errorMessage = Array.from(arguments).join(' ');
-        console.error("'😒'[RippleSDK]",errorMessage  );
+        console.error("'😒'[RippleSDK]",{...arguments}  );
 
     },
     accessPassword              : '',
@@ -35,7 +35,7 @@ const RippleSDK = {
     clientTypeInUse             : '',
     isWebSocketAccess           : false,
     isDebugSession              : false,
-    remindServerTimeoutInSeconds: 26,
+    remindServerTimeoutInSeconds: 26/4,
     iceServerArray              : [],
     app: {
         featuresAvailable : ["VIDEO_ROOM", "AUDIO_ROOM", "VIDEO_CALL","G_STREAM"],
@@ -53,30 +53,40 @@ const RippleSDK = {
                         RippleSDK.log("the Server still knows about me ")
                         RippleSDK.serverClientLastSeen = res.data.client.lastSeen;
                         RippleSDK.log('res.data - ', res.data)
-                        if (res.data.client.iceCandidates) {
+                        RippleSDK.log('res.data.client.iceCandidates - ', res.data.client.iceCandidates)
+
+
+                        if (res.data.client.clientSDP) {
+                          // RippleSDK.log(22,res.data.client.clientSDP)
+
+                            RippleSDK.app.feature.gStream.remoteOfferStringSDP =res.data.client.clientSDP;
+
+                            RippleSDK.app.webRTC.wasOfferSentSuccessfully = true ;
+                            RippleSDK.log(" Happy yey ,  finally got our answer from the remote sever ")
+                            // finally got our answer from the remote sever
+                            //RippleSDK.app.feature.gStream.remoteOfferStringSDP = res.data.clientSDP;
+                            /*await RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
+                                sdp : RippleSDK.app.feature.gStream.remoteOfferStringSDP,
+                                type: 'offer',
+                            });*/
+                            await RippleSDK.app.webRTC.createAnswer();
+                            RippleSDK.Utils.onRemoteSDPReady();
+                            // ice candidates could have been sent or flowing by nuw
+
+
+                        }
 
                             if (RippleSDK.app.webRTC.peerConnection) {
                                 if (res.data.client.iceCandidates) {
                                     RippleSDK.app.webRTC.peerConnection.addIceCandidate(res.data.client.iceCandidates);
                                 }
-                                if (!RippleSDK.app.webRTC.wasOfferSentSuccessfully && res.data.client.sdpAnswer) {
-                                    RippleSDK.log(" Happy yey ,  finally got our answer from the remote sever ")
-                                    // finally got our answer from the remote sever
-                                    await RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
-                                        sdp : res.data.sdpAnswer,
-                                        type: 'answer',
-                                    });
-                                    RippleSDK.Utils.onRemoteSDPReady();
-                                    // ice candidates could have been sent or flowing by nuw
-                                    RippleSDK.app.webRTC.wasOfferSentSuccessfully = true ;
 
-                                }
 
 
                             }
 
 
-                        }
+
 
                     } else {
                         alert("Client not found please re-connect this session is now invalid!")
@@ -92,7 +102,7 @@ const RippleSDK = {
         makeConnection: async () => {
 
             try {
-                const result = await RippleSDK.Utils.fetchWithTimeout('/app/connect', {
+                const result = await RippleSDK.Utils.fetchWithTimeout('app/connect', {
                     method: 'POST',
                     body: {clientAgentName: RippleSDK.clientID}
                 });
@@ -160,8 +170,24 @@ const RippleSDK = {
         },
         feature: {
             gStream:{
-                startStreaming:()=>{
-                    RippleSDK.app.webRTC.createPeerconnection();
+                remoteOfferStringSDP:null,
+                startStreaming:async () => {
+                    const result = await RippleSDK.Utils.fetchWithTimeout('streams/start', {
+                        method: 'POST',
+                        body  : {
+
+                            clientID: RippleSDK.serverClientId,
+                        }
+                    });
+                    RippleSDK.log("result   v  " , result)
+                    if(result.success){
+                      //  RippleSDK.app.feature.gStream.remoteOfferStringSDP = result.data.offer;
+                        RippleSDK.app.webRTC.createPeerconnection();
+                      //  RippleSDK.app.webRTC.createOffer();
+                      //  await RippleSDK.app.webRTC.createAnswer();
+                        RippleSDK.log("cone creating the answer")
+                    }
+                    //  RippleSDK.app.webRTC.createPeerconnection();
                 },
             },
             videoRoom: {
@@ -177,7 +203,8 @@ const RippleSDK = {
                 },
                 loadMyLocalVideoObjectID: '',
                 createRoom: async (roomName, password, pin) => {
-                    if(RippleSDK.app.featuresInUse ==='G_STREAM'){
+                    if(RippleSDK.app.featuresInUse ==='G_STREAM' || RippleSDK.app.featuresInUse ==='VIDEO_CALL'){
+                        RippleSDK.error("This has nothing to do with the feature in use please read docs!");
                         alert("This has nothing to do with the feature in use please read docs!");
                         return ;
                     }
@@ -229,7 +256,8 @@ const RippleSDK = {
                     }
                     try {
                         const result = await RippleSDK.Utils.fetchWithTimeout('/video/join-room', {
-                            method: 'POST', body: {
+                            method: 'POST',
+                            body: {
                                 roomID  : RippleSDK.app.feature.videoRoom.room.roomID,
                                 password: RippleSDK.app.feature.videoRoom.room.password,
                                 clientID: RippleSDK.serverClientId /*! this id has to exist , meaning the client has to first connect!*/,
@@ -251,6 +279,32 @@ const RippleSDK = {
             peerConnection: null,
             wasOfferSentSuccessfully:false,
             offerOptions: {offerToReceiveVideo: true, offerToReceiveAudio: true},
+            createAnswer:async () => {
+
+                await RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
+                    sdp : RippleSDK.app.feature.gStream.remoteOfferStringSDP,
+                    type: 'offer',
+                });
+                RippleSDK.app.webRTC.peerConnection.createAnswer(async _sdp => {
+                    await RippleSDK.app.webRTC.peerConnection.setLocalDescription(_sdp);
+                    let featureResourceUrl = '';
+                    const body = {
+                        clientID: RippleSDK.serverClientId,
+                        answer:RippleSDK.app.webRTC.peerConnection.localDescription
+                    }
+                    if(RippleSDK.app.featuresInUse==='G_STREAM'){
+                        featureResourceUrl = 'streams/send-answer';
+                    }
+                    const post = await RippleSDK.Utils.fetchWithTimeout(featureResourceUrl, {
+                        method: 'POST',
+                        body
+                    });
+                        if(post.success){
+                            // dont do anything for now
+                        }
+
+                });
+            },
             createOffer: () => {
                 RippleSDK.app.webRTC.peerConnection.createOffer(RippleSDK.app.webRTC.offerOptions)
                     .then(async _sdp => {
@@ -280,12 +334,14 @@ const RippleSDK = {
 
                         RippleSDK.log('XXXX post post ', post);
                         if(post.success){
-                            RippleSDK.app.webRTC.wasOfferSentSuccessfully = true;
+
                             if(post.data.sdp){ // accommodates video room , video call
+
                                 RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
                                     sdp : post.data.sdp,
                                     type: 'answer',
                                 });
+                                RippleSDK.app.webRTC.wasOfferSentSuccessfully = true;
                             }
                         }
 
@@ -299,9 +355,9 @@ const RippleSDK = {
                     RippleSDK.app.webRTC.peerConnection = null;
                 }
             },
-            runPeerConnectionDelayedIceJobPayloadsArray:[]/*this is an array of promises of request or other functions*/,
-            runPeerConnectionDelayedIceJobTimeoutId:null,
-            runPeerConnectionDelayedIceJobs:()=>{
+            runPeerConnectionDelayedIceJobPayloadsArray: []/*this is an array of promises of request or other functions*/,
+            runPeerConnectionDelayedIceJobTimeoutId    : null,
+            runPeerConnectionDelayedIceJobs            : () => { /*this is no longer required as much but will keep it in-case there is need for this technique*/
                 async function delayedExecution() {
                     // Your code to be executed
                     RippleSDK.log('Delayed execution');
@@ -310,7 +366,7 @@ const RippleSDK = {
                     if (RippleSDK.app.webRTC.wasOfferSentSuccessfully) {
                         // Cancel the entire attempt
                         clearTimeout(RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobTimeoutId);
-                        RippleSDK.log('Condition met. Attempt canceled. Jobs To be done'  , RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobPayloadsArray.length);
+                        RippleSDK.log('Condition met. Attempt canceled. Jobs To be done', RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobPayloadsArray.length);
                         await Promise.all(RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobPayloadsArray);
 
                         RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobPayloadsArray = [];
@@ -322,6 +378,7 @@ const RippleSDK = {
                         RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobTimeoutId = setTimeout(delayedExecution, incrementalDelay);
                     }
                 }
+
                 // Start the initial execution after 2 seconds
                 RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobTimeoutId = setTimeout(delayedExecution, 2000);
                 // Cancel the execution after 20 seconds
@@ -349,9 +406,9 @@ const RippleSDK = {
                     } else {
 
                         const payload = {
-                            message: 'icecandidate',
-                            candidate: ev.candidate.candidate,
-                            sdpMid: ev.candidate.sdpMid,
+                            message      : 'icecandidate',
+                            candidate    : ev.candidate.candidate,
+                            sdpMid       : ev.candidate.sdpMid,
                             sdpMLineIndex: ev.candidate.sdpMLineIndex
                         };
                         let featureResourceUrl = '';
@@ -361,8 +418,8 @@ const RippleSDK = {
                             RippleSDK.info('onicecandidate  payload ', payload);
                         }
                         const body = {
-                            clientID: RippleSDK.serverClientId,
-                            iceCandidate:payload ,
+                            clientID    : RippleSDK.serverClientId,
+                            iceCandidate: payload,
 
                         };
 
@@ -388,7 +445,7 @@ const RippleSDK = {
                         const post = await reqst;
 
 
-                        console.log("qqq" ,post)
+                            RippleSDK.log("qqq" ,post)
                         if(RippleSDK.isDebugSession){
                             RippleSDK.log('fetchWithTimeout post  ', post);
                         }else{
@@ -415,16 +472,16 @@ const RippleSDK = {
                     if(RippleSDK.app.featuresInUse==='G_STREAM') {
 
                         const localVideo     = document.getElementById(RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID);
-                        if (ev.track.kind === 'audio') {
+                       /* if (ev.track.kind === 'audio') {
                             localVideo.style = 'display: none;';
-                        }
+                        }*/
                         localVideo.srcObject = new MediaStream([ev.track]);
                     }
 
 
                 };
 
-                RippleSDK.app.webRTC.createOffer();
+             //   RippleSDK.app.webRTC.createOffer();
 
 
             }

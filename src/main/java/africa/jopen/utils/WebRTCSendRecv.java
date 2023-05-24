@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public class WebRTCSendRecv {
@@ -23,12 +24,24 @@ public class WebRTCSendRecv {
     private Pipeline pipe;
     private WebRTCBin webRTCBin;
     private String clientID;
-    private final String PIPELINE_DESCRIPTION
-            = "videotestsrc is-live=true pattern=ball ! videoconvert ! queue ! vp8enc deadline=1 ! rtpvp8pay"
-            + " ! queue ! application/x-rtp,media=video,encoding-name=VP8,payload=97 ! webrtcbin. "
-            + "audiotestsrc is-live=true wave=sine ! audioconvert ! audioresample ! queue ! opusenc ! rtpopuspay"
-            + " ! queue ! application/x-rtp,media=audio,encoding-name=OPUS,payload=96 ! webrtcbin. "
-            + "webrtcbin name=webrtcbin bundle-policy=max-bundle stun-server=stun://stun.l.google.com:19302 ";
+    private final String PIPELINE_DESCRIPTION= """
+           filesrc location="C:\\\\Users\\\\Kinsl\\\\Videos\\\\target.mp4" ! decodebin name=decoder
+                      
+           decoder. ! videoconvert ! queue2 max-size-buffers=1000 ! vp8enc deadline=1 ! rtpvp8pay ! queue ! application/x-rtp,media=video,encoding-name=VP8,payload=97 ! webrtcbin.
+                      
+           decoder. ! audioconvert ! audioresample ! queue2 max-size-buffers=1000 ! opusenc ! rtpopuspay ! queue ! application/x-rtp,media=audio,encoding-name=OPUS,payload=96 ! webrtcbin.
+                      
+           webrtcbin name=webrtcbin bundle-policy=max-bundle stun-server=stun://stun.l.google.com:19302
+                    
+            """; // the target file is currently as test option but you can replace with your path but this is till neeeds to be stable still
+
+   /* private final String PIPELINE_DESCRIPTION = """
+            filesrc location="C:\\\\Users\\\\Kinsl\\\\Videos\\\\target.mp4" ! decodebin ! queue ! webrtcbin.
+            audiotestsrc is-live=true wave=sine ! queue ! webrtcbin. 
+            webrtcbin name=webrtcbin bundle-policy=max-bundle stun-server=stun://stun.l.google.com:19302
+            """;*/
+
+
 
     public WebRTCSendRecv(String clientID) {
         this.clientID = clientID;
@@ -36,12 +49,48 @@ public class WebRTCSendRecv {
         webRTCBin = (WebRTCBin) pipe.getElementByName("webrtcbin");
         setupPipeLogging(pipe);
         // When the pipeline goes to PLAYING, the on_negotiation_needed() callback
-        // will be called, and we will ask webrtcbin to create an offer which will
+        // will be called, and we will ask webrtcbin to create an answer which will
         // match the pipeline above.
         webRTCBin.connect(onNegotiationNeeded);
         webRTCBin.connect(onIceCandidate);
         webRTCBin.connect(onIncomingStream);
-        // startCall();
+        logger.atInfo().log("initiating call");
+        startCall();
+    }
+    public String startWebRTCDescriptions(){
+        logger.atInfo().log("starting the webtc iside .....xx");
+        CompletableFuture<String> future = new CompletableFuture<>();
+        webRTCBin.connect((WebRTCBin.ON_NEGOTIATION_NEEDED) elem -> {
+            logger.atInfo().log("onNegotiationNeeded__: " + elem.getName());
+
+            webRTCBin.createOffer(offer -> {
+                webRTCBin.setLocalDescription(offer);
+                String sdpp = offer.getSDPMessage().toString();
+                var sdp = new JSONObject();
+                sdp.put("sdp", new JSONObject()
+                        .put("type", "offer")
+                        .put("sdp", sdpp));
+                String json = sdp.toString();
+                logger.atInfo().log("Sending answer:\n" + json);
+                // websocket.sendTextFrame(json);
+              //  var clientObject = connectionsManager.getClient(clientID);
+               // assert clientObject.isPresent();
+              //  clientObject.get().getRtcModel().setAnswer(sdpp);
+            //    connectionsManager.updateClient(clientObject.get());
+                future.complete(sdpp);
+            });
+        });
+        webRTCBin.connect(onIceCandidate);
+        webRTCBin.connect(onIncomingStream);
+
+        try {
+            // Wait for the CompletableFuture to complete (or complete exceptionally)
+            return future.get();
+        } catch (Exception e) {
+
+            logger.atInfo().withCause(e).log("Error");
+        }
+        return "";
     }
 
     public void startCall() {
@@ -100,16 +149,16 @@ public class WebRTCSendRecv {
     private WebRTCBin.CREATE_OFFER onOfferCreated = offer -> {
         webRTCBin.setLocalDescription(offer);
         String sdpp = offer.getSDPMessage().toString();
-        var sdp = new JSONObject();
+       /* var sdp = new JSONObject();
         sdp.put("sdp", new JSONObject()
                 .put("type", "offer")
                 .put("sdp", sdpp));
-        String json = sdp.toString();
-        logger.atInfo().log("Sending offer:\n" + json);
-        // websocket.sendTextFrame(json);
+        String json = sdp.toString();*/
+        logger.atInfo().log("Sending answer:\n" + sdpp);
+
         var clientObject = connectionsManager.getClient(clientID);
         assert clientObject.isPresent();
-        clientObject.get().getRtcModel().setAnswer(sdpp);
+        clientObject.get().getRtcModel().setOffer(sdpp);
         connectionsManager.updateClient(clientObject.get());
 
     };
@@ -131,6 +180,7 @@ public class WebRTCSendRecv {
         var clientObject = connectionsManager.getClient(clientID);
         assert clientObject.isPresent();
         clientObject.get().setCandidateMap(candidateMap);
+
         connectionsManager.updateClient(clientObject.get());
 
     };

@@ -64,16 +64,16 @@ public class GeneralController {
 		if (Objects.nonNull(clientObject.getVideCallNotification())) {
 			responseMap.put("videoCall", clientObject.getVideCallNotification());
 		}
-		if ( Objects.nonNull(clientObject.getRtcModel().answer()) && !clientObject.getRtcModel().answer().isEmpty()) {
-			responseMap.put("sdpAnswer", clientObject.getRtcModel().answer());
+		if ( Objects.nonNull(clientObject.getRtcModel().offer()) && !clientObject.getRtcModel().offer().isEmpty()) {
+			responseMap.put("clientSDP", clientObject.getRtcModel().offer());
 		}
 		
 		responseMap.put("clientID", clientObject.getClientID());
-		responseMap.put("featureInUse", clientObject.getFeatureType().toString());
+		responseMap.put("featureInUse", clientObject.getFeatureType() == null ? "": clientObject.getFeatureType().toString());
 		responseMap.put("lastSeen", clientObject.lastTimeStamp());
 
-		clientObject.resetCandidateMap();
-		clientObject.setVideCallNotification(null);
+		//clientObject.resetCandidateMap();
+		//clientObject.setVideCallNotification(null);
 		connectionsManager.updateClient(clientObject);
 		
 		return XUtils.buildSuccessResponse(true, 200, "Client  Remembered Successfully", Map.of("client",

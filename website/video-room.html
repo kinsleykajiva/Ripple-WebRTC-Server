@@ -94,6 +94,7 @@
              canProceed =await RippleSDK.app.feature.videoRoom.joinRoom();
              if(canProceed){
                  RippleSDK.app.webRTC.createPeerconnection();
+                 RippleSDK.app.webRTC.createOffer();
              }
          }
      }

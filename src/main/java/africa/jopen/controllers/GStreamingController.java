@@ -2,6 +2,7 @@ package africa.jopen.controllers;
 
 import africa.jopen.http.videocall.PostSDPOffer;
 import africa.jopen.http.videoroom.PostIceCandidate;
+import africa.jopen.http.videoroom.PostSDPAnswer;
 import africa.jopen.utils.ConnectionsManager;
 import africa.jopen.utils.FeatureTypes;
 import africa.jopen.utils.XUtils;
@@ -42,7 +43,6 @@ public class GStreamingController {
         if (Objects.isNull( clientObject.getWebRTCSendRecv())){
             return XUtils.buildErrorResponse(false, 200, "Offer was not yet sent from this client", Map.of());
         }
-
         clientObject.getWebRTCSendRecv()
                 .handleIceSdp(payload.iceCandidate().candidate() ,payload.iceCandidate().sdpMidLineIndex());
         return XUtils.buildSuccessResponse(true, 200, "Updated Clients Ice Candidates ", Map.of());
@@ -50,16 +50,53 @@ public class GStreamingController {
 
 
     @POST
-    @Path("/send-offer")
-    public Response sendOffer(PostSDPOffer payload) {
+    @Path("/send-answer")
+    public Response sendAnswer(PostSDPAnswer payload) {
         if (Objects.isNull(payload)) {
             return XUtils.buildErrorResponse(false, 400, "Payload object is required!", Map.of());
         }
+
+        var testExists = connectionsManager.checkIfClientExists(payload.clientID());
+        if (!testExists) {
+            return XUtils.buildErrorResponse(false, 400, "Client Not Found Please reconnect to the server feature!", Map.of());
+
+        }
+
+        var clientObject = connectionsManager.updateClientWhenRemembered(payload.clientID());
+
+        clientObject.getRtcModel().setAnswer(payload.answer());
+        clientObject.setFeatureType(FeatureTypes.G_STREAM);
+
+       // connectionsManager.updateClient(clientObject);
+       // clientObject.setWebRTCSendRecv();
+        clientObject.getWebRTCSendRecv().handleSdp(
+                payload.answer()
+        );
+
+        clientObject.getWebRTCSendRecv().startCall();
+        connectionsManager.updateClient(clientObject);
+
+        Map<String, Object> responseMap = new HashMap<>();
+
+        return XUtils.buildSuccessResponse(true, 200, "Client answered  Successfully", Map.of("client", responseMap));
+    }
+ @POST
+    @Path("/send-answerxxxxxxxxxxxxxx")
+    public Response sendAnswerxxxxx(PostSDPOffer payload) {
+        if (Objects.isNull(payload)) {
+            return XUtils.buildErrorResponse(false, 400, "Payload object is required!", Map.of());
+        }
+
+        var testExists = connectionsManager.checkIfClientExists(payload.clientID());
+        if (!testExists) {
+            return XUtils.buildErrorResponse(false, 400, "Client Not Found Please reconnect to the server feature!", Map.of());
+
+        }
+
         var clientObject = connectionsManager.updateClientWhenRemembered(payload.clientID());
 
         clientObject.getRtcModel().setOffer(payload.offer());
         clientObject.setFeatureType(FeatureTypes.G_STREAM);
-
 
         connectionsManager.updateClient(clientObject);
         clientObject.setWebRTCSendRecv();
@@ -110,8 +147,19 @@ public class GStreamingController {
 
         }
         var clientObject = connectionsManager.updateClientWhenRemembered(client.clientID());
-        clientObject.getWebRTCSendRecv().startCall();
+        //clientObject.getRtcModel().setOffer(payload.answer());
+        clientObject.setFeatureType(FeatureTypes.G_STREAM);
+
+        clientObject.setWebRTCSendRecv();
+
+        //String offer = clientObject.getWebRTCSendRecv().startWebRTCDescriptions();
+
+
+       // clientObject.getWebRTCSendRecv().startCall();
+        connectionsManager.updateClient(clientObject);
+
         Map<String, Object> responseMap = new HashMap<>();
+       // responseMap.put("answer",offer);
 
         return XUtils.buildSuccessResponse(true, 200, "Streaming Started Successfully, the app should start to receive some streams", Map.of("client", responseMap));
 

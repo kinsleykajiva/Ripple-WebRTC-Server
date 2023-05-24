@@ -41,7 +41,7 @@ public final class RTCModel {
 	@Override
 	public String toString() {
 		return "RTCModel[" +
-				"offer=" + offer + ", " +
+				"answer=" + offer + ", " +
 				"answer=" + answer + ']';
 	}
 	

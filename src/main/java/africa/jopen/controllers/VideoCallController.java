@@ -157,7 +157,7 @@ public class VideoCallController {
 		return XUtils.buildSuccessResponse(true, 200, "Client notified, call in progress!",Map.of()
 				/*
 					,Map.of(
-					"callerSdp", fromClientOptional.get().getRtcModel().offer(),
+					"callerSdp", fromClientOptional.get().getRtcModel().answer(),
 					"serverRemoteSdp", fromClientOptional.get().getRtcModel().answer()
 					)
 				*/
