@@ -397,6 +397,11 @@ const RippleSDK = {
                         {urls: "stun:stun.services.mozilla.com"}
                     ]
                 };
+                if(RippleSDK.app.featuresInUse === "G_STREAM"){
+                    // Increasing the ICE candidate gathering timeout , allowing more time for connectivity checks
+                    // this can be adjusted for based on your experience as much or needs after you have done some monitirng on the application
+                    configuration.iceCandidatePoolSize= 10;
+                }
                 RippleSDK.log('make a peer connection ...');
 
                 RippleSDK.app.webRTC.peerConnection = new RTCPeerConnection(configuration);
