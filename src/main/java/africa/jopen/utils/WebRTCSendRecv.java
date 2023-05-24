@@ -45,17 +45,19 @@ public class WebRTCSendRecv {
     }
 
     public void startCall() {
+        logger.atInfo().log("initiating call");
         pipe.play();
     }
 
     private void endCall() {
+        logger.atInfo().log("ending call");
         pipe.setState(State.NULL);
         //  Gst.quit();
     }
 
     public void handleSdp(String sdpStr) {
         try {
-            logger.atInfo().log("Answer SDP:\n" + sdpStr);
+            logger.atInfo().log("Answer SDP:\n" );
             SDPMessage sdpMessage = new SDPMessage();
             sdpMessage.parseBuffer(sdpStr);
             WebRTCSessionDescription description = new WebRTCSessionDescription(WebRTCSDPType.ANSWER, sdpMessage);
@@ -68,7 +70,7 @@ public class WebRTCSendRecv {
 
     public void handleIceSdp(String candidate, int sdpMLineIndex) {
         try {
-            logger.atInfo().log("Adding ICE candidate : " + candidate);
+            logger.atInfo().log("Adding ICE candidate : " );
             webRTCBin.addIceCandidate(sdpMLineIndex, candidate);
         } catch (Exception exception) {
             logger.atSevere().withCause(exception).log(exception.getLocalizedMessage());

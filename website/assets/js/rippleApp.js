@@ -2,7 +2,24 @@
 const RippleSDK_CONST={
     notificationsTypes: Object.freeze({VIDEO_CALL: 'videoCall',VIDEO_ROOM: 'videoRoom',AUDIO_ROOM: 'audioRoom',}),
 };
+
+
 const RippleSDK = {
+    log: function() {
+        const logMessage = Array.from(arguments).join(' ');
+        console.log("['😄'RippleSDK]",logMessage );
+
+    },
+    error: function() {
+        const errorMessage = Array.from(arguments).join(' ');
+        console.error("'😡'[RippleSDK]",errorMessage  );
+
+    },
+    warn: function() {
+        const errorMessage = Array.from(arguments).join(' ');
+        console.error("'😒'[RippleSDK]",errorMessage  );
+
+    },
     accessPassword              : '',
     isAudioAccessRequired       : false,
     isVideoAccessRequired       : false,
@@ -33,16 +50,17 @@ const RippleSDK = {
                     body  : {clientID: RippleSDK.serverClientId}
                 }).then(async res => {
                     if (res.success) {
-                        console.log("the Server still knows about me ")
+                        RippleSDK.log("the Server still knows about me ")
                         RippleSDK.serverClientLastSeen = res.data.client.lastSeen;
-                        console.log('ice - ', res.data.client.iceCandidates)
+                        RippleSDK.log('res.data - ', res.data)
                         if (res.data.client.iceCandidates) {
 
                             if (RippleSDK.app.webRTC.peerConnection) {
                                 if (res.data.client.iceCandidates) {
                                     RippleSDK.app.webRTC.peerConnection.addIceCandidate(res.data.client.iceCandidates);
                                 }
-                                if (res.data.client.sdpAnswer) {
+                                if (!RippleSDK.app.webRTC.wasOfferSentSuccessfully && res.data.client.sdpAnswer) {
+                                    RippleSDK.log(" Happy yey ,  finally got our answer from the remote sever ")
                                     // finally got our answer from the remote sever
                                     await RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
                                         sdp : res.data.sdpAnswer,
@@ -50,6 +68,7 @@ const RippleSDK = {
                                     });
                                     RippleSDK.Utils.onRemoteSDPReady();
                                     // ice candidates could have been sent or flowing by nuw
+                                    RippleSDK.app.webRTC.wasOfferSentSuccessfully = true ;
 
                                 }
 
@@ -61,7 +80,7 @@ const RippleSDK = {
 
                     } else {
                         alert("Client not found please re-connect this session is now invalid!")
-                        console.error("Client not found please re-connect this session is now invalid!")
+                        RippleSDK.error("Client not found please re-connect this session is now invalid!")
                     }
                 });
             }, RippleSDK.remindServerTimeoutInSeconds * 1_000);
@@ -77,7 +96,7 @@ const RippleSDK = {
                     method: 'POST',
                     body: {clientAgentName: RippleSDK.clientID}
                 });
-                console.log(result);
+                RippleSDK.log(result);
                 RippleSDK.serverClientId = result.data.clientID;
                 RippleSDK.serverClientLastSeen = result.data.lastSeen;
                 if(!RippleSDK.isWebSocketAccess) {// we are doing this remember that we are still need an id , as we first attempt to
@@ -87,7 +106,7 @@ const RippleSDK = {
                 }
                 return true;
             } catch (e) {
-                console.error(e)
+                RippleSDK.error(e)
             }
 
             return false;
@@ -95,17 +114,17 @@ const RippleSDK = {
         },
         rootCallbacks: {
             networkError: error => {
-                console.error(error);
+                RippleSDK.error(error);
                 if (RippleSDK.isDebugSession) {
-                    alert(error)
+                   // alert(error)
                 }
 
             },
             answer: answer => {
-                console.log('answer', answer)
+                RippleSDK.log('answer', answer)
             },
             devices: media => {
-                console.log('devices ', media)
+                RippleSDK.log('devices ', media)
 
                 if (media && media.active) {
                     RippleSDK.hasAccessToVideoPermission = true;
@@ -114,7 +133,7 @@ const RippleSDK = {
 
                     if (RippleSDK.app.featuresInUse.includes('VIDEO_ROOM')) {
                         if (!RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID || RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID.length === 0) {
-                            console.error("Failed to find Video Rendering html Element ID , Please set {RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID}")
+                            RippleSDK.error("Failed to find Video Rendering html Element ID , Please set {RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID}")
                             return;
                         }
                         try {
@@ -122,21 +141,21 @@ const RippleSDK = {
                             localVideo.srcObject = media;
                             RippleSDK.Utils.onAccessMediaAllowedNotification(media, true, true)
                         } catch (e) {
-                            console.error(e)
+                            RippleSDK.error(e)
                         }
 
                     }
                 } else {
                     RippleSDK.hasAccessToVideoPermission = false;
                     RippleSDK.hasAccessToAudioPermission = false;
-                    console.error("Access To Media has been rejected !Vide & wont get captured")
+                    RippleSDK.error("Access To Media has been rejected !Vide & wont get captured")
                     RippleSDK.Utils.onAccessMediaAllowedNotification(null, false, false)
                 }
 
 
             },
             icecandidate: data => {
-                console.log('data', data)
+                RippleSDK.log('data', data)
             }
         },
         feature: {
@@ -164,15 +183,15 @@ const RippleSDK = {
                     }
 
                     if (!roomName || roomName === '') {
-                        console.error("room name is required");
+                        RippleSDK.error("room name is required");
                         return;
                     }
                     if (!password || password === '') {
-                        console.error("room password is required");
+                        RippleSDK.error("room password is required");
                         return;
                     }
                     if (!pin || pin === '') {
-                        console.error("room pin is required");
+                        RippleSDK.error("room pin is required");
                         return;
                     }
                     password = password.toString()
@@ -192,12 +211,12 @@ const RippleSDK = {
                         console.log(result);
                         if (result.success) {
                             RippleSDK.app.feature.videoRoom.room = result.data;
-                            console.log('Room', RippleSDK.app.feature.videoRoom.room);
+                            RippleSDK.log('Room', RippleSDK.app.feature.videoRoom.room);
                             return true;
                         }
                         return false;
                     } catch (e) {
-                        console.error(e)
+                        RippleSDK.error(e)
                     }
 
                     return false;
@@ -205,7 +224,7 @@ const RippleSDK = {
                 /*The client or user logic is depended on the initialization of  ${RippleSDK.app.feature.videoRoom.room} object */
                 joinRoom: async () => {
                     if (RippleSDK.app.feature.videoRoom.room.roomID.length === 0) {
-                        console.error("Please get the room details first!")
+                        RippleSDK.error("Please get the room details first!")
                         return
                     }
                     try {
@@ -216,11 +235,11 @@ const RippleSDK = {
                                 clientID: RippleSDK.serverClientId /*! this id has to exist , meaning the client has to first connect!*/,
                             }
                         });
-                        console.log(result);
+                        RippleSDK.log(result);
                         return !!result.success;
 
                     } catch (e) {
-                        console.error(e)
+                        RippleSDK.error(e)
                     }
 
                     return false;
@@ -230,15 +249,16 @@ const RippleSDK = {
         },
         webRTC: {
             peerConnection: null,
+            wasOfferSentSuccessfully:false,
             offerOptions: {offerToReceiveVideo: true, offerToReceiveAudio: true},
             createOffer: () => {
                 RippleSDK.app.webRTC.peerConnection.createOffer(RippleSDK.app.webRTC.offerOptions)
                     .then(async _sdp => {
                         await RippleSDK.app.webRTC.peerConnection.setLocalDescription(_sdp);
                         if(RippleSDK.isDebugSession){
-                            console.log("createOffer sdp",_sdp);
+                            RippleSDK.log("createOffer sdp",_sdp);
                         }else{
-                            console.info("createOffer sdp",_sdp);
+                            RippleSDK.info("createOffer sdp",_sdp);
                         }
                         // ToDo this add a condition check on this part as to avoid repeatiton
                         let featureResourceUrl = '';
@@ -257,16 +277,58 @@ const RippleSDK = {
                             method: 'POST',
                             body
                         });
-                        console.log('XXXX post post ', post);
-                        if(post.data.sdp){ // accommodates video room , video call
-                            RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
-                                sdp : post.data.sdp,
-                                type: 'answer',
-                            });
+
+                        RippleSDK.log('XXXX post post ', post);
+                        if(post.success){
+                            RippleSDK.app.webRTC.wasOfferSentSuccessfully = true;
+                            if(post.data.sdp){ // accommodates video room , video call
+                                RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
+                                    sdp : post.data.sdp,
+                                    type: 'answer',
+                                });
+                            }
                         }
 
 
+
                     });
+            },
+            shutDownPeerConnection:()=>{
+                if(RippleSDK.app.webRTC.peerConnection){
+                    RippleSDK.app.webRTC.peerConnection.close();
+                    RippleSDK.app.webRTC.peerConnection = null;
+                }
+            },
+            runPeerConnectionDelayedIceJobPayloadsArray:[]/*this is an array of promises of request or other functions*/,
+            runPeerConnectionDelayedIceJobTimeoutId:null,
+            runPeerConnectionDelayedIceJobs:()=>{
+                async function delayedExecution() {
+                    // Your code to be executed
+                    RippleSDK.log('Delayed execution');
+
+                    // Check the condition
+                    if (RippleSDK.app.webRTC.wasOfferSentSuccessfully) {
+                        // Cancel the entire attempt
+                        clearTimeout(RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobTimeoutId);
+                        RippleSDK.log('Condition met. Attempt canceled. Jobs To be done'  , RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobPayloadsArray.length);
+                        await Promise.all(RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobPayloadsArray);
+
+                        RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobPayloadsArray = [];
+                    } else {
+                        // Incremental delay in milliseconds (between 4 and 5 seconds)
+                        const incrementalDelay = Math.floor(Math.random() * 2000) + 4000;
+
+                        // Schedule the next execution with incremental delay
+                        RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobTimeoutId = setTimeout(delayedExecution, incrementalDelay);
+                    }
+                }
+                // Start the initial execution after 2 seconds
+                RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobTimeoutId = setTimeout(delayedExecution, 2000);
+                // Cancel the execution after 20 seconds
+                setTimeout(() => {
+                    clearTimeout(RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobTimeoutId);
+                    RippleSDK.log('Execution canceled');
+                }, 20000);
             },
             createPeerconnection: () => {
                 const configuration = {
@@ -274,15 +336,16 @@ const RippleSDK = {
                      forceEncodedAudioInsertableStreams:true,
                      forceEncodedVideoInsertableStreams:true,*/
                     iceServers: [
-                        {urls: 'stun:stun.l.google.com:19302'}
+                        {urls: 'stun:stun.l.google.com:19302'},
+                        {urls: "stun:stun.services.mozilla.com"}
                     ]
                 };
-                console.log('make a peer connection ...');
+                RippleSDK.log('make a peer connection ...');
 
                 RippleSDK.app.webRTC.peerConnection = new RTCPeerConnection(configuration);
                 RippleSDK.app.webRTC.peerConnection.onicecandidate = async ev => {
                     if (!ev.candidate || (ev.candidate.candidate && ev.candidate.candidate.indexOf('endOfCandidates') > 0)) {
-                        console.log('End of candidates.');
+                        RippleSDK.log('End of candidates.');
                     } else {
 
                         const payload = {
@@ -293,9 +356,9 @@ const RippleSDK = {
                         };
                         let featureResourceUrl = '';
                         if(RippleSDK.isDebugSession){
-                            console.log('onicecandidate  payload ', payload);
+                            RippleSDK.log('onicecandidate  payload ', payload);
                         }else {
-                            console.info('onicecandidate  payload ', payload);
+                            RippleSDK.info('onicecandidate  payload ', payload);
                         }
                         const body = {
                             clientID: RippleSDK.serverClientId,
@@ -311,26 +374,44 @@ const RippleSDK = {
                             featureResourceUrl = 'video/update-ice-candidate';
                         }
 
-                        const post = await RippleSDK.Utils.fetchWithTimeout(featureResourceUrl, {
+                        const reqst = RippleSDK.Utils.fetchWithTimeout(featureResourceUrl, {
                             method: 'POST',
                             body
                         });
-                        if(RippleSDK.isDebugSession){ console.log('fetchWithTimeout post  ', post);}else{console.info('fetchWithTimeout post  ', post);}
+
+                        if (!RippleSDK.app.webRTC.wasOfferSentSuccessfully) {
+                            RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobPayloadsArray.push(reqst);
+
+                            RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobs();
+                        }else{
+
+                        const post = await reqst;
+
+
+                        console.log("qqq" ,post)
+                        if(RippleSDK.isDebugSession){
+                            RippleSDK.log('fetchWithTimeout post  ', post);
+                        }else{
+                            RippleSDK.info('fetchWithTimeout post  ', post);
+                        }
+
+
+                        }
                     }
 
                 };
                 RippleSDK.app.webRTC.peerConnection.oniceconnectionstatechange = ev => {
-                    console.log('make a peer oniceconnectionstatechange ...');
+                    RippleSDK.log('make a peer oniceconnectionstatechange ...');
 
                 };
                 RippleSDK.app.webRTC.peerConnection.onnegotiationneeded = ev => {
-                    console.log('make a peer onnegotiationneeded ...');
+                    RippleSDK.log('make a peer onnegotiationneeded ...');
 
                 };
 
                 RippleSDK.app.webRTC.peerConnection.ontrack = ev => {
                     // this will be used to render remote peers track audio and video
-                    console.log('onTrack event ', ev);
+                    RippleSDK.log('onTrack event ', ev);
                     if(RippleSDK.app.featuresInUse==='G_STREAM') {
 
                         const localVideo     = document.getElementById(RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID);
@@ -381,7 +462,7 @@ const RippleSDK = {
                 clearTimeout(id);
 
                 if (!response.ok) {
-                    console.warn("An error has occurred")
+                    RippleSDK.warn("An error has occurred")
                     RippleSDK.app.rootCallbacks.networkError(`HTTP error! Status: ${response.status}`);
                     // throw new Error(`HTTP error! Status: ${response.status}`);
                 }
@@ -390,7 +471,7 @@ const RippleSDK = {
                 if (json.serverName) {
                     RippleSDK.serverName = json.serverName;
                 }
-                console.log('json-ttp', json)
+                RippleSDK.log('json-ttp', json)
                 // process the response
                 if (json.success) {
                     if (json.data.type === 'icecandidate') {
@@ -453,11 +534,11 @@ const RippleSDK = {
             const localVideo = document.getElementById(RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID);
 
             localVideo.srcObject = null;
-            console.log("Stopped capturing my media , at there is no more rendering")
+            RippleSDK.log("Stopped capturing my media , at there is no more rendering")
         },
         testMediaAccess: () => {
             if(RippleSDK.app.featuresInUse !=='G_STREAM'){
-                console.error("Failed to test please set the feature in use first")
+                RippleSDK.error("Failed to test please set the feature in use first")
                 if(RippleSDK.isDebugSession){
                     alert("Set feature in use first before using media")
                     return
@@ -473,7 +554,7 @@ const RippleSDK = {
             navigator.mediaDevices.getUserMedia(config)
                 .then(devices => RippleSDK.app.rootCallbacks.devices(devices))
                 .catch(e => {
-                    console.error(e);
+                    RippleSDK.error(e);
                     RippleSDK.app.rootCallbacks.devices(null);
                 })
 
