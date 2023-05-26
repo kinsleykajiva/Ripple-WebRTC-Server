@@ -1,6 +1,7 @@
 package africa.jopen.utils;
 
 
+import africa.jopen.events.ClientsEvents;
 import africa.jopen.exceptions.ClientException;
 import africa.jopen.models.Client;
 import africa.jopen.models.RoomModel;
@@ -11,14 +12,22 @@ import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
 import org.freedesktop.gstreamer.Gst;
 import org.freedesktop.gstreamer.Version;
-import org.freedesktop.gstreamer.glib.GLib;
 
 import java.util.Map;
 import java.util.Optional;
 
 
-
+@Singleton
 public class ConnectionsManager {
+/*
+	@Inject
+	Event<ClientsEvents> clientsEventsEvent;
+*/
+
+/*	@Inject
+	@ClientsEventQualifier
+	Event<ClientsEvents> clientsEventsEvent;*/
+
 	private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 	private static final MutableList<Client> CLIENTS = Lists.mutable.empty();
 	public static MutableList<RoomModel> ROOMS = Lists.mutable.empty();
@@ -94,6 +103,8 @@ public class ConnectionsManager {
 		for (Client client : CLIENTS) {
 			if (client.getClientID().equals(id)) {
 				client.updateLastTimeStamp(System.currentTimeMillis());
+				ClientsEvents mClientsEvent = new ClientsEvents(client);
+			//	clientsEventsEvent.fire(mClientsEvent);
 				return client;
 			}
 			

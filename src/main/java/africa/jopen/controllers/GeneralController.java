@@ -59,8 +59,13 @@ public class GeneralController {
 		clientsEventsEvent.fire(mClientsEvent);
 		Map<String, Object> responseMap = new HashMap<>();
 		if (!clientObject.getCandidateMap().isEmpty()) {
+			// this is depricated
 			responseMap.put("iceCandidates", clientObject.getCandidateMap());
 		}
+		if (!clientObject.getCandidatesMapList().isEmpty()) {
+			responseMap.put("iceCandidatesList", clientObject.getCandidatesMapList());
+		}
+
 		if (Objects.nonNull(clientObject.getVideCallNotification())) {
 			responseMap.put("videoCall", clientObject.getVideCallNotification());
 		}

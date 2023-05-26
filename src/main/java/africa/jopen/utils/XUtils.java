@@ -31,7 +31,26 @@ public class XUtils {
 		return concatenated.replaceAll("-", "");
 	}
 	
-	
+	/**
+	 * [Brief description of the deprecated method]
+	 * <p>
+	 * [Explanation of the deprecation and reason behind it]
+	 * <p>
+	 * [Provide any relevant context or background information]
+	 *
+	 * @deprecated [Explanation of the deprecation]
+	 * [Mention the alternative method or approach]
+	 * Please use {@link XUtils#newMethod()} instead.
+	 * [Provide guidance on migrating from the deprecated method to the new one]
+	 * [Include examples or code snippets if necessary]
+	 * [Specify version information]
+	 */
+	@Deprecated
+	public void deprecatedMethod() {
+		// Deprecated method implementation
+	}
+
+
 	public static Response buildErrorResponse(boolean success, int code, String message, Map<String, Object> data) {
 		return Response.status(Response.Status.BAD_REQUEST)
 				.entity(buildResponseMap(success, code, message, data))

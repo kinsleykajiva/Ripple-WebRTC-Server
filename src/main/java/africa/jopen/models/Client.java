@@ -6,12 +6,12 @@ import africa.jopen.utils.WebRTCSendRecv;
 import africa.jopen.utils.XUtils;
 import com.google.common.flogger.FluentLogger;
 import dev.onvoid.webrtc.*;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.websocket.Session;
+import org.eclipse.collections.api.factory.Lists;
+import org.eclipse.collections.api.list.MutableList;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -37,6 +37,7 @@ public final class Client implements PeerConnectionObserver {
 	private Integer trackCounter = 0;
 	private RTCModel rtcModel = new RTCModel();
 	private Map<String, Object> candidateMap = new HashMap<>();
+	private MutableList<Map<String, Object>> candidatesMapList = Lists.mutable.empty();
 	private VideCallNotification videCallNotification;
 	
 	public Client(String clientAgentName) {
@@ -214,11 +215,21 @@ public final class Client implements PeerConnectionObserver {
 			candidateMap.put("sdpMid", rtcIceCandidate.sdpMid);
 			candidateMap.put("sdpMLineIndex", rtcIceCandidate.sdpMLineIndex);
 			candidateMap.put("candidate", rtcIceCandidate.sdp);
+			candidatesMapList.add(candidateMap);
 			// When using Htt or Rest API access the best way to send this data is via the reminder request, the next time the client checks in then we send the data along is as an array.
 			
 		}
 	}
-	
+
+	public MutableList<Map<String, Object>> getCandidatesMapList() {
+		return candidatesMapList;
+	}
+
+	public void setCandidatesMapList(MutableList<Map<String, Object>> candidatesMapList) {
+		this.candidatesMapList = candidatesMapList;
+	}
+
+
 	public Map<String, Object> getCandidateMap() {
 		return candidateMap;
 	}
