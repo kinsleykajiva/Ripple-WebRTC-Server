@@ -1,5 +1,6 @@
 package africa.jopen.utils;
 
+import africa.jopen.models.Client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.flogger.FluentLogger;
@@ -14,12 +15,14 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 
 /**
- * */
+ *
+ */
 public class WebRTCSendRecv {
 
     ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
@@ -31,24 +34,23 @@ public class WebRTCSendRecv {
     /**
      * max-size-buffers  set to 1000, which determines the maximum number of buffers that can be held in the queue.
      * The buffering element helps in smoothing out the stream by allowing a certain number of buffers to be accumulated before passing them downstream
-     * */
-    private final String PIPELINE_DESCRIPTION= """
-           filesrc location="C:\\\\Users\\\\Kinsl\\\\Videos\\\\target.mp4" ! decodebin name=decoder
-                      
-           decoder. ! videoconvert ! queue2 max-size-buffers=1000 ! vp8enc deadline=1 ! rtpvp8pay ! queue ! application/x-rtp,media=video,encoding-name=VP8,payload=97 ! webrtcbin.
-                      
-           decoder. ! audioconvert ! audioresample ! queue2 max-size-buffers=1000 ! opusenc ! rtpopuspay ! queue ! application/x-rtp,media=audio,encoding-name=OPUS,payload=96 ! webrtcbin.
-                      
-           webrtcbin name=webrtcbin bundle-policy=max-bundle stun-server=stun://stun.l.google.com:19302
-                    
-            """; // the target file is currently as test option but you can replace with your path but this is till neeeds to be stable still
+     */
+    private final String PIPELINE_DESCRIPTION = """
+            filesrc location="C:\\\\Users\\\\Kinsl\\\\Videos\\\\target.mp4" ! decodebin name=decoder
+                       
+            decoder. ! videoconvert ! queue2 max-size-buffers=1000 ! vp8enc deadline=1 ! rtpvp8pay ! queue ! application/x-rtp,media=video,encoding-name=VP8,payload=97 ! webrtcbin.
+                       
+            decoder. ! audioconvert ! audioresample ! queue2 max-size-buffers=1000 ! opusenc ! rtpopuspay ! queue ! application/x-rtp,media=audio,encoding-name=OPUS,payload=96 ! webrtcbin.
+                       
+            webrtcbin name=webrtcbin bundle-policy=max-bundle stun-server=stun://stun.l.google.com:19302
+                     
+             """; // the target file is currently as test option but you can replace with your path but this is till neeeds to be stable still
 
    /* private final String PIPELINE_DESCRIPTION = """
             filesrc location="C:\\\\Users\\\\Kinsl\\\\Videos\\\\target.mp4" ! decodebin ! queue ! webrtcbin.
             audiotestsrc is-live=true wave=sine ! queue ! webrtcbin. 
             webrtcbin name=webrtcbin bundle-policy=max-bundle stun-server=stun://stun.l.google.com:19302
             """;*/
-
 
 
     public WebRTCSendRecv(String clientID) {
@@ -66,45 +68,9 @@ public class WebRTCSendRecv {
         //Todo remove some of the code here is useless
         startCall(); // called to trigger the ice process and sdp offer to the client
     }
-    public String startWebRTCDescriptions(){
-        logger.atInfo().log("starting the webtc iside .....xx");
-        CompletableFuture<String> future = new CompletableFuture<>();
-        webRTCBin.connect((WebRTCBin.ON_NEGOTIATION_NEEDED) elem -> {
-            logger.atInfo().log("onNegotiationNeeded__: " + elem.getName());
-
-            webRTCBin.createOffer(offer -> {
-                webRTCBin.setLocalDescription(offer);
-                String sdpp = offer.getSDPMessage().toString();
-                var sdp = new JSONObject();
-                sdp.put("sdp", new JSONObject()
-                        .put("type", "offer")
-                        .put("sdp", sdpp));
-                String json = sdp.toString();
-                logger.atInfo().log("Sending answer:\n" + json);
-                //Todo remove some of the code here is useless
-                // websocket.sendTextFrame(json);
-              //  var clientObject = connectionsManager.getClient(clientID);
-               // assert clientObject.isPresent();
-              //  clientObject.get().getRtcModel().setAnswer(sdpp);
-            //    connectionsManager.updateClient(clientObject.get());
-                future.complete(sdpp);
-            });
-        });
-        webRTCBin.connect(onIceCandidate);
-        webRTCBin.connect(onIncomingStream);
-
-        try {
-            // Wait for the CompletableFuture to complete (or complete exceptionally)
-            return future.get();
-        } catch (Exception e) {
-
-            logger.atInfo().withCause(e).log("Error");
-        }
-        return "";
-    }
 
     public void startCall() {
-        logger.atInfo().log("initiating call");
+        logger.atInfo().log("initiating streams");
         pipe.play();
     }
 
@@ -116,7 +82,7 @@ public class WebRTCSendRecv {
 
     public void handleSdp(String sdpStr) {
         try {
-            logger.atInfo().log("Answer SDP:\n" );
+            logger.atInfo().log("Answer SDP:\n");
             SDPMessage sdpMessage = new SDPMessage();
             sdpMessage.parseBuffer(sdpStr);
             WebRTCSessionDescription description = new WebRTCSessionDescription(WebRTCSDPType.ANSWER, sdpMessage);
@@ -130,7 +96,7 @@ public class WebRTCSendRecv {
 
     public void handleIceSdp(String candidate, int sdpMLineIndex) {
         try {
-            logger.atInfo().log("Adding ICE candidate : " );
+            logger.atInfo().log("Adding ICE candidate : ");
             webRTCBin.addIceCandidate(sdpMLineIndex, candidate);
         } catch (Exception exception) {
             logger.atSevere().withCause(exception).log(exception.getLocalizedMessage());
@@ -160,19 +126,41 @@ public class WebRTCSendRecv {
     private WebRTCBin.CREATE_OFFER onOfferCreated = offer -> {
         webRTCBin.setLocalDescription(offer);
         String sdpp = offer.getSDPMessage().toString();
-       /* var sdp = new JSONObject();
+        var sdp = new JSONObject();
         sdp.put("sdp", new JSONObject()
                 .put("type", "offer")
                 .put("sdp", sdpp));
-        String json = sdp.toString();*/
+        String json = sdp.toString();
         logger.atInfo().log("Sending answer:\n" + sdpp);
 //Todo remove some of the code here is useless
         var clientObject = connectionsManager.getClient(clientID);
         assert clientObject.isPresent();
         clientObject.get().getRtcModel().setOffer(sdpp);
         connectionsManager.updateClient(clientObject.get());
+        if (Objects.nonNull(clientObject.get().getSocketSession())) {
+            JSONObject response = new JSONObject();
+            response.put("clientID", clientID);
+            response.put("clientSDP", sdpp);
+            response.put("sdp", json);
+            response.put("lastSeen", clientObject.get().lastTimeStamp());
+            response.put("featureInUse", clientObject.get().getFeatureType().toString());
+            response = XUtils.buildJsonSuccessResponse(200, "eventType", "remember",
+                    "Client  Remembered Successfully", response);
+            broadcast(clientObject.get(), response.toString());
+        }
 
     };
+
+    private void broadcast(Client client, String message) {
+        client.getSocketSession().getAsyncRemote().sendObject(message, sendResult -> {
+            if (sendResult.getException() != null) {
+                logger.atSevere().withCause(sendResult.getException()).log("Failed to send message");
+            }
+        });
+
+
+    }
+
     private final WebRTCBin.ON_NEGOTIATION_NEEDED onNegotiationNeeded = elem -> {
         logger.atInfo().log("onNegotiationNeeded: " + elem.getName());
 
@@ -193,6 +181,16 @@ public class WebRTCSendRecv {
         clientObject.get().setCandidateMap(candidateMap);
 
         connectionsManager.updateClient(clientObject.get());
+        if (Objects.nonNull(clientObject.get().getSocketSession())) {
+            JSONObject response = new JSONObject();
+            response.put("clientID", clientID);
+            response.put("iceCandidates", candidateMap);
+            response.put("lastSeen", clientObject.get().lastTimeStamp());
+            response.put("featureInUse", clientObject.get().getFeatureType().toString());
+            response = XUtils.buildJsonSuccessResponse(200, "eventType", "remember",
+                    "Client  Remembered Successfully", response);
+            broadcast(clientObject.get(), response.toString());
+        }
 
     };
     private final Element.PAD_ADDED onDecodedStream = (element, pad) -> {

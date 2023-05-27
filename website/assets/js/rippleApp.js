@@ -496,6 +496,28 @@ const RippleSDK = {
     },
     Utils: {
         webRTCAdapter: deps => (deps && deps.adapter) || adapter,
+        webSocket:()=>{
+            let  reconnectAttempts = 0;
+            let socketObject = null;
+            if(RippleSDK.app.featuresInUse === 'G_STREAM' ){
+                socketObject= new WebSocket(`${RippleSDK.serverUrl}/streams/${RippleSDK.serverClientId}`);
+            }
+            if(socketObject){
+                socketObject.onopen =()=> {
+
+                };
+                socketObject.onerror =ev=> {
+
+                };
+                socketObject.onmessage =ev=> {
+
+                };
+                socketObject.onclose=() => {
+
+                };
+            }
+            return socketObject;
+           },
         fetchWithTimeout: async (url, options = {}) => {
             const {timeout = 8000} = options;
 

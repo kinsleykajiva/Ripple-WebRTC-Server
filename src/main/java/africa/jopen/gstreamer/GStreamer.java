@@ -69,7 +69,9 @@ public class GStreamer {
         }
         //
 
-        webRTCBin.connect((WebRTCBin.ON_ICE_CANDIDATE) (sdpMLineIndex, candidate)->{});
+        webRTCBin.connect((WebRTCBin.ON_ICE_CANDIDATE) (sdpMLineIndex, candidate)->{
+
+        });
         webRTCBin.connect((Element.PAD_ADDED)  (element, pad) -> {});
     }
 
