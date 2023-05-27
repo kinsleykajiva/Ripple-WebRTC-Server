@@ -16,6 +16,20 @@ public class XUtils {
 
 	
 	public static String SERVER_NAME = "SERVER_ONE";
+	private static final Map<String,Object> GENERAL_RESPONSE_MAP = new HashMap<>();
+	private static final JSONObject GENERAL_RESPONSE_JSON = new JSONObject();
+
+	static {
+		// ToDo review this approach to load
+		GENERAL_RESPONSE_JSON.put("timeZoneName", TimeZone.getDefault().getDisplayName() );
+		GENERAL_RESPONSE_JSON.put("timeZone", TimeZone.getDefault().toZoneId() /*"Africa/Johannesburg"*/);
+		GENERAL_RESPONSE_JSON.put("serverName", SERVER_NAME);
+
+		GENERAL_RESPONSE_MAP.put("timeZoneName", TimeZone.getDefault().getDisplayName() );
+		GENERAL_RESPONSE_MAP.put("timeZone", TimeZone.getDefault().toZoneId() /*"Africa/Johannesburg"*/);
+		GENERAL_RESPONSE_MAP.put("serverName", SERVER_NAME);
+
+	}
 	
 	public static String IdGenerator() {
 		UUID uuid = UUID.randomUUID();

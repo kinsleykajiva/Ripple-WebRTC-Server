@@ -46,11 +46,6 @@ public class WebRTCSendRecv {
                      
              """; // the target file is currently as test option but you can replace with your path but this is till neeeds to be stable still
 
-   /* private final String PIPELINE_DESCRIPTION = """
-            filesrc location="C:\\\\Users\\\\Kinsl\\\\Videos\\\\target.mp4" ! decodebin ! queue ! webrtcbin.
-            audiotestsrc is-live=true wave=sine ! queue ! webrtcbin. 
-            webrtcbin name=webrtcbin bundle-policy=max-bundle stun-server=stun://stun.l.google.com:19302
-            """;*/
 
 
     public WebRTCSendRecv(String clientID) {
