@@ -114,6 +114,26 @@ const RippleSDK = {
 
         },
         rootCallbacks: {
+            websockets:{
+                tellClientOnMessage:null,
+                onMessage:message=>{
+                    RippleSDK.app.rootCallbacks.websockets.tellClientOnMessage(message);
+                },
+                tellClientOnConnected:null,
+                onConnected:()=>{
+                    RippleSDK.app.rootCallbacks.websockets.tellClientOnConnected();
+                },
+                tellClientOnClosed:null,
+                onClosed:ev=>{
+                    RippleSDK.app.rootCallbacks.websockets.tellClientOnClosed(ev);
+                },
+                tellClientOnFatalError:null,
+                fatalError:error=>{
+                    RippleSDK.error(error);
+                    RippleSDK.app.rootCallbacks.websockets.tellClientOnFatalError(error);
+
+                }
+            },
             networkError: error => {
                 RippleSDK.error(error);
                 if (RippleSDK.isDebugSession) {
@@ -523,15 +543,27 @@ const RippleSDK = {
                 socketObject.onopen    = () => {
                     reconnectAttempts = 0; // reset the reconnect attempts counter
                     RippleSDK.log("Connected to the server via a websocket transport")
+                    RippleSDK.app.rootCallbacks.websockets.onConnected();
                 };
                 socketObject.onerror   = ev => {
-
+                RippleSDK.app.rootCallbacks.websockets.fatalError(ev);
                 };
                 socketObject.onmessage = ev => {
-
+                    RippleSDK.app.rootCallbacks.websockets.onMessage(ev);
                 };
-                socketObject.onclose   = () => {
-
+                socketObject.onclose   = (ev) => {
+                    RippleSDK.log(`WebSocket closed with code ${ev.code} and reason ${ev.reason}`);
+                    if (reconnectAttempts < maxReconnectAttempts) {
+                        const delay = reconnectDelays[Math.min(reconnectAttempts, reconnectDelays.length - 1)];
+                        RippleSDK.log(`Attempting to reconnect in ${delay} seconds...`);
+                        setTimeout(() => {
+                            reconnectAttempts++;
+                          RippleSDK.Utils.webSocket();
+                        }, delay * 1000); // convert delay to milliseconds
+                    } else {
+                        RippleSDK.log(`Maximum reconnection attempts (${maxReconnectAttempts}) reached, giving up.`);
+                    }
+                    RippleSDK.app.rootCallbacks.websockets.onClosed();
                 };
             }
             RippleSDK.Utils.webSocketObject=socketObject;
