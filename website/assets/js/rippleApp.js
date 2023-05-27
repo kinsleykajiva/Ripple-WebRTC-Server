@@ -114,7 +114,7 @@ const RippleSDK = {
 
         },
         rootCallbacks: {
-            websockets:{
+            websockets:{/*The reason of these call back is to mend the reaction for the client to react in a way more meaning full and give more info on the messages*/
                 tellClientOnMessage:null,
                 onMessage:message=>{
                     RippleSDK.app.rootCallbacks.websockets.tellClientOnMessage(message);
@@ -132,7 +132,12 @@ const RippleSDK = {
                     RippleSDK.error(error);
                     RippleSDK.app.rootCallbacks.websockets.tellClientOnFatalError(error);
 
-                }
+                },
+                tellClientOnConnecting:null,
+                onConnecting:()=>{
+                    RippleSDK.log("initiating connection...");
+                    RippleSDK.app.rootCallbacks.websockets.tellClientOnConnecting();
+                },
             },
             networkError: error => {
                 RippleSDK.error(error);
@@ -534,6 +539,7 @@ const RippleSDK = {
         },
         webSocket:()=>{
             RippleSDK.serverUrl = RippleSDK.Utils.convertToWebSocketUrl(RippleSDK.serverUrl);
+            RippleSDK.app.rootCallbacks.websockets.onConnecting();
             let reconnectAttempts    = 0;
             let maxReconnectAttempts    = 200
             const reconnectDelays = [10, 20, 35, 45, 55]; // delays in seconds

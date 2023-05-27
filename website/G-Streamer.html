@@ -81,17 +81,20 @@
         const stopButton = document.getElementById('stopButton');
         connectButton.disabled = false;
         stopButton.disabled = false;
-        RippleSDK.app.rootCallbacks.websockets.tellClientOnFatalError = err=>{
+        RippleSDK.app.rootCallbacks.websockets.tellClientOnFatalError = err => {
 
         }
 
-         RippleSDK.app.rootCallbacks.websockets.tellClientOnClosed = ()=>{
+        RippleSDK.app.rootCallbacks.websockets.tellClientOnClosed     = (ev) => {
 
         }
-         RippleSDK.app.rootCallbacks.websockets.tellClientOnConnected = ()=>{
+        RippleSDK.app.rootCallbacks.websockets.tellClientOnConnected  = () => {
 
         }
-         RippleSDK.app.rootCallbacks.websockets.tellClientOnMessage = (message)=>{
+        RippleSDK.app.rootCallbacks.websockets.tellClientOnMessage    = (message) => {
+
+        }
+        RippleSDK.app.rootCallbacks.websockets.tellClientOnConnecting = () => {
 
         }
 
