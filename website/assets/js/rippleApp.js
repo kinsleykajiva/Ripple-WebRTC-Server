@@ -50,8 +50,11 @@ const RippleSDK = {
         reminderInterval  : null,
         startToRemindServerOfMe: () => {
             RippleSDK.app.reminderInterval = setInterval(() => {
-                const body =  {clientID: RippleSDK.serverClientId};
+                const body =  {
+                    clientID: RippleSDK.serverClientId
+                };
                 if (RippleSDK.isWebSocketAccess) {
+                    body.requestType="remember";
                     RippleSDK.Utils.webSocketSendAction(body);
                 }else{
                     // we are doing this remember that we are still need an id , as we first attempt to
@@ -117,7 +120,41 @@ const RippleSDK = {
             websockets:{/*The reason of these call back is to mend the reaction for the client to react in a way more meaning full and give more info on the messages*/
                 tellClientOnMessage:null,
                 onMessage:message=>{
-                    RippleSDK.app.rootCallbacks.websockets.tellClientOnMessage(message);
+                    if(!message){
+                        return;
+                    }
+                    const clientMessage = {
+                        isFatal:false,
+                        message:"",
+                    };
+                    message= JSON.parse(message);// convert to object
+
+                    if(message.code === 200){
+
+                        if(message.eventType === 'remember'){
+                            RippleSDK.info(" client remembered ",message.message);
+                            return;
+
+                        }
+
+                    }else if(message.code === 400){
+                        if(message.eventType === "validation"){
+                            RippleSDK.warn("Request InValid " ,message.message);
+                            clientMessage.message = `Invalid Session/Request ,Please reconnect : ${message.message}`
+
+                        }
+                    }else if(message.code === 500){
+
+                        if(message.eventType === "validation"){
+                            RippleSDK.warn("Request InValid " ,message.message);
+                            clientMessage.message = `Invalid Session/Request ,Please reconnect : ${message.message}`
+                            clientMessage.isFatal = true;
+                        }
+
+                    }else{
+                        // this is an error at most
+                    }
+                    RippleSDK.app.rootCallbacks.websockets.tellClientOnMessage(clientMessage);
                 },
                 tellClientOnConnected:null,
                 onConnected:()=>{

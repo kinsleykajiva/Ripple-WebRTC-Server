@@ -129,7 +129,7 @@ public class ClientWebSocket {
                 case VIDEO_ROOM -> handleVideoRoomRequest(clientObject, messageObject, response);
                 default -> {
                     response.put("clientID", clientObject.getClientID());
-                    response = XUtils.buildJsonErrorResponse(400, "featureType", "validation",
+                    response = XUtils.buildJsonErrorResponse(500, "featureType", "validation",
                             "Invalid feature type", response);
                     broadcast(clientObject, response.toString());
                 }
