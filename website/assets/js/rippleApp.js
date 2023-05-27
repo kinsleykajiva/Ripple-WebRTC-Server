@@ -5,19 +5,24 @@ const RippleSDK_CONST={
 
 
 const RippleSDK = {
-    log: function() {
+    log    : function () {
         const logMessage = Array.from(arguments).join(' ');
-        console.log("['😄'RippleSDK]",{...arguments} );
+        console.log("['😄'RippleSDK]", {...arguments});
 
     },
-    error: function() {
+    error  : function () {
         const errorMessage = Array.from(arguments).join(' ');
-        console.error("'😡'[RippleSDK]",{...arguments}  );
+        console.error("'😡'[RippleSDK]", {...arguments});
 
     },
-    warn: function() {
+    info: function () {
         const errorMessage = Array.from(arguments).join(' ');
-        console.error("'😒'[RippleSDK]",{...arguments}  );
+        console.info("''[RippleSDK]", {...arguments});
+
+    },
+    warn   : function () {
+        const errorMessage = Array.from(arguments).join(' ');
+        console.error("'😒'[RippleSDK]", {...arguments});
 
     },
     accessPassword              : '',
@@ -45,54 +50,43 @@ const RippleSDK = {
         reminderInterval  : null,
         startToRemindServerOfMe: () => {
             RippleSDK.app.reminderInterval = setInterval(() => {
+                const body =  {clientID: RippleSDK.serverClientId};
+                if (RippleSDK.isWebSocketAccess) {
+                    RippleSDK.Utils.webSocketSendAction(body);
+                }else{
+                    // we are doing this remember that we are still need an id , as we first attempt to
+                    // connect to the websocket sevrer we already need a ID , currenlty this is the best way of doing it.
+                    // trigger to start the remember-me calls
                 RippleSDK.Utils.fetchWithTimeout('/app/client/remember', {
                     method: 'POST',
-                    body  : {clientID: RippleSDK.serverClientId}
+                    body
                 }).then(async res => {
                     if (res.success) {
+                        RippleSDK.info('startToRemindServerOfMe', res.data);
                         RippleSDK.log("the Server still knows about me ")
                         RippleSDK.serverClientLastSeen = res.data.client.lastSeen;
-                        RippleSDK.log('res.data - ', res.data)
-                        RippleSDK.log('res.data.client.iceCandidates - ', res.data.client.iceCandidates)
-
 
                         if (res.data.client.clientSDP) {
-                          // RippleSDK.log(22,res.data.client.clientSDP)
-
-                            RippleSDK.app.feature.gStream.remoteOfferStringSDP =res.data.client.clientSDP;
-
-                            RippleSDK.app.webRTC.wasOfferSentSuccessfully = true ;
-                            RippleSDK.log(" Happy yey ,  finally got our answer from the remote sever ")
-                            // finally got our answer from the remote sever
-                            //RippleSDK.app.feature.gStream.remoteOfferStringSDP = res.data.clientSDP;
-                            /*await RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
-                                sdp : RippleSDK.app.feature.gStream.remoteOfferStringSDP,
-                                type: 'offer',
-                            });*/
+                            RippleSDK.app.feature.gStream.remoteOfferStringSDP = res.data.client.clientSDP;
+                            RippleSDK.app.webRTC.wasOfferSentSuccessfully      = true;
+                            RippleSDK.log(" Happy yey ,  finally got our answer from the remote sever ");
                             await RippleSDK.app.webRTC.createAnswer();
                             RippleSDK.Utils.onRemoteSDPReady();
-                            // ice candidates could have been sent or flowing by nuw
-
-
+                            // ice candidates could have been sent or flowing by now
                         }
 
-                            if (RippleSDK.app.webRTC.peerConnection) {
-                                if (res.data.client.iceCandidates) {
-                                    RippleSDK.app.webRTC.peerConnection.addIceCandidate(res.data.client.iceCandidates);
-                                }
-
-
-
+                        if (RippleSDK.app.webRTC.peerConnection) {
+                            if (res.data.client.iceCandidates) {
+                                RippleSDK.app.webRTC.peerConnection.addIceCandidate(res.data.client.iceCandidates);
                             }
-
-
-
+                        }
 
                     } else {
                         alert("Client not found please re-connect this session is now invalid!")
                         RippleSDK.error("Client not found please re-connect this session is now invalid!")
                     }
                 });
+            }
             }, RippleSDK.remindServerTimeoutInSeconds * 1_000);
         },
         stopReminderServer: () => {
@@ -109,11 +103,8 @@ const RippleSDK = {
                 RippleSDK.log(result);
                 RippleSDK.serverClientId = result.data.clientID;
                 RippleSDK.serverClientLastSeen = result.data.lastSeen;
-                if(!RippleSDK.isWebSocketAccess) {// we are doing this remember that we are still need an id , as we first attempt to
-                    // connect to the websocket sevrer we already need a ID , currenlty this is the best way of doing it.
-                    // trigger to start the remember-me calls
-                    RippleSDK.app.startToRemindServerOfMe();
-                }
+                RippleSDK.app.startToRemindServerOfMe();
+
                 return true;
             } catch (e) {
                 RippleSDK.error(e)
@@ -172,6 +163,9 @@ const RippleSDK = {
             gStream:{
                 remoteOfferStringSDP:null,
                 startStreaming:async () => {
+                    if (RippleSDK.isWebSocketAccess) {
+
+                    }else{
                     const result = await RippleSDK.Utils.fetchWithTimeout('streams/start', {
                         method: 'POST',
                         body  : {
@@ -186,6 +180,7 @@ const RippleSDK = {
                       //  RippleSDK.app.webRTC.createOffer();
                       //  await RippleSDK.app.webRTC.createAnswer();
                         RippleSDK.log("cone creating the answer")
+                    }
                     }
                     //  RippleSDK.app.webRTC.createPeerconnection();
                 },
@@ -495,29 +490,52 @@ const RippleSDK = {
 
     },
     Utils: {
+        convertToWebSocketUrl:url=>{
+            if (url.startsWith('https://')) {
+                return url.replace('https://', 'wss://');
+            } else if (url.startsWith('http://')) {
+                return url.replace('http://', 'ws://');
+            } else {
+                return null;
+            }
+        },
         webRTCAdapter: deps => (deps && deps.adapter) || adapter,
+        webSocketObject: null,
+        webSocketSendAction: messageObject=>{
+            if(!RippleSDK.Utils.webSocketObject){
+                RippleSDK.error("Failed to act websocket is null" , RippleSDK.Utils.webSocketObject);
+                return;
+            }
+            if (RippleSDK.Utils.webSocketObject.readyState === WebSocket.OPEN) {
+                RippleSDK.Utils.webSocketObject.send(JSON.stringify(messageObject));
+            }else{
+                RippleSDK.error("WebSocket connection is not open yet." , RippleSDK.Utils.webSocketObject);
+            }
+        },
         webSocket:()=>{
-            let  reconnectAttempts = 0;
-            let socketObject = null;
-            if(RippleSDK.app.featuresInUse === 'G_STREAM' ){
-                socketObject= new WebSocket(`${RippleSDK.serverUrl}/streams/${RippleSDK.serverClientId}`);
+            RippleSDK.serverUrl = RippleSDK.Utils.convertToWebSocketUrl(RippleSDK.serverUrl);
+            let reconnectAttempts    = 0;
+            let maxReconnectAttempts    = 200
+            const reconnectDelays = [10, 20, 35, 45, 55]; // delays in seconds
+            const socketObject    = new WebSocket(`${RippleSDK.serverUrl}/client-access/${RippleSDK.serverClientId}/${RippleSDK.app.featuresInUse}`);
+
+            if (socketObject) {
+                socketObject.onopen    = () => {
+                    reconnectAttempts = 0; // reset the reconnect attempts counter
+                    RippleSDK.log("Connected to the server via a websocket transport")
+                };
+                socketObject.onerror   = ev => {
+
+                };
+                socketObject.onmessage = ev => {
+
+                };
+                socketObject.onclose   = () => {
+
+                };
             }
-            if(socketObject){
-                socketObject.onopen =()=> {
-
-                };
-                socketObject.onerror =ev=> {
-
-                };
-                socketObject.onmessage =ev=> {
-
-                };
-                socketObject.onclose=() => {
-
-                };
-            }
-            return socketObject;
-           },
+            RippleSDK.Utils.webSocketObject=socketObject;
+        },
         fetchWithTimeout: async (url, options = {}) => {
             const {timeout = 8000} = options;
 

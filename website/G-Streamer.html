@@ -64,7 +64,8 @@
     'use strict'
 
     const targetAgentId = document.getElementById('targetAgentId');
-    RippleSDK.serverUrl="http://localhost:6060"
+    // RippleSDK.serverUrl="http://localhost:6060"
+    RippleSDK.serverUrl="ws://localhost:6060"
     RippleSDK.isVideoAccessRequired=true;
     RippleSDK.isAudioAccessRequired=true;
     RippleSDK.init(true);
