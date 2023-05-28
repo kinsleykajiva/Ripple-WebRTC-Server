@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Video Call Demo - App RTC Demo</title>
+    <title>Gstream  Demo - App RTC Demo</title>
 
     <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
@@ -65,15 +65,14 @@
 
     const targetAgentId = document.getElementById('targetAgentId');
     // RippleSDK.serverUrl="http://localhost:6060"
-    RippleSDK.serverUrl="ws://localhost:6060"
-    RippleSDK.isVideoAccessRequired=true;
-    RippleSDK.isAudioAccessRequired=true;
+    RippleSDK.serverUrl="ws://localhost:6060";
+    RippleSDK.app.featuresInUse='G_STREAM';
     RippleSDK.init(true);
     console.log("Ripple" ,RippleSDK.clientID)
     console.log("isWebRTCSupported " ,RippleSDK.Utils.isWebRTCSupported())
 
     function onStartAction(){
-        RippleSDK.app.featuresInUse='G_STREAM';
+
        // RippleSDK.Utils.testMediaAccess();
         RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID = 'localVideo'
 
@@ -97,21 +96,6 @@
         RippleSDK.app.rootCallbacks.websockets.tellClientOnConnecting = () => {
             console.log('tellClientOnConnecting Event' );
         }
-
-
-
-
-        /*RippleSDK.Utils.onAccessMediaAllowedNotification = (mediaStream,wasAudioAllowed,wasVideoAllowed)=>{
-            console.log('Media access allowed!');
-            console.log('Media Stream:', mediaStream);
-            console.log('Was Audio Allowed?', wasAudioAllowed);
-            console.log('Was Video Allowed?', wasVideoAllowed);
-
-            const connectButton = document.getElementById('connectButton');
-            const stopButton = document.getElementById('stopButton');
-            connectButton.disabled = false;
-            stopButton.disabled = false;
-        }*/
     }
 
  function onMirrorAction(){

@@ -7,10 +7,18 @@ const RippleSDK_CONST={
 
 
 const RippleSDK = {
-    log                         : () => console.log("['😄'RippleSDK]", {...arguments}),
-    error                       : () => console.error("'😡'[RippleSDK]", {...arguments}),
-    info                        : () => console.info("'😄'[RippleSDK]", {...arguments}),
-    warn                        : () => console.error("'😒'[RippleSDK]", {...arguments}),
+    log  : function () {
+        console.log("['😄'RippleSDK]", {...arguments});
+    },
+    error: function () {
+        console.error("'😡'[RippleSDK]", {...arguments});
+    },
+    info : function () {
+        console.info("''[RippleSDK]", {...arguments});
+    },
+    warn : function () {
+        console.error("'😒'[RippleSDK]", {...arguments});
+    },
     accessPassword              : '',
     isAudioAccessRequired       : false,
     isVideoAccessRequired       : false,
@@ -553,7 +561,16 @@ const RippleSDK = {
             } else if (url.startsWith('http://')) {
                 return url.replace('http://', 'ws://');
             } else {
-                return null;
+                return url;
+            }
+        },
+        convertFromWebSocketUrl:url=>{
+            if (url.startsWith('wss://')) {
+                return url.replace('wss://', 'https://');
+            } else if (url.startsWith('ws://')) {
+                return url.replace('ws://', 'http://');
+            } else {
+                return url;
             }
         },
         webRTCAdapter: deps => (deps && deps.adapter) || adapter,
@@ -624,9 +641,10 @@ const RippleSDK = {
 
             const controller = new AbortController();
             const id = setTimeout(() => controller.abort(), timeout);
+            const _urlRoot = RippleSDK.isWebSocketAccess? RippleSDK.Utils.convertFromWebSocketUrl(RippleSDK.serverUrl) :RippleSDK.serverUrl ;
 
             try {
-                const response = await fetch(`${RippleSDK.serverUrl}/${url}`, {
+                const response = await fetch(`${_urlRoot}/${url}`, {
                     ...options,
                     signal: controller.signal,
                 });
