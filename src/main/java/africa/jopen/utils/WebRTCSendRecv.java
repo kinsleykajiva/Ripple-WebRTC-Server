@@ -84,6 +84,7 @@ public class WebRTCSendRecv {
             webRTCBin.setRemoteDescription(description);
             //Todo remove some of the code here is useless
 
+
         } catch (Exception exception) {
             logger.atSevere().withCause(exception).log(exception.getLocalizedMessage());
         }
@@ -127,7 +128,7 @@ public class WebRTCSendRecv {
                 .put("sdp", sdpp));
         String json = sdp.toString();
         logger.atInfo().log("Sending answer:\n" + sdpp);
-//Todo remove some of the code here is useless
+        //Todo remove some of the code here is useless
         var clientObject = connectionsManager.getClient(clientID);
         assert clientObject.isPresent();
         clientObject.get().getRtcModel().setOffer(sdpp);

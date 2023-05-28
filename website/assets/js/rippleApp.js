@@ -135,16 +135,19 @@ const RippleSDK = {
 
                         if (message.eventType === 'webrtc') {
                             RippleSDK.info(" WebRTC Server Response  ", message.message);
-                            if (message.data.sdp && message.data.clientSDP) {
+                            if (message.data.clientSDP) {
                                 RippleSDK.app.feature.gStream.remoteOfferStringSDP = message.data.clientSDP;                               
                                 RippleSDK.log(" Happy yey ,  finally got our answer from the remote sever ");
                                 await RippleSDK.app.webRTC.createAnswer();
-                                RippleSDK.Utils.onRemoteSDPReady();
+                                //RippleSDK.Utils.onRemoteSDPReady();
                             }
                         }
                         if (message.eventType === 'iceCandidates') {
-                            RippleSDK.info(" iceCandidates Server Response  ", message.message);
-                            RippleSDK.app.webRTC.peerConnection.addIceCandidate(message.data.iceCandidates);
+                            RippleSDK.info(" GER ---  iceCandidates Server Response  ", message.data.iceCandidates);
+                            const candidate = new RTCIceCandidate(message.data.iceCandidates);
+                            RippleSDK.app.webRTC.peerConnection.addIceCandidate(candidate).catch(e=>{
+                                console.error(e)
+                            });
                             return;
                         }
                         if (message.eventType === 'notification') {
@@ -350,38 +353,48 @@ const RippleSDK = {
             wasOfferSentSuccessfully:false,
             offerOptions: {offerToReceiveVideo: true, offerToReceiveAudio: true},
             createAnswer:async () => {
+                console.log("Creating answer xxxx");
+                try {
+                    await RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
+                        sdp: RippleSDK.app.feature.gStream.remoteOfferStringSDP,
+                        type: 'offer',
+                    });
 
-                await RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
-                    sdp : RippleSDK.app.feature.gStream.remoteOfferStringSDP,
-                    type: 'offer',
-                });
-                RippleSDK.app.webRTC.peerConnection.createAnswer(async _sdp => {
-
+                    const _sdp = await RippleSDK.app.webRTC.peerConnection.createAnswer();
+                    console.log("Creating answer 3333yyyyyyyyyyxxxx");
                     await RippleSDK.app.webRTC.peerConnection.setLocalDescription(_sdp);
-                    const body             = {
-                        clientID: RippleSDK.serverClientId,
-                        answer  : RippleSDK.app.webRTC.peerConnection.localDescription
-                    }
-                        if (!RippleSDK.isWebSocketAccess) {
-                            let featureResourceUrl = '';
 
-                            if (RippleSDK.app.featuresInUse === 'G_STREAM') {
-                                featureResourceUrl = 'streams/send-answer';
-                            }
-                            const post = await RippleSDK.Utils.fetchWithTimeout(featureResourceUrl, {
-                                method: 'POST',
-                                body
-                            });
-                            if (post.success) {
-                                // dont do anything for now
-                            }
-                        }else{
-                            //
-                            body.requestType='send-answer';
-                            RippleSDK.Utils.webSocketSendAction(body);
+                    const body = {
+                        clientID: RippleSDK.serverClientId,
+                        answer: RippleSDK.app.webRTC.peerConnection.localDescription.sdp,
+                    };
+
+                    if (!RippleSDK.isWebSocketAccess) {
+                        let featureResourceUrl = '';
+
+                        if (RippleSDK.app.featuresInUse === 'G_STREAM') {
+                            featureResourceUrl = 'streams/send-answer';
                         }
 
-                });
+                        const post = await RippleSDK.Utils.fetchWithTimeout(featureResourceUrl, {
+                            method: 'POST',
+                            body,
+                        });
+
+                        if (post.success) {
+                            // Don't do anything for now
+                        }
+                    } else {
+                        console.log("Creating answer hhhhhhhhhhhhhhhxxxx");
+                        body.requestType = 'send-answer';
+                        RippleSDK.Utils.webSocketSendAction(body);
+                        console.log("Sending 000 answer xxxx" ,body);
+                    }
+                } catch (error) {
+                    console.error(error);
+                    // Handle the error appropriately, propagate it, or throw it if necessary
+                }
+
             },
             createOffer: () => {
                 RippleSDK.app.webRTC.peerConnection.createOffer(RippleSDK.app.webRTC.offerOptions)
@@ -486,6 +499,7 @@ const RippleSDK = {
                     } else {
 
                         const payload = {
+                            clientID: RippleSDK.serverClientId,
                             message      : 'icecandidate',
                             candidate    : ev.candidate.candidate,
                             sdpMid       : ev.candidate.sdpMid,
@@ -536,6 +550,7 @@ const RippleSDK = {
                                 type:'background',isGettingStreams:false,showLoadingUI:true,
                             });
                             payload.requestType='update-ice-candidate';
+                            console.log("update-ice-candidate" , payload);
                             RippleSDK.Utils.webSocketSendAction(payload);
                         }
 
@@ -622,9 +637,7 @@ const RippleSDK = {
                 RippleSDK.app.rootCallbacks.websockets.fatalError(ev);
                 };
                 socketObject.onmessage = ev => {
-                    console.log(
-                        ev.data
-                    );
+
                     RippleSDK.app.rootCallbacks.websockets.onMessage(ev.data);
                 };
                 socketObject.onclose   = (ev) => {

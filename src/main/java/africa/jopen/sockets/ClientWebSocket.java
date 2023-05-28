@@ -169,17 +169,12 @@ public class ClientWebSocket {
         switch (requestType) {
             case "remember" -> response = rememberResponse(clientObject);
             case "update-ice-candidate" -> {
-                if (!messageObject.has("clientID")) {
-                    response = XUtils.buildJsonErrorResponse(400, "clientID", "validation",
-                            "clientID is required", response);
-                    broadcast(clientObject, response.toString());
-                    return;
-                }
+
                 final var payload = new PostIceCandidate(
                         null, new IceCandidate(
                         messageObject.getString("candidate"),
                         messageObject.getString("sdpMid"),
-                        messageObject.getInt("sdpMidLineIndex")
+                        messageObject.getInt("sdpMLineIndex")
                 ), messageObject.getString("clientID"));
                 clientObject.getWebRTCSendRecv()
                         .handleIceSdp(payload.iceCandidate().candidate(), payload.iceCandidate().sdpMidLineIndex());

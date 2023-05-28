@@ -58,7 +58,7 @@ public final class Client implements PeerConnectionObserver {
 	}
 
 	public void setWebRTCSendRecv() {
-		peerConnection.close();
+		//peerConnection.close();
 		this.webRTCSendRecv = new WebRTCSendRecv(clientID);
 	}
 
