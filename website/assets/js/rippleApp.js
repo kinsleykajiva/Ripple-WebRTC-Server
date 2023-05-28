@@ -5,26 +5,10 @@ const RippleSDK_CONST={
 
 
 const RippleSDK = {
-    log    : function () {
-        const logMessage = Array.from(arguments).join(' ');
-        console.log("['😄'RippleSDK]", {...arguments});
-
-    },
-    error  : function () {
-        const errorMessage = Array.from(arguments).join(' ');
-        console.error("'😡'[RippleSDK]", {...arguments});
-
-    },
-    info: function () {
-        const errorMessage = Array.from(arguments).join(' ');
-        console.info("''[RippleSDK]", {...arguments});
-
-    },
-    warn   : function () {
-        const errorMessage = Array.from(arguments).join(' ');
-        console.error("'😒'[RippleSDK]", {...arguments});
-
-    },
+    log    :  ()=>        console.log("['😄'RippleSDK]", {...arguments})  ,
+    error  :  ()=> console.error("'😡'[RippleSDK]", {...arguments})  ,
+    info: ()=> console.info("'😄'[RippleSDK]", {...arguments})  ,
+    warn   :  ()=> console.error("'😒'[RippleSDK]", {...arguments})   ,
     accessPassword              : '',
     isAudioAccessRequired       : false,
     isVideoAccessRequired       : false,
@@ -58,7 +42,7 @@ const RippleSDK = {
                     RippleSDK.Utils.webSocketSendAction(body);
                 }else{
                     // we are doing this remember that we are still need an id , as we first attempt to
-                    // connect to the websocket sevrer we already need a ID , currenlty this is the best way of doing it.
+                    // connect to the websocket server we already need a ID , currently this is the best way of doing it.
                     // trigger to start the remember-me calls
                 RippleSDK.Utils.fetchWithTimeout('/app/client/remember', {
                     method: 'POST',
@@ -92,9 +76,7 @@ const RippleSDK = {
             }
             }, RippleSDK.remindServerTimeoutInSeconds * 1_000);
         },
-        stopReminderServer: () => {
-            clearInterval(RippleSDK.app.reminderInterval)
-        },
+        stopReminderServer: () => clearInterval(RippleSDK.app.reminderInterval),
         maxRetries: 10,
         makeConnection: async () => {
 
@@ -127,15 +109,14 @@ const RippleSDK = {
                         isFatal: false,
                         message: "",
                     };
-                    message             = JSON.parse(message);// convert to object
+                    message= JSON.parse(message);// convert to object
 
                     if (message.code === 200) {
 
                         if (message.eventType === 'webrtc') {
                             RippleSDK.info(" WebRTC Server Response  ", message.message);
                             if (message.data.sdp && message.data.clientSDP) {
-                                RippleSDK.app.feature.gStream.remoteOfferStringSDP = message.data.clientSDP;
-                               // RippleSDK.app.webRTC.wasOfferSentSuccessfully      = true;
+                                RippleSDK.app.feature.gStream.remoteOfferStringSDP = message.data.clientSDP;                               
                                 RippleSDK.log(" Happy yey ,  finally got our answer from the remote sever ");
                                 await RippleSDK.app.webRTC.createAnswer();
                                 RippleSDK.Utils.onRemoteSDPReady();
@@ -158,7 +139,7 @@ const RippleSDK = {
                             }
                         }
                         if (message.eventType === 'remember') {
-                            // so far we can ignore any additional data as we dont need it.
+                            //? so far we can ignore any additional data as we don't need it.
                             RippleSDK.info(" client remembered ", message.message);
                             return;
                         }
@@ -178,18 +159,14 @@ const RippleSDK = {
                         }
 
                     } else {
-                        // this is an error at most
+                        //? this is an error at most
                     }
                     RippleSDK.app.rootCallbacks.websockets.tellClientOnMessage(clientMessage);
                 },
                 tellClientOnConnected:null,
-                onConnected:()=>{
-                    RippleSDK.app.rootCallbacks.websockets.tellClientOnConnected();
-                },
+                onConnected:()=>RippleSDK.app.rootCallbacks.websockets.tellClientOnConnected(),
                 tellClientOnClosed:null,
-                onClosed:ev=>{
-                    RippleSDK.app.rootCallbacks.websockets.tellClientOnClosed(ev);
-                },
+                onClosed:ev=> RippleSDK.app.rootCallbacks.websockets.tellClientOnClosed(ev),
                 tellClientOnFatalError:null,
                 fatalError:error=>{
                     RippleSDK.error(error);
@@ -232,7 +209,6 @@ const RippleSDK = {
                         } catch (e) {
                             RippleSDK.error(e)
                         }
-
                     }
                 } else {
                     RippleSDK.hasAccessToVideoPermission = false;
@@ -240,8 +216,6 @@ const RippleSDK = {
                     RippleSDK.error("Access To Media has been rejected !Vide & wont get captured")
                     RippleSDK.Utils.onAccessMediaAllowedNotification(null, false, false)
                 }
-
-
             },
             icecandidate: data => {
                 RippleSDK.log('data', data)
@@ -250,27 +224,19 @@ const RippleSDK = {
         feature: {
             gStream:{
                 remoteOfferStringSDP:null,
-                startStreaming:async () => {
-                    const body ={clientID: RippleSDK.serverClientId,};
+                startStreaming: async () => {
+                    const body = {clientID: RippleSDK.serverClientId,};
                     if (RippleSDK.isWebSocketAccess) {
-
                         RippleSDK.Utils.webSocketSendAction(body);
-
-                    }else{
+                    } else {
                         const result = await RippleSDK.Utils.fetchWithTimeout('streams/start', {
-                            method: 'POST',
-                            body
+                            method: 'POST',body
                         });
-                        RippleSDK.log("result   v  " , result)
-                        if(result.success){
-                          //  RippleSDK.app.feature.gStream.remoteOfferStringSDP = result.data.offer;
+                        if (result.success) {
                             RippleSDK.app.webRTC.createPeerconnection();
-                          //  RippleSDK.app.webRTC.createOffer();
-                          //  await RippleSDK.app.webRTC.createAnswer();
-                            RippleSDK.log("cone creating the answer")
+                            RippleSDK.log("cone creating the answer");
                         }
-                        }
-                        //  RippleSDK.app.webRTC.createPeerconnection();
+                    }
                 },
             },
             videoRoom: {
@@ -318,7 +284,7 @@ const RippleSDK = {
                                 creatorClientID: RippleSDK.serverClientId,
                             }
                         });
-                        console.log(result);
+
                         if (result.success) {
                             RippleSDK.app.feature.videoRoom.room = result.data;
                             RippleSDK.log('Room', RippleSDK.app.feature.videoRoom.room);
@@ -334,8 +300,8 @@ const RippleSDK = {
                 /*The client or user logic is depended on the initialization of  ${RippleSDK.app.feature.videoRoom.room} object */
                 joinRoom: async () => {
                     if (RippleSDK.app.feature.videoRoom.room.roomID.length === 0) {
-                        RippleSDK.error("Please get the room details first!")
-                        return
+                        RippleSDK.error("Please get the room details first!");
+                        return;
                     }
                     try {
                         const result = await RippleSDK.Utils.fetchWithTimeout('/video/join-room', {
@@ -421,9 +387,7 @@ const RippleSDK = {
                         const post = await RippleSDK.Utils.fetchWithTimeout(featureResourceUrl, {
                             method: 'POST',
                             body
-                        });
-
-                        RippleSDK.log('XXXX post post ', post);
+                        });                       
                         if(post.success){
 
                             if(post.data.sdp){ // accommodates video room , video call
@@ -435,9 +399,6 @@ const RippleSDK = {
                                 RippleSDK.app.webRTC.wasOfferSentSuccessfully = true;
                             }
                         }
-
-
-
                     });
             },
             shutDownPeerConnection:()=>{
@@ -452,7 +413,6 @@ const RippleSDK = {
                 async function delayedExecution() {
                     // Your code to be executed
                     RippleSDK.log('Delayed execution');
-
                     // Check the condition
                     if (RippleSDK.app.webRTC.wasOfferSentSuccessfully) {
                         // Cancel the entire attempt
@@ -537,9 +497,8 @@ const RippleSDK = {
                             });
 
                             if (!RippleSDK.app.webRTC.wasOfferSentSuccessfully) {
-                                //! ToDo depricated!
+                                //! ToDo deprecated!
                                 RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobPayloadsArray.push(reqst);
-
                                 RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobs();
                             } else {
 
@@ -562,14 +521,8 @@ const RippleSDK = {
                     }
 
                 };
-                RippleSDK.app.webRTC.peerConnection.oniceconnectionstatechange = ev => {
-                    RippleSDK.log('make a peer oniceconnectionstatechange ...');
-
-                };
-                RippleSDK.app.webRTC.peerConnection.onnegotiationneeded = ev => {
-                    RippleSDK.log('make a peer onnegotiationneeded ...');
-
-                };
+                RippleSDK.app.webRTC.peerConnection.oniceconnectionstatechange = ev => RippleSDK.log('make a peer oniceconnectionstatechange ...');
+                RippleSDK.app.webRTC.peerConnection.onnegotiationneeded = ev => RippleSDK.log('make a peer onnegotiationneeded ...');
 
                 RippleSDK.app.webRTC.peerConnection.ontrack = ev => {
                     // this will be used to render remote peers track audio and video
@@ -584,13 +537,7 @@ const RippleSDK = {
                         }*/
                         localVideo.srcObject = new MediaStream([ev.track]);
                     }
-
-
                 };
-
-             //   RippleSDK.app.webRTC.createOffer();
-
-
             }
 
         },
@@ -782,18 +729,7 @@ const RippleSDK = {
 
         },
         getMediaDevices: async () => {
-            /*to call this function call it by
-                getMediaDevices()
-              .then(({ audioOutputDevices, audioInputDevices, videoInputDevices }) => {
-                console.log('Audio Output Devices:', audioOutputDevices);
-                console.log('Audio Input Devices:', audioInputDevices);
-                console.log('Video Input Devices:', videoInputDevices);
-              })
-              .catch(error => {
-                console.error('Error retrieving media devices:', error);
-              });
-
-            * */
+            
             try {
                 const devices            = await navigator.mediaDevices.enumerateDevices();
                 const audioOutputDevices = devices.filter(device => device.kind === 'audiooutput');
@@ -811,9 +747,7 @@ const RippleSDK = {
         },
         makeRandomNumber: (minValue = 1, maxValue = 1000) => Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue,
         replaceAll: (f, r) => this.split(f).join(r),
-        capitaliseTextFirstLetter: (word) => {
-            return word.charAt(0).toUpperCase() + word.slice(1);
-        },
+        capitaliseTextFirstLetter: word => word.charAt(0).toUpperCase() + word.slice(1),
         capitaliseTextFirstCaseForWords: (text) => {
             if (!text || text.length < 1) {
                 return text;
