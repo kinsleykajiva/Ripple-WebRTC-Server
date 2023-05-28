@@ -35,13 +35,12 @@ public class ClientWebSocket {
 
     @OnOpen
     public void onOpen(Session session, @PathParam("clientID") String clientID, @PathParam("featureType") String featureType) {
-        System.out.println("onOpen> " + clientID);
-        logger.atInfo().log("OnOpen" + clientID);
+
+       // logger.atInfo().log("OnOpen" + clientID);
         // since this is the first . The client id will need to be set after the fact from the server , so the client id wil be the agent name
         try {
             JSONObject response = new JSONObject();
             Client clientObject;
-            logger.atInfo().log("..." + clientID);
             var testExists = connectionsManager.checkIfClientExists(clientID);
             if (testExists) {// this is a sub-sequent reconnection.
                 clientObject = connectionsManager.updateClientWhenRemembered(clientID);

@@ -4,21 +4,30 @@ const RippleSDK_CONST={
     featuresAvailable: Object.freeze({VIDEO_ROOM: 'VIDEO_ROOM',AUDIO_ROOM: 'AUDIO_ROOM',VIDEO_CALL: 'VIDEO_CALL',G_STREAM:'G_STREAM'}),
 };
 
-
+// Object.fetchWithTimeout (http://localhost:63344/website/website/assets/js/rippleApp.js:675:27)
 
 const RippleSDK = {
-    log  : function () {
-        console.log("['😄'RippleSDK]", {...arguments});
-    },
-    error: function () {
-        console.error("'😡'[RippleSDK]", {...arguments});
-    },
-    info : function () {
-        console.info("''[RippleSDK]", {...arguments});
-    },
-    warn : function () {
-        console.error("'😒'[RippleSDK]", {...arguments});
-    },
+          log: function () {
+              const stack = new Error().stack.split("\n");
+              console.log(`line:`,RippleSDK.Utils. extractFilePath(stack[2]+""));
+              console.log("[😄RippleSDK]",{...arguments});
+
+          },
+          error: function () {
+              const stack = new Error().stack.split("\n");
+              console.log(`line:`,RippleSDK.Utils. extractFilePath(stack[2]+""));
+              console.error({...arguments});
+          },
+          info: function () {
+              const stack = new Error().stack.split("\n");
+              console.log(`line:`,RippleSDK.Utils. extractFilePath(stack[2]+""));
+              console.info({...arguments});
+          },
+          warn: function () {
+              const stack = new Error().stack.split("\n");
+              console.log(`line:`,RippleSDK.Utils. extractFilePath(stack[2]+""));
+              console.warn({...arguments});
+          },
     accessPassword              : '',
     isAudioAccessRequired       : false,
     isVideoAccessRequired       : false,
@@ -556,6 +565,14 @@ const RippleSDK = {
 
     },
     Utils: {
+        extractFilePath:(stackString)=> {
+            const regex = /\((.+?)\)$/; // Match the substring within parentheses
+            const matches = regex.exec(stackString);
+            if (matches && matches.length > 1) {
+                return matches[1];
+            }
+            return stackString;
+        },
         convertToWebSocketUrl:url=>{
             if (url.startsWith('https://')) {
                 return url.replace('https://', 'wss://');
