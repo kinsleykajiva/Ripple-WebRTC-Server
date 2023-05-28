@@ -7,10 +7,10 @@ const RippleSDK_CONST={
 
 
 const RippleSDK = {
-    log    :  ()=>        console.log("['😄'RippleSDK]", {...arguments})  ,
-    error  :  ()=> console.error("'😡'[RippleSDK]", {...arguments})  ,
-    info   : ()=> console.info("'😄'[RippleSDK]", {...arguments})  ,
-    warn   :  ()=> console.error("'😒'[RippleSDK]", {...arguments})   ,
+    log                         : () => console.log("['😄'RippleSDK]", {...arguments}),
+    error                       : () => console.error("'😡'[RippleSDK]", {...arguments}),
+    info                        : () => console.info("'😄'[RippleSDK]", {...arguments}),
+    warn                        : () => console.error("'😒'[RippleSDK]", {...arguments}),
     accessPassword              : '',
     isAudioAccessRequired       : false,
     isVideoAccessRequired       : false,
@@ -26,7 +26,7 @@ const RippleSDK = {
     clientTypeInUse             : '',
     isWebSocketAccess           : false,
     isDebugSession              : false,
-    remindServerTimeoutInSeconds: 26/4,
+    remindServerTimeoutInSeconds: 26 / 4,
     iceServerArray              : [],
     app: {
         featuresAvailable : ["VIDEO_ROOM", "AUDIO_ROOM", "VIDEO_CALL","G_STREAM"],
@@ -37,7 +37,8 @@ const RippleSDK = {
         startToRemindServerOfMe: () => {
             RippleSDK.app.reminderInterval = setInterval(() => {
                 const body =  {
-                    clientID: RippleSDK.serverClientId
+                    clientID: RippleSDK.serverClientId,
+                    requestType: '',
                 };
                 if (RippleSDK.isWebSocketAccess) {
                     body.requestType="remember";
@@ -197,7 +198,7 @@ const RippleSDK = {
                 if (media && media.active) {
                     RippleSDK.hasAccessToVideoPermission = true;
                     RippleSDK.hasAccessToAudioPermission = true;
-                    RippleSDK.Utils.myMedia = media;
+                    RippleSDK.Utils.myMedia              = media;
 
                     if (RippleSDK.app.featuresInUse.includes('VIDEO_ROOM')) {
                         if (!RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID || RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID.length === 0) {
@@ -672,7 +673,7 @@ const RippleSDK = {
         uniqueIDGenerator: (seed = '', maxSize = 22) => {
             const alphabet       = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             const date           = new Date();
-            const timeString     = `${date.getHours()}${date.getMinutes()}${date.getSeconds()}`.padStart(6, '0');
+            const timeString    = `${date.getHours()}${date.getMinutes()}${date.getSeconds()}`.padStart(6, '0');
             const dateTimeString = `${seed}${timeString}${Math.random().toString(36).substr(2, 4)}`.slice(0, 12);
             let uniID            = '';
             for (let i = 0; i < maxSize; i++) {
@@ -689,15 +690,14 @@ const RippleSDK = {
             const urlParams   = new URLSearchParams(queryString);
             return urlParams.get(variable);
         },
-        isSecureAccess: () => location.protocol === 'https:' || new URL(RippleSDK.serverUrl).protocol === 'wss:',
-        isWebRTCSupported: () => !!window.RTCPeerConnection,
-        canAccessMedia: () => !!navigator.mediaDevices && !!navigator.mediaDevices.getUserMedia,
+        isSecureAccess                  : () => location.protocol === 'https:' || new URL(RippleSDK.serverUrl).protocol === 'wss:',
+        isWebRTCSupported               : () => !!window.RTCPeerConnection,
+        canAccessMedia                  : () => !!navigator.mediaDevices && !!navigator.mediaDevices.getUserMedia,
+        onRemoteSDPReady                : () => {
+        },
         onAccessMediaAllowedNotification: (mediaStream, wasAudioAllowed, wasVideoAllowed) => {
         },
-        onRemoteSDPReady: () => {
-        },
-
-        myMedia: null,
+        myMedia                         : null,
         stopMyLocalMediaAccess: () => {
             if (RippleSDK.Utils.myMedia) {
                 RippleSDK.Utils.myMedia.getTracks().forEach(track => track.stop());
