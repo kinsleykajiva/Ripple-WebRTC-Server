@@ -59,7 +59,6 @@ public final class Client implements PeerConnectionObserver {
 
 	public void setWebRTCSendRecv() {
 		peerConnection.close();
-		setSocketSession(null);// not-really necessary to set to null really , just doing it just incase to save memory in the mean time
 		this.webRTCSendRecv = new WebRTCSendRecv(clientID);
 	}
 

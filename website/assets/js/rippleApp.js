@@ -34,7 +34,7 @@ const RippleSDK = {
     clientTypeInUse             : '',
     isWebSocketAccess           : false,
     isDebugSession              : false,
-    remindServerTimeoutInSeconds: 26 / 4,
+    remindServerTimeoutInSeconds: 26 ,
     iceServerArray              : [],
     app: {
         featuresAvailable : ["VIDEO_ROOM", "AUDIO_ROOM", "VIDEO_CALL","G_STREAM"],
@@ -163,9 +163,9 @@ const RippleSDK = {
                         }
                     } else if (message.code === 500) {
 
-                        if (message.eventType === "validation") {
-                            RippleSDK.warn("Request InValid ", message.message);
-                            clientMessage.message = `Invalid Session/Request ,Please reconnect : ${message.message}`
+                        if (message.eventType === "Error") {
+                            RippleSDK.warn("Request Error ", message.message);
+                            clientMessage.message = `Fatal Server Error: ${message.message}`
                             clientMessage.isFatal = true;
                         }
 
@@ -238,6 +238,7 @@ const RippleSDK = {
                 startStreaming: async () => {
                     const body = {clientID: RippleSDK.serverClientId,};
                     if (RippleSDK.isWebSocketAccess) {
+                        body.requestType = 'start';
                         RippleSDK.Utils.webSocketSendAction(body);
                     } else {
                         const result = await RippleSDK.Utils.fetchWithTimeout('streams/start', {
@@ -604,7 +605,10 @@ const RippleSDK = {
                 RippleSDK.app.rootCallbacks.websockets.fatalError(ev);
                 };
                 socketObject.onmessage = ev => {
-                    RippleSDK.app.rootCallbacks.websockets.onMessage(ev);
+                    console.log(
+                        ev.data
+                    );
+                    RippleSDK.app.rootCallbacks.websockets.onMessage(ev.data);
                 };
                 socketObject.onclose   = (ev) => {
                     RippleSDK.log(`WebSocket closed with code ${ev.code} and reason ${ev.reason}`);

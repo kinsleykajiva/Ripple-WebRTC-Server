@@ -82,6 +82,7 @@ public class ClientWebSocket {
             response.put("eventType", "registration");
             response.put("message", "Client newly connected and recognized");
             response.put("code", 200);
+
             broadcast(clientObject, response.toString());
 
         } catch (Exception ex) {
@@ -136,6 +137,9 @@ public class ClientWebSocket {
                 }
             }
 
+            clientObject = connectionsManager.getClient(clientID)
+                    .orElseThrow(() -> new IllegalStateException("Client object not found"));
+
             broadcast(clientObject, response.toString());
         } catch (Exception ex) {
             logger.atSevere().withCause(ex).log("onMessage Error");
@@ -143,6 +147,7 @@ public class ClientWebSocket {
     }
 
     private JSONObject rememberResponse(Client clientObject) {
+
         JSONObject response = new JSONObject();
         clientObject = connectionsManager.updateClientWhenRemembered(clientObject.getClientID());
         response.put("clientID", clientObject.getClientID());
@@ -158,6 +163,8 @@ public class ClientWebSocket {
 
 
     private void handleGStreamRequest(Client clientObject, JSONObject messageObject, JSONObject response) {
+
+
         final String requestType = messageObject.getString("requestType");
         response.put("history", messageObject);
         switch (requestType) {
@@ -197,10 +204,19 @@ public class ClientWebSocket {
                 }
 
                 response.put("nextActions", Arrays.asList( "createPeerConnection" ,"shareIceCandidates"));
+                try{
                 clientObject.setWebRTCSendRecv();
                 connectionsManager.updateClient(clientObject);
                 response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
                         "Streaming Started Successfully, the app should start to receive some streams,the Server Is preparing WebRTC stuff", response);
+
+                }catch (Exception e){
+                    logger.atSevere().withCause(e).log("Failed to make a pipeline");
+                    response = XUtils.buildJsonErrorResponse(500, "eventType", "Error",
+                            "Failed to process the video , there will no stream to see ", response);
+                    broadcast(clientObject, response.toString());
+                    return;
+                }
             }
             default -> {
                 response.put("clientID", clientObject.getClientID());
