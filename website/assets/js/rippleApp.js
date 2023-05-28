@@ -124,14 +124,30 @@ const RippleSDK = {
                         return;
                     }
                     const clientMessage = {
-                        isFatal:false,
-                        message:"",
+                        isFatal: false,
+                        message: "",
                     };
                     message= JSON.parse(message);// convert to object
 
                     if(message.code === 200){
 
+                        if(message.eventType === 'webrtc'){
+                            RippleSDK.info(" WebRTC Server Response  ",message.message);
+                            if(message.data.sdp && message.data.clientSDP){
+
+                            }
+                        }
+                        if(message.eventType === 'notification'){
+                            RippleSDK.info(" Server Response  ",message.message);
+                            if(message.data.nextActions){
+                                if(message.data.nextActions.includes('createPeerConnection')){
+                                    RippleSDK.app.webRTC.createPeerconnection();
+                                }
+                            }
+
+                        }
                         if(message.eventType === 'remember'){
+                            // so far we can ignore any additional data as we dont need it.
                             RippleSDK.info(" client remembered ",message.message);
                             return;
 
@@ -225,26 +241,26 @@ const RippleSDK = {
             gStream:{
                 remoteOfferStringSDP:null,
                 startStreaming:async () => {
+                    const body ={clientID: RippleSDK.serverClientId,};
                     if (RippleSDK.isWebSocketAccess) {
 
-                    }else{
-                    const result = await RippleSDK.Utils.fetchWithTimeout('streams/start', {
-                        method: 'POST',
-                        body  : {
+                        RippleSDK.Utils.webSocketSendAction(body);
 
-                            clientID: RippleSDK.serverClientId,
+                    }else{
+                        const result = await RippleSDK.Utils.fetchWithTimeout('streams/start', {
+                            method: 'POST',
+                            body
+                        });
+                        RippleSDK.log("result   v  " , result)
+                        if(result.success){
+                          //  RippleSDK.app.feature.gStream.remoteOfferStringSDP = result.data.offer;
+                            RippleSDK.app.webRTC.createPeerconnection();
+                          //  RippleSDK.app.webRTC.createOffer();
+                          //  await RippleSDK.app.webRTC.createAnswer();
+                            RippleSDK.log("cone creating the answer")
                         }
-                    });
-                    RippleSDK.log("result   v  " , result)
-                    if(result.success){
-                      //  RippleSDK.app.feature.gStream.remoteOfferStringSDP = result.data.offer;
-                        RippleSDK.app.webRTC.createPeerconnection();
-                      //  RippleSDK.app.webRTC.createOffer();
-                      //  await RippleSDK.app.webRTC.createAnswer();
-                        RippleSDK.log("cone creating the answer")
-                    }
-                    }
-                    //  RippleSDK.app.webRTC.createPeerconnection();
+                        }
+                        //  RippleSDK.app.webRTC.createPeerconnection();
                 },
             },
             videoRoom: {

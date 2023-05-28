@@ -19,6 +19,7 @@ import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
 import org.json.JSONObject;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -29,7 +30,7 @@ import static java.util.Objects.requireNonNull;
 @ServerEndpoint("/client-access/{clientID}/{featureType}")
 @ApplicationScoped
 public class ClientWebSocket {
-    private ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
+    private final ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
     @OnOpen
@@ -158,6 +159,7 @@ public class ClientWebSocket {
 
     private void handleGStreamRequest(Client clientObject, JSONObject messageObject, JSONObject response) {
         final String requestType = messageObject.getString("requestType");
+        response.put("history", messageObject);
         switch (requestType) {
             case "remember" -> response = rememberResponse(clientObject);
             case "update-ice-candidate" -> {
@@ -188,15 +190,17 @@ public class ClientWebSocket {
             }
             case "start" -> {
                 if (!messageObject.has("clientID")) {
-                    response = XUtils.buildJsonErrorResponse(400, "clientID", "validation",
+                    response = XUtils.buildJsonErrorResponse(400, "eventType", "validation",
                             "clientID is required", response);
                     broadcast(clientObject, response.toString());
                     return;
                 }
+
+                response.put("nextActions", Arrays.asList( "createPeerConnection" ,"shareIceCandidates"));
                 clientObject.setWebRTCSendRecv();
                 connectionsManager.updateClient(clientObject);
-                response = XUtils.buildJsonSuccessResponse(200, "eventType", "validation",
-                        "Streaming Started Successfully, the app should start to receive some streams", response);
+                response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
+                        "Streaming Started Successfully, the app should start to receive some streams,the Server Is preparing WebRTC stuff", response);
             }
             default -> {
                 response.put("clientID", clientObject.getClientID());
@@ -210,6 +214,7 @@ public class ClientWebSocket {
 
     private void handleVideoRoomRequest(Client clientObject, JSONObject messageObject, JSONObject response) {
         String requestType = messageObject.getString("requestType");
+        response.put("history", messageObject);
         switch (requestType) {
             case "remember" -> response = rememberResponse(clientObject);
             case "joinRoom" -> {

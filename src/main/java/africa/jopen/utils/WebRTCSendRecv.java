@@ -139,7 +139,7 @@ public class WebRTCSendRecv {
             response.put("sdp", json);
             response.put("lastSeen", clientObject.get().lastTimeStamp());
             response.put("featureInUse", clientObject.get().getFeatureType().toString());
-            response = XUtils.buildJsonSuccessResponse(200, "eventType", "remember",
+            response = XUtils.buildJsonSuccessResponse(200, "eventType", "webrtc",
                     "Client  Remembered Successfully", response);
             broadcast(clientObject.get(), response.toString());
         }
