@@ -542,6 +542,7 @@ const RippleSDK = {
                             });
 
                             if (!RippleSDK.app.webRTC.wasOfferSentSuccessfully) {
+                                //! ToDo depricated!
                                 RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobPayloadsArray.push(reqst);
 
                                 RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobs();

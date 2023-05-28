@@ -182,7 +182,7 @@ public class WebRTCSendRecv {
             response.put("iceCandidates", candidateMap);
             response.put("lastSeen", clientObject.get().lastTimeStamp());
             response.put("featureInUse", clientObject.get().getFeatureType().toString());
-            response = XUtils.buildJsonSuccessResponse(200, "eventType", "remember",
+            response = XUtils.buildJsonSuccessResponse(200, "eventType", "iceCandidates",
                     "Client  Remembered Successfully", response);
             broadcast(clientObject.get(), response.toString());
         }
