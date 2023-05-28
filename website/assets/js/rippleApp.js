@@ -9,7 +9,7 @@ const RippleSDK_CONST={
 const RippleSDK = {
     log    :  ()=>        console.log("['😄'RippleSDK]", {...arguments})  ,
     error  :  ()=> console.error("'😡'[RippleSDK]", {...arguments})  ,
-    info: ()=> console.info("'😄'[RippleSDK]", {...arguments})  ,
+    info   : ()=> console.info("'😄'[RippleSDK]", {...arguments})  ,
     warn   :  ()=> console.error("'😒'[RippleSDK]", {...arguments})   ,
     accessPassword              : '',
     isAudioAccessRequired       : false,
