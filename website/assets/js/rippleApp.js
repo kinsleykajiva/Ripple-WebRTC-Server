@@ -142,6 +142,7 @@ const RippleSDK = {
                             if(message.data.nextActions){
                                 if(message.data.nextActions.includes('createPeerConnection')){
                                     RippleSDK.app.webRTC.createPeerconnection();
+
                                 }
                             }
 
