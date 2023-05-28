@@ -154,18 +154,13 @@ const RippleSDK = {
                                     if (RippleSDK.app.featuresInUse === 'G_STREAM') {
                                         RippleSDK.log("We will wait for an offer")
                                     }
-
                                 }
                             }
-
-
-
                         }
                         if (message.eventType === 'remember') {
                             // so far we can ignore any additional data as we dont need it.
                             RippleSDK.info(" client remembered ", message.message);
                             return;
-
                         }
 
                     } else if (message.code === 400) {
