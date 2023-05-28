@@ -82,20 +82,20 @@
         connectButton.disabled = false;
         stopButton.disabled = false;
         RippleSDK.app.rootCallbacks.websockets.tellClientOnFatalError = err => {
-
+                console.error('tellClientOnFatalError Event' , err);
         }
 
         RippleSDK.app.rootCallbacks.websockets.tellClientOnClosed     = (ev) => {
-
+            console.log('tellClientOnClosed Event' , ev);
         }
         RippleSDK.app.rootCallbacks.websockets.tellClientOnConnected  = () => {
-
+            console.log('tellClientOnConnected Event' );
         }
         RippleSDK.app.rootCallbacks.websockets.tellClientOnMessage    = (message) => {
-
+            console.log('tellClientOnMessage Event' , message);
         }
         RippleSDK.app.rootCallbacks.websockets.tellClientOnConnecting = () => {
-
+            console.log('tellClientOnConnecting Event' );
         }
 
 
