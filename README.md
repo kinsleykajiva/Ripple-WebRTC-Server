@@ -112,6 +112,7 @@ Please note that this server is still under development, and additional features
 
 Feel free to explore and contribute to the development of the Ripple-WebRTC-Server.
 
+<a href="https://bmc.link/kinsleyKAJIVA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
 
 
