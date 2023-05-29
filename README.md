@@ -7,7 +7,7 @@
 </p>
 
 
-Ripple-WebRTC-Server is a Java-based WebRTC server built using the Quarkus framework. It provides support for video rooms and audio rooms. The server is still in development mode and aims to deliver a robust and efficient WebRTC experience.
+Ripple-WebRTC-Server is a Java-based WebRTC media server built using the Quarkus framework. It provides support for video rooms and audio rooms. The server is still in development mode and aims to deliver a robust and efficient WebRTC experience.
 The primary goal is to use this app as an Native Image created by [ GraalVM tools](https://github.com/graalvm)
 
 Check the branch before cloning this . This app is developed based on two web-based frameworks : [Helidon](https://helidon.io/) and [Quarkus](https://quarkus.io/)
