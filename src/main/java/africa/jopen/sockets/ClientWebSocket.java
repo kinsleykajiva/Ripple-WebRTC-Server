@@ -182,12 +182,20 @@ public class ClientWebSocket {
             case "send-answer" -> {
                 final var payload = new PostSDPAnswer(null, messageObject.getString("answer"),
                         messageObject.getString("clientID"));
-                clientObject.getWebRTCSendRecv().handleSdp(
-                        payload.answer()
-                );
+                clientObject.getWebRTCSendRecv().handleSdp(payload.answer());
                 connectionsManager.updateClient(clientObject);
-                response = XUtils.buildJsonSuccessResponse(200, "eventType", "validation",
+                
+                response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
                         "Client answered Successfully", response);
+
+            }
+            case "play" -> {
+
+                clientObject.getWebRTCSendRecv().startCall();
+
+                response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
+                        "Call Started", response);
+
             }
             case "start" -> {
                 if (!messageObject.has("clientID")) {
@@ -197,14 +205,14 @@ public class ClientWebSocket {
                     return;
                 }
 
-                response.put("nextActions", Arrays.asList( "createPeerConnection" ,"shareIceCandidates"));
-                try{
-                clientObject.setWebRTCSendRecv();
-                connectionsManager.updateClient(clientObject);
-                response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
-                        "Streaming Started Successfully, the app should start to receive some streams,the Server Is preparing WebRTC stuff", response);
-
-                }catch (Exception e){
+                response.put("nextActions", Arrays.asList( "createPeerConnection" ,"shareIceCandidates","play"));
+                try {
+                    clientObject.setWebRTCSendRecv();
+                    connectionsManager.updateClient(clientObject);
+                    response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
+                            "Streaming Started Successfully, the app should start to receive some streams,the Server Is preparing WebRTC stuff", response);
+                    // clientObject.getWebRTCSendRecv().startCall();
+                } catch (Exception e) {
                     logger.atSevere().withCause(e).log("Failed to make a pipeline");
                     response = XUtils.buildJsonErrorResponse(500, "eventType", "Error",
                             "Failed to process the video , there will no stream to see ", response);

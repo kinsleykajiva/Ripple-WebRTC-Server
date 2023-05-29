@@ -38,6 +38,7 @@
 
                 <button type="button" class="col-auto btn btn-success"   onclick="onConnectAction()" id="connectButton" disabled>2. connect</button>
                 <button type="button" class="col-auto btn btn-success"   onclick="onCallAction()" id="callButton" disabled> 3. Start Streams</button>
+                <button type="button" class="col-auto btn btn-success"   onclick="onPlayAction()" id="PlayButton" disabled> 4. Start Play</button>
 <!--                <button type="button" class="col-auto btn btn-success"   onclick="onRecordAction()" id="recordButton" disabled>Record</button>-->
                 <button type="button" class="col-auto btn btn-danger"   onclick="onStopCameraAction()" id="stopButton" disabled>Stop My Camera Access</button>
             </div>
@@ -66,11 +67,14 @@
     const targetAgentId = document.getElementById('targetAgentId');
     // RippleSDK.serverUrl="http://localhost:6060"
     RippleSDK.serverUrl="ws://localhost:6060";
-    RippleSDK.app.featuresInUse='G_STREAM';
+    RippleSDK.app.featureInUse='G_STREAM';
     RippleSDK.init(true);
     console.log("Ripple" ,RippleSDK.clientID)
     console.log("isWebRTCSupported " ,RippleSDK.Utils.isWebRTCSupported())
 
+    function onPlayAction(){
+
+    }
     function onStartAction(){
 
        // RippleSDK.Utils.testMediaAccess();
@@ -81,6 +85,7 @@
         const callButton = document.getElementById('callButton');
         connectButton.disabled = false;
         stopButton.disabled = false;
+        stopButton.PlayButton = false;
         callButton.disabled = false;
         RippleSDK.app.rootCallbacks.websockets.tellClientOnFatalError = err => {
                 console.error('tellClientOnFatalError Event' , err);
