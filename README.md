@@ -116,4 +116,4 @@ Feel free to explore and contribute to the development of the Ripple-WebRTC-Serv
 
 
 
-###### Website Theme Credit founder under the website folder
+###### Website Theme Credit found under the website folder
