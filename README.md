@@ -102,9 +102,9 @@ Access transport that will be support to above features are :
 
 Primary transport focus is  Rest HTTP for now  . Demo pages are so far  that are still in progress are : 
 
-* ![Video-Room Page](/website/video-room.html)
-* ![Video-Call Page](/website/video-call.html)
-* ![G-Streamer Page](/website/G-Streamer.html)
+* ![Video-Room Page](/website/demos/video-room.html)
+* ![Video-Call Page](/website/demos/video-call.html)
+* ![G-Streamer Page](/website/demos/G-Streamer.html)
 
 Client Javascript SDK/Lib -  ![Ripple JS](/website/assets/js/rippleApp.js)
 
