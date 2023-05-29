@@ -109,7 +109,7 @@ public class WebRTCSendRecv {
         webRTCBin.connect(onIncomingStream);
         logger.atInfo().log("initiating call");
         //Todo remove some of the code here is useless
-       // startCall(); // called to trigger the ice process and sdp offer to the client
+
     }
 
     public void startCall() {
