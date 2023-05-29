@@ -35,7 +35,7 @@ public class WebRTCSendRecv {
      * max-size-buffers  set to 1000, which determines the maximum number of buffers that can be held in the queue.
      * The buffering element helps in smoothing out the stream by allowing a certain number of buffers to be accumulated before passing them downstream
      */
-   // private final String PIPELINE_DESCRIPTION = "videotestsrc is-live=true pattern=ball  ! video/x-raw,width=1024,height=768,framerate=20/1 ! videoconvert ! x264enc ! rtph264pay ! queue ! capsfilter caps=application/x-rtp,media=video,encoding-name=H264,payload=96";
+
     private final String PIPELINE_DESCRIPTION
             = """
             filesrc location="C:\\\\Users\\\\Kinsl\\\\Videos\\\\target.mp4" ! decodebin name=decoder
