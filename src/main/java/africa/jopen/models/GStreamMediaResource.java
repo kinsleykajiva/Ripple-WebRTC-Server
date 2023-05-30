@@ -64,14 +64,7 @@ public class GStreamMediaResource {
                         .setInput(path)
                         .execute();
 
-                result.getStreams().stream().map(stream -> "Stream #" + stream.getIndex()
-                                                           + " type: " + stream.getCodecType()
-                                                           + " secs : " + stream.getDurationTs()
-                                                           + " duration: " + stream.getDuration() + " seconds")
-                        .forEach(System.out::println);
-
-
-
+                result.getStreams().forEach(stream -> duration= (long) Double.parseDouble(stream.getDuration().toString()));
             }
 
 

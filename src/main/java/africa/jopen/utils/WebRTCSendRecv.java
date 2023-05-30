@@ -17,9 +17,7 @@ import org.freedesktop.gstreamer.webrtc.WebRTCSessionDescription;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -36,6 +34,9 @@ public class WebRTCSendRecv  {
     private WebRTCBin webRTCBin;
     private String clientID;
     private boolean isPaused =false;
+    private static final int SECONDS_PER_MINUTE = 60;
+    private int minutes =0;
+    private int seconds =0;
     private float currentVolume = 1.0f; // Initial volume level
 
     /**
@@ -84,6 +85,30 @@ public class WebRTCSendRecv  {
             currentVolume -= 0.1f;
             adjustVolume();
         }
+    }
+
+    public void startClock() {
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                if(!isPaused){
+                seconds++;
+
+                if (seconds == SECONDS_PER_MINUTE) {
+                    seconds = 0;
+                    minutes++;
+                }
+
+                String formattedTime = String.format("%02d:%02d", minutes, seconds);
+                System.out.println(formattedTime);
+
+                if (minutes == 1 && seconds == 1) {
+                    System.out.println("01:01");
+                }
+                }
+            }
+        }, 0, 1000); // Update every second
     }
 
     // Helper method to adjust the volume dynamically.
@@ -153,6 +178,7 @@ public class WebRTCSendRecv  {
         if (!pipe.isPlaying()) {
             logger.atInfo().log("initiating streams");
             pipe.play();
+            startClock();
          //   System.out.println("xxxxxxxxxxxxxxxcccccccccccccc play");
         }
         }
