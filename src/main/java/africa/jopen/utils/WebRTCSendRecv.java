@@ -127,6 +127,7 @@ public class WebRTCSendRecv  {
         pipe = (Pipeline) Gst.parseLaunch(pipeLineMaker());
         webRTCBin = (WebRTCBin) pipe.getElementByName("webrtcbin");
 
+        webRTCBin.setStunServer("stun:stun.l.google.com:19302");
         setupPipeLogging(pipe);
         WebRTCBin.ON_NEGOTIATION_NEEDED onNegotiationNeeded = elem -> webRTCBin.createOffer(onOfferCreated);
         webRTCBin.connect(onNegotiationNeeded);

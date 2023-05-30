@@ -3,6 +3,7 @@ package africa.jopen.models;
 import africa.jopen.http.IceCandidate;
 import africa.jopen.utils.FeatureTypes;
 import africa.jopen.utils.WebRTCSendRecv;
+import africa.jopen.utils.WebRTCUtils;
 import africa.jopen.utils.XUtils;
 import com.google.common.flogger.FluentLogger;
 import dev.onvoid.webrtc.*;
@@ -46,7 +47,7 @@ public final class Client implements PeerConnectionObserver {
 
 		RTCConfiguration rtcConfiguration = new RTCConfiguration();
 		RTCIceServer stunServer = new RTCIceServer();
-		stunServer.urls.add("stun:stun.l.google.com:19302");
+		stunServer.urls.addAll(WebRTCUtils.stunServerList());
 		PeerConnectionFactory peerConnectionFactory = new PeerConnectionFactory();
 		rtcConfiguration.iceServers.add(stunServer);
 		peerConnection = peerConnectionFactory.createPeerConnection(rtcConfiguration, this);

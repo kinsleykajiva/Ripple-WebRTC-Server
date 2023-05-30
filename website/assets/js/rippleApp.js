@@ -43,7 +43,7 @@ const RippleSDK = {
     isWebSocketAccess           : false,
     isDebugSession              : false,
     remindServerTimeoutInSeconds: 26 ,
-    iceServerArray              : [],
+    iceServerArray              : [{urls: 'stun:stun.l.google.com:19302'},{urls: "stun:stun.services.mozilla.com"}],
     app: {
         featuresAvailable : ["VIDEO_ROOM", "AUDIO_ROOM", "VIDEO_CALL","G_STREAM"],
         featuresInUse     : '',
@@ -614,10 +614,7 @@ const RippleSDK = {
                     /* insertableStreams:true,
                      forceEncodedAudioInsertableStreams:true,
                      forceEncodedVideoInsertableStreams:true,*/
-                    iceServers: [
-                        {urls: 'stun:stun.l.google.com:19302'},
-                        {urls: "stun:stun.services.mozilla.com"}
-                    ]
+                    iceServers: RippleSDK.iceServerArray
                 };
                 if(RippleSDK.app.featureInUse === "G_STREAM"){
                     // Increasing the ICE candidate gathering timeout , allowing more time for connectivity checks
