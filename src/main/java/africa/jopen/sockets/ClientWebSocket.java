@@ -36,7 +36,7 @@ public class ClientWebSocket {
     @OnOpen
     public void onOpen(Session session, @PathParam("clientID") String clientID, @PathParam("featureType") String featureType) {
 
-       // logger.atInfo().log("OnOpen" + clientID);
+        // logger.atInfo().log("OnOpen" + clientID);
         // since this is the first . The client id will need to be set after the fact from the server , so the client id wil be the agent name
         try {
             JSONObject response = new JSONObject();
@@ -159,8 +159,6 @@ public class ClientWebSocket {
     }
 
 
-
-
     private void handleGStreamRequest(Client clientObject, JSONObject messageObject, JSONObject response) {
 
 
@@ -184,7 +182,7 @@ public class ClientWebSocket {
                         messageObject.getString("clientID"));
                 clientObject.getWebRTCSendRecv().handleSdp(payload.answer());
                 connectionsManager.updateClient(clientObject);
-                
+
                 response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
                         "Client answered Successfully", response);
 
@@ -192,11 +190,26 @@ public class ClientWebSocket {
             case "play" -> {
 
                 clientObject.getWebRTCSendRecv().startCall();
-
                 response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
                         "Call Started", response);
 
             }
+            case "pause" -> {
+
+                clientObject.getWebRTCSendRecv().pauseTransmission();
+                response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
+                        "Call paused", response);
+
+            }
+            case "resume" -> {
+
+                clientObject.getWebRTCSendRecv().resumeTransmission();
+                response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
+                        "Call resumed", response);
+
+            }
+
+
             case "start" -> {
                 if (!messageObject.has("clientID")) {
                     response = XUtils.buildJsonErrorResponse(400, "eventType", "validation",
@@ -205,7 +218,7 @@ public class ClientWebSocket {
                     return;
                 }
 
-                response.put("nextActions", Arrays.asList( "createPeerConnection" ,"shareIceCandidates","play"));
+                response.put("nextActions", Arrays.asList("createPeerConnection", "shareIceCandidates", "play"));
                 try {
                     clientObject.setWebRTCSendRecv();
                     connectionsManager.updateClient(clientObject);

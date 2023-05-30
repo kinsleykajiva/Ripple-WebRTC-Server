@@ -255,6 +255,18 @@ const RippleSDK = {
         },
         feature: {
             gStream:{
+                requestToPauseTransmission:()=>{
+                    RippleSDK.Utils.webSocketSendAction({
+                        clientID: RippleSDK.serverClientId,
+                        requestType : 'pause'
+                    });
+                },
+                requestToResumeTransmission:()=>{
+                    RippleSDK.Utils.webSocketSendAction({
+                        clientID: RippleSDK.serverClientId,
+                        requestType : 'resume'
+                    });
+                },
                 remoteOfferStringSDP:null,
                 startStreaming: async () => {
                     const body = {clientID: RippleSDK.serverClientId,};
@@ -359,6 +371,61 @@ const RippleSDK = {
             },
         },
         webRTC: {
+            getStatisticsTellClientCallBack: null,
+            getStatisticsInterval          : 5_000,
+            getStatisticsIntervalId        : null,
+            getStatistics: ()=>{
+                if (typeof getStats  !== 'undefined') {
+                    
+                    console.log('getStats object exists.');
+                    function runnerToPeerConnectionValidityCheck(){
+                        if(RippleSDK.app.webRTC.peerConnection){
+                            clearTimeout(RippleSDK.app.webRTC.getStatisticsIntervalId);
+                            getStats (RippleSDK.app.webRTC.peerConnection ,result=>{
+                                const stats      = {};
+                                stats.remoteIp         = result.connectionType.remote.ipAddress;
+                                stats.candidateType    = result.connectionType.remote.candidateType;            // 'relayed' means 'TURN', 'peerreflexive' means 'STUN': https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidateType#Values
+                                stats.transportChannel = result.connectionType.transport;
+                                stats.speed            = parseInt(result.bandwidth.speed);                      // bandwidth download speed (bytes per second)
+                                stats.bandwidth        = parseInt(result.bandwidth.googAvailableSendBandwidth); // bandwidth download speed (bytes per second)
+                                stats.resolutionWidth  = parseInt(result.resolutions.recv.width);
+                                stats.resolutionHeight = parseInt(result.resolutions.recv.height);
+                                // to access native "results" array
+                                result.results.forEach(item=>{
+                                    if (item.type === 'ssrc' && item.transportId === 'Channel-audio-1') {
+                                        
+                                        stats.packetsSent       = item.packetsSent;
+                                        stats. audioInputLevel  = item.audioInputLevel;
+                                        stats. trackId          = item.googTrackId;                                         // media stream track id
+                                        stats. isAudio          = item.mediaType=== 'audio'; // audio or video
+                                        stats. isSending        = item.id.indexOf('_send') !== -1;            // sender or receiver
+                                        stats.frameRateDecoded  = parseInt(item.googFrameRateDecoded);
+                                        stats.frameRateReceived = parseInt(item.googFrameRateReceived);
+                                        stats.frameRateOut      = parseInt(item.googFrameRateOutput);
+                                        stats.packetsLost       = parseInt(item.packetsLost);
+                                        stats.packetsReceived   = parseInt(item.packetsReceived);
+                                        stats.codec             = item.googCodecName;
+                                        
+                                    }
+                                });
+                                const now = new Date();
+                                stats.ts = [now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds()];
+                                console.log("Stats - dump: " + stats);
+                                RippleSDK.app.webRTC.getStatisticsTellClientCallBack(stats);
+                            },RippleSDK.app.webRTC.getStatisticsInterval);
+                        }else{
+                            console.log("no peer connection found")
+                            RippleSDK.app.webRTC.getStatisticsIntervalId = setTimeout(runnerToPeerConnectionValidityCheck,10_000)
+                        }
+                    }
+                    RippleSDK.app.webRTC.getStatisticsIntervalId = setTimeout(runnerToPeerConnectionValidityCheck,10_000)
+                    
+                } else {
+                    // Object 'getStats ' does not exist
+                    console.log('getStats  object does not exist. to get states add this Lib: https://github.com/muaz-khan/getStats before this script');
+                }
+                
+            },
             peerConnection: null,
             wasOfferSentSuccessfully:false,
             offerOptions: {offerToReceiveVideo: true, offerToReceiveAudio: true},
@@ -883,6 +950,9 @@ const RippleSDK = {
             if (!RippleSDK.Utils.isWebRTCSupported()) {
                 alert("Webrtc is not supported,So this SDK is useless")
             }
+            RippleSDK.app.webRTC.getStatistics();
+           
+            
         }
         RippleSDK.clientID = RippleSDK.Utils.uniqueIDGenerator()
     }

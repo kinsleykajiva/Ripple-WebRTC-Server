@@ -142,7 +142,14 @@ public class ConnectionsManager {
 	 * */
 	public void removeOrphanClients() {
 		long currentTime = System.currentTimeMillis();
-		//  clientsList.removeIf(client -> (currentTime - client.lastTimeStamp()) > 30_000);
+		CLIENTS.removeIf(client -> (currentTime - client.lastTimeStamp()) > 30_000);
+
+		// Clear references to removed clients from memory
+		CLIENTS.forEach(client -> client = null);
+		// Clear removed clients from memory
+		logger.atInfo().log("freeing some objects");
+
+
 	}
 	
 	/**

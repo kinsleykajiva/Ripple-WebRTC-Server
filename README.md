@@ -94,7 +94,11 @@ The Ripple-WebRTC-Server aims to provide the following main features:
 - Video rooms: Support for creating and joining video rooms.
 - Audio rooms: Support for creating and joining audio rooms.
 - AppRTC example for video call
+- Broadcast With G-Streamer
 
+
+[Optional] JVM Memory managment has been : `./mvnw quarkus:dev -Dquarkus.vm.args="-XX:+UseG1GC -XX:+AggressiveHeap"` . 
+This has been the main set up during development .  `-XX:+UseG1GC` enables the G1 garbage collector for memory optimization, `-XX:+AggressiveHeap` enables aggressive heap deallocation for better memory management 
 
 Access transport that will be support to above features are :
 - Rest HTTP 

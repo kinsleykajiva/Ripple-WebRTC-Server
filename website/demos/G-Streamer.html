@@ -38,9 +38,10 @@
 
                 <button type="button" class="col-auto btn btn-success"   onclick="onConnectAction()" id="connectButton" disabled>2. connect</button>
                 <button type="button" class="col-auto btn btn-success"   onclick="onCallAction()" id="callButton" disabled> 3. Start Streams</button>
-                <button type="button" class="col-auto btn btn-success"   onclick="onPlayAction()" id="PlayButton" disabled> 4. Start Play</button>
+                <button type="button" class="col-auto btn btn-success"   onclick="onPauseAction()" id="PauseButton" disabled>  Pause</button>
+                <button type="button" class="col-auto btn btn-success"   onclick="onResumeAction()" id="resumeButton" disabled>  Resume</button>
 <!--                <button type="button" class="col-auto btn btn-success"   onclick="onRecordAction()" id="recordButton" disabled>Record</button>-->
-                <button type="button" class="col-auto btn btn-danger"   onclick="onStopCameraAction()" id="stopButton" disabled>Stop My Camera Access</button>
+
             </div>
         </div>
         <div id="remoteVideos">
@@ -60,6 +61,7 @@
 
 
 <script src="../assets/js/adapter.min.js"></script>
+<script src="https://www.webrtc-experiment.com/getStats.js"></script>
 <script src="../assets/js/rippleApp.js"></script>
 <script>
     'use strict'
@@ -72,20 +74,28 @@
     console.log("Ripple" ,RippleSDK.clientID)
     console.log("isWebRTCSupported " ,RippleSDK.Utils.isWebRTCSupported())
 
-    function onPlayAction(){
-
+    function onResumeAction(){
+	    RippleSDK.app.feature.gStream.requestToResumeTransmission();
     }
+    function onPauseAction(){
+	    RippleSDK.app.feature.gStream.requestToPauseTransmission();
+    }
+    function onPlayAction(){    }
     function onStartAction(){
 
        // RippleSDK.Utils.testMediaAccess();
         RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID = 'localVideo'
 
         const connectButton = document.getElementById('connectButton');
-        const stopButton = document.getElementById('stopButton');
+        //const stopButton = document.getElementById('stopButton');
         const callButton = document.getElementById('callButton');
+        const PauseButton = document.getElementById('PauseButton');
+        const resumeButton = document.getElementById('resumeButton');
+	    resumeButton.disabled = false;
+	    PauseButton.disabled = false;
         connectButton.disabled = false;
-        stopButton.disabled = false;
-        stopButton.PlayButton = false;
+       // stopButton.disabled = false;
+       // stopButton.PlayButton = false;
         callButton.disabled = false;
         RippleSDK.app.rootCallbacks.websockets.tellClientOnFatalError = err => {
                 console.error('tellClientOnFatalError Event' , err);
@@ -100,8 +110,12 @@
         RippleSDK.app.rootCallbacks.websockets.tellClientOnMessage    = (message) => {
             console.log('tellClientOnMessage Event' , message);
         }
+
         RippleSDK.app.rootCallbacks.websockets.tellClientOnConnecting = () => {
             console.log('tellClientOnConnecting Event' );
+        }
+		RippleSDK.app.webRTC.getStatisticsTellClientCallBack=statesObject=>{
+			console.log('getStatisticsTellClientCallBack Event' ,statesObject);
         }
     }
 

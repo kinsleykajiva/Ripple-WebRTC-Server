@@ -7,6 +7,7 @@ import com.google.common.flogger.FluentLogger;
 import jakarta.inject.Inject;
 import org.freedesktop.gstreamer.*;
 import org.freedesktop.gstreamer.elements.DecodeBin;
+import org.freedesktop.gstreamer.lowlevel.GstAPI;
 import org.freedesktop.gstreamer.webrtc.WebRTCBin;
 import org.freedesktop.gstreamer.webrtc.WebRTCSDPType;
 import org.freedesktop.gstreamer.webrtc.WebRTCSessionDescription;
@@ -30,15 +31,16 @@ public class WebRTCSendRecv {
     private Pipeline pipe;
     private WebRTCBin webRTCBin;
     private String clientID;
+    private boolean isPaused =false;
 
     /**
      * max-size-buffers  set to 1000, which determines the maximum number of buffers that can be held in the queue.
      * The buffering element helps in smoothing out the stream by allowing a certain number of buffers to be accumulated before passing them downstream
      */
-
+    // "C:\Users\Kinsl\Downloads\Shatta Wale - Real Monster (SM Session _ EP 01).mp4"
     private final String PIPELINE_DESCRIPTION
             = """
-            filesrc location="C:\\\\Users\\\\Kinsl\\\\Videos\\\\target.mp4" ! decodebin name=decoder
+            filesrc location="C:\\\\Users\\\\Kinsl\\\\Downloads\\\\Shatta Wale - Real Monster (SM Session _ EP 01).mp4" ! decodebin name=decoder
                        
             decoder. ! videoconvert ! queue2 max-size-buffers=1000 ! vp8enc deadline=1 ! rtpvp8pay ! queue ! application/x-rtp,media=video,encoding-name=VP8,payload=97 ! webrtcbin.
                        
@@ -54,24 +56,14 @@ public class WebRTCSendRecv {
         this.clientID = clientID;
         pipe = (Pipeline) Gst.parseLaunch(PIPELINE_DESCRIPTION);
         webRTCBin = (WebRTCBin) pipe.getElementByName("webrtcbin");
-        setupPipeLogging(pipe);
-        // When the pipeline goes to PLAYING, the on_negotiation_needed() callback
-        // will be called, and we will ask webrtcbin to create an answer which will
-        // match the pipeline above.
-        // When webrtcbin has created the offer, it will hit our callback and we
-        // send SDP offer over the websocket to signalling server
-        WebRTCBin.ON_NEGOTIATION_NEEDED onNegotiationNeeded = elem -> {
-            logger.atInfo().log("onNegotiationNeeded: " + elem.getName());
 
-            // When webrtcbin has created the offer, it will hit our callback and we
-            // send SDP offer over the websocket to signalling server
-            webRTCBin.createOffer(onOfferCreated);
-        };
+        setupPipeLogging(pipe);
+        WebRTCBin.ON_NEGOTIATION_NEEDED onNegotiationNeeded = elem -> webRTCBin.createOffer(onOfferCreated);
         webRTCBin.connect(onNegotiationNeeded);
         WebRTCBin.ON_ICE_CANDIDATE onIceCandidate = (sdpMLineIndex, candidate) -> {
             var ice = new JSONObject().put("candidate", candidate).put("sdpMLineIndex", sdpMLineIndex);
             String json = new JSONObject().put("ice", ice).toString();
-            logger.atInfo().log("ON_ICE_CANDIDATE: " + json);
+            logger.atInfo().log("ON_ICE_CANDIDATE: ");
             Map<String, Object> candidateMap = new HashMap<>();
             candidateMap.put("sdpMLineIndex", sdpMLineIndex);
             candidateMap.put("candidate", candidate);
@@ -113,16 +105,31 @@ public class WebRTCSendRecv {
     }
 
     public void startCall() {
+        if (!isPaused) {
         if (!pipe.isPlaying()) {
             logger.atInfo().log("initiating streams");
             pipe.play();
             System.out.println("xxxxxxxxxxxxxxxcccccccccccccc play");
         }
+        }
+    }
+    public void pauseTransmission() {
+        if (!isPaused) {
+            isPaused = true;
+            pipe.setState(State.PAUSED);
+        }
+    }
+
+    public void resumeTransmission() {
+        if (isPaused) {
+            isPaused = false;
+            pipe.play();
+        }
     }
 
     private void endCall() {
         logger.atInfo().log("ending call");
-        pipe.setState(State.NULL);
+        pipe.setState(isPaused ? State.PAUSED : State.NULL);
         //  Gst.quit();
     }
 
@@ -145,41 +152,14 @@ public class WebRTCSendRecv {
         try {
             System.out.println("xxxxxxxxxxxxxxxcccccccccccccc ice  " + candidate);
             logger.atInfo().log("Adding remote client ICE candidate : " + candidate);
-            logger.atInfo().log("Adding remote client ice  validateIceCandidate : " + validateIceCandidate(candidate));
+
             logger.atInfo().log("Adding remote client ICE sdpMLineIndex : " + sdpMLineIndex);
             webRTCBin.addIceCandidate(sdpMLineIndex, candidate);
         } catch (Exception exception) {
             logger.atSevere().withCause(exception).log(exception.getLocalizedMessage());
         }
     }
-    public boolean validateIceCandidate(String candidate) {
-        String[] candidateFields = candidate.split(" ");
-        if (candidateFields.length < 8) {
-            return false;
-        }
-        if (!candidateFields[0].equals("a=candidate")) {
-            return false;
-        }
-        if (!candidateFields[2].equals("UDP")) {
-            return false;
-        }
-        if (!candidateFields[3].matches("\\d+")) {
-            return false;
-        }
-        if (!candidateFields[4].matches("[^ ]+")) {
-            return false;
-        }
-        if (!candidateFields[5].matches("\\d+")) {
-            return false;
-        }
-        if (!candidateFields[6].equals("typ")) {
-            return false;
-        }
-        if (!candidateFields[7].matches("[^ ]+")) {
-            return false;
-        }
-        return true;
-    }
+
     private void setupPipeLogging(Pipeline pipe) {
         Bus bus = pipe.getBus();
         bus.connect((Bus.EOS) source -> {

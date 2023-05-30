@@ -104,6 +104,19 @@
 
 <!---->
     <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.25</version>
+    </dependency>
+<!---->
+    <dependency>
+      <groupId>com.github.kokorin.jaffree</groupId>
+      <artifactId>jaffree</artifactId>
+      <version>2022.06.03</version>
+    </dependency>
+
+    <!---->
+    <dependency>
       <groupId>dev.onvoid.webrtc</groupId>
       <artifactId>webrtc-java</artifactId>
       <version>0.7.0</version>
