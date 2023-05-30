@@ -267,10 +267,15 @@ const RippleSDK = {
                     });
                 },
                 remoteOfferStringSDP:null,
-                startStreaming: async () => {
+                startStreaming: async media => {
+					if(!media || !media.path){
+						console.error("Media object is required and path of the media is required , it has to exist on the server as well" , media)
+						return
+					}
                     const body = {clientID: RippleSDK.serverClientId,};
                     if (RippleSDK.isWebSocketAccess) {
                         body.requestType = 'start';
+                        body.media = media;
                         RippleSDK.Utils.webSocketSendAction(body);
                         RippleSDK.app.webRTC.createPeerConnection();
                     } else {

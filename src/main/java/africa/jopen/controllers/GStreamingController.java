@@ -99,7 +99,7 @@ public class GStreamingController {
         clientObject.setFeatureType(FeatureTypes.G_STREAM);
 
         connectionsManager.updateClient(clientObject);
-        clientObject.setWebRTCSendRecv();
+        clientObject.setWebRTCSendRecv(null);
         clientObject.getWebRTCSendRecv().handleSdp(
                 payload.offer()
         );
@@ -150,7 +150,7 @@ public class GStreamingController {
         //clientObject.getRtcModel().setOffer(payload.answer());
         clientObject.setFeatureType(FeatureTypes.G_STREAM);
 
-        clientObject.setWebRTCSendRecv();
+        clientObject.setWebRTCSendRecv(null);
 
         //String offer = clientObject.getWebRTCSendRecv().startWebRTCDescriptions();
 

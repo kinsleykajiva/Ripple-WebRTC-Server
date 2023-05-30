@@ -4,6 +4,7 @@ import africa.jopen.controllers.VideoRoomController;
 import africa.jopen.http.IceCandidate;
 import africa.jopen.http.videoroom.*;
 import africa.jopen.models.Client;
+import africa.jopen.models.GStreamMediaResource;
 import africa.jopen.models.RoomModel;
 import africa.jopen.utils.ConnectionsManager;
 import africa.jopen.utils.FeatureTypes;
@@ -19,6 +20,7 @@ import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
@@ -217,10 +219,34 @@ public class ClientWebSocket {
                     broadcast(clientObject, response.toString());
                     return;
                 }
+                if (!messageObject.has("media")) {
+                    response = XUtils.buildJsonErrorResponse(400, "eventType", "validation",
+                            "media Object is required", response);
+                    broadcast(clientObject, response.toString());
+                    return;
+                }
+                JSONObject mediaJSON =  messageObject.getJSONObject("media");
+                if (!mediaJSON.has("path")) {
+                    response = XUtils.buildJsonErrorResponse(400, "eventType", "validation",
+                            "media Path is required", response);
+                    broadcast(clientObject, response.toString());
+                    return;
+                }
+
 
                 response.put("nextActions", Arrays.asList("createPeerConnection", "shareIceCandidates", "play"));
                 try {
-                    clientObject.setWebRTCSendRecv();
+
+                    final var path = mediaJSON.getString("path");
+                    if (!new File(path).exists()) {
+                        logger.atInfo().log("File not found error");
+                        response = XUtils.buildJsonErrorResponse(400, "eventType", "validation",
+                                "media Path is invalid ", response);
+                        broadcast(clientObject, response.toString());
+                        return;
+                    }
+                    var media = new GStreamMediaResource(mediaJSON.getString("title"), path);
+                    clientObject.setWebRTCSendRecv(media);
                     connectionsManager.updateClient(clientObject);
                     response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
                             "Streaming Started Successfully, the app should start to receive some streams,the Server Is preparing WebRTC stuff", response);

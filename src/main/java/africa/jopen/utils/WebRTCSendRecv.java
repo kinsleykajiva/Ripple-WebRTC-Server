@@ -107,7 +107,7 @@ public class WebRTCSendRecv {
             Map<String, Object> candidateMap = new HashMap<>();
             candidateMap.put("sdpMLineIndex", sdpMLineIndex);
             candidateMap.put("candidate", candidate);
-            System.out.println("xxxxxxxxxxxxxxxcccccccccccccc ice my ice  " + ice);
+            //System.out.println("xxxxxxxxxxxxxxxcccccccccccccc ice my ice  " + ice);
             var clientObject = connectionsManager.getClient(clientID);
             assert clientObject.isPresent();
             clientObject.get().setCandidateMap(candidateMap);
@@ -127,8 +127,7 @@ public class WebRTCSendRecv {
         };
         webRTCBin.connect(onIceCandidate);
         Element.PAD_ADDED onIncomingStream = (element, pad) -> {
-            logger.atInfo().log("Receiving stream! Element : " + element.getName()
-                    + " Pad : " + pad.getName());
+          //  logger.atInfo().log("Receiving stream! Element : " + element.getName()                    + " Pad : " + pad.getName());
             if (pad.getDirection() != PadDirection.SRC) {
                 return;
             }
@@ -149,7 +148,7 @@ public class WebRTCSendRecv {
         if (!pipe.isPlaying()) {
             logger.atInfo().log("initiating streams");
             pipe.play();
-            System.out.println("xxxxxxxxxxxxxxxcccccccccccccc play");
+         //   System.out.println("xxxxxxxxxxxxxxxcccccccccccccc play");
         }
         }
     }
@@ -181,7 +180,7 @@ public class WebRTCSendRecv {
             WebRTCSessionDescription description = new WebRTCSessionDescription(WebRTCSDPType.ANSWER, sdpMessage);
             webRTCBin.setRemoteDescription(description);
             //Todo remove some of the code here is useless
-            System.out.println("xxxxxxxxxxxxxxxcccccccccccccc handleSdp " + sdpStr);
+          //  System.out.println("xxxxxxxxxxxxxxxcccccccccccccc handleSdp " + sdpStr);
 
         } catch (Exception exception) {
             logger.atSevere().withCause(exception).log(exception.getLocalizedMessage());
@@ -190,10 +189,8 @@ public class WebRTCSendRecv {
 
     public void handleIceSdp(String candidate, int sdpMLineIndex) {
         try {
-            System.out.println("xxxxxxxxxxxxxxxcccccccccccccc ice  " + candidate);
-            logger.atInfo().log("Adding remote client ICE candidate : " + candidate);
-
-            logger.atInfo().log("Adding remote client ICE sdpMLineIndex : " + sdpMLineIndex);
+          //  System.out.println("xxxxxxxxxxxxxxxcccccccccccccc ice  " + candidate);
+            logger.atInfo().log("Adding remote client ICE candidate : " );
             webRTCBin.addIceCandidate(sdpMLineIndex, candidate);
         } catch (Exception exception) {
             logger.atSevere().withCause(exception).log(exception.getLocalizedMessage());
@@ -203,13 +200,12 @@ public class WebRTCSendRecv {
     private void setupPipeLogging(Pipeline pipe) {
         Bus bus = pipe.getBus();
         bus.connect((Bus.EOS) source -> {
-            logger.atInfo().log("Reached end of stream : " + source.toString());
+          //  logger.atInfo().log("Reached end of stream : " + source.toString());
             endCall();
         });
 
         bus.connect((Bus.ERROR) (source, code, message) -> {
-            logger.atInfo().log("Error from source : " + source
-                    + ", with code : " + code + ", and message : " + message);
+           // logger.atInfo().log("Error from source : " + source                 + ", with code : " + code + ", and message : " + message);
             endCall();
         });
 
@@ -228,8 +224,8 @@ public class WebRTCSendRecv {
                 .put("type", "offer")
                 .put("sdp", sdpp));
         String json = sdp.toString();
-        System.out.println("xxxxxxxxxxxxxxxcccccccccccccc sdp json " + json);
-        logger.atInfo().log("Sending answer:\n" + sdpp);
+       // System.out.println("xxxxxxxxxxxxxxxcccccccccccccc sdp json " + json);
+        logger.atInfo().log("Sending answer:\n");
         //Todo remove some of the code here is useless
         var clientObject = connectionsManager.getClient(clientID);
         assert clientObject.isPresent();
