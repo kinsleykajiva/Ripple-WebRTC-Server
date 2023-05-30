@@ -374,92 +374,101 @@ const RippleSDK = {
             getStatisticsTellClientCallBack: null,
             getStatisticsInterval          : 5_000,
             getStatisticsIntervalId        : null,
-            getStatistics: ()=>{
-                if (typeof getStats  !== 'undefined') {
-                    
+            getStatistics: () => {
+                if (typeof getStats !== 'undefined') {
                     console.log('getStats object exists.');
-                    function runnerToPeerConnectionValidityCheck(){
-                        if(RippleSDK.app.webRTC.peerConnection){
+                    
+                    const runnerToPeerConnectionValidityCheck = () => {
+                        if (RippleSDK.app.webRTC.peerConnection) {
                             clearTimeout(RippleSDK.app.webRTC.getStatisticsIntervalId);
-                            getStats (RippleSDK.app.webRTC.peerConnection ,result=>{
-                                const stats      = {};
-                                stats.remoteIp         = result.connectionType.remote.ipAddress;
-                                stats.candidateType    = result.connectionType.remote.candidateType;            // 'relayed' means 'TURN', 'peerreflexive' means 'STUN': https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidateType#Values
-                                stats.transportChannel = result.connectionType.transport;
-                                stats.speed            = parseInt(result.bandwidth.speed);                      // bandwidth download speed (bytes per second)
-                                stats.bandwidth        = parseInt(result.bandwidth.googAvailableSendBandwidth); // bandwidth download speed (bytes per second)
-                                stats.resolutionWidth  = parseInt(result.resolutions.recv.width);
-                                stats.resolutionHeight = parseInt(result.resolutions.recv.height);
-                                // to access native "results" array
-                                result.results.forEach(item=>{
+                            
+                            getStats(RippleSDK.app.webRTC.peerConnection, (result) => {
+                                const stats = {
+                                    remoteIp: result.connectionType.remote.ipAddress,
+                                    candidateType: result.connectionType.remote.candidateType,
+                                    transportChannel: result.connectionType.transport,
+                                    speed: parseInt(result.bandwidth.speed),
+                                    bandwidth: parseInt(result.bandwidth.googAvailableSendBandwidth),
+                                    resolutionWidth: parseInt(result.resolutions.recv.width),
+                                    resolutionHeight: parseInt(result.resolutions.recv.height),
+                                    packetsSent: 0,
+                                    audioInputLevel: 0,
+                                    trackId: '',
+                                    isAudio: false,
+                                    isSending: false,
+                                    frameRateDecoded: 0,
+                                    frameRateReceived: 0,
+                                    frameRateOut: 0,
+                                    packetsLost: 0,
+                                    packetsReceived: 0,
+                                    codec: ''
+                                };
+                                
+                                result.results.forEach((item) => {
                                     if (item.type === 'ssrc' && item.transportId === 'Channel-audio-1') {
-                                        
-                                        stats.packetsSent       = item.packetsSent;
-                                        stats. audioInputLevel  = item.audioInputLevel;
-                                        stats. trackId          = item.googTrackId;                                         // media stream track id
-                                        stats. isAudio          = item.mediaType=== 'audio'; // audio or video
-                                        stats. isSending        = item.id.indexOf('_send') !== -1;            // sender or receiver
-                                        stats.frameRateDecoded  = parseInt(item.googFrameRateDecoded);
+                                        stats.packetsSent = item.packetsSent;
+                                        stats.audioInputLevel = item.audioInputLevel;
+                                        stats.trackId = item.googTrackId;
+                                        stats.isAudio = item.mediaType === 'audio';
+                                        stats.isSending = item.id.indexOf('_send') !== -1;
+                                        stats.frameRateDecoded = parseInt(item.googFrameRateDecoded);
                                         stats.frameRateReceived = parseInt(item.googFrameRateReceived);
-                                        stats.frameRateOut      = parseInt(item.googFrameRateOutput);
-                                        stats.packetsLost       = parseInt(item.packetsLost);
-                                        stats.packetsReceived   = parseInt(item.packetsReceived);
-                                        stats.codec             = item.googCodecName;
-                                        
+                                        stats.frameRateOut = parseInt(item.googFrameRateOutput);
+                                        stats.packetsLost = parseInt(item.packetsLost);
+                                        stats.packetsReceived = parseInt(item.packetsReceived);
+                                        stats.codec = item.googCodecName;
                                     }
                                 });
+                                
                                 const now = new Date();
                                 stats.ts = [now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds()];
-                                console.log("Stats - dump: " + stats);
+                                console.log('Stats - dump:', stats);
                                 RippleSDK.app.webRTC.getStatisticsTellClientCallBack(stats);
-                            },RippleSDK.app.webRTC.getStatisticsInterval);
-                        }else{
-                            console.log("no peer connection found")
-                            RippleSDK.app.webRTC.getStatisticsIntervalId = setTimeout(runnerToPeerConnectionValidityCheck,10_000)
+                            }, RippleSDK.app.webRTC.getStatisticsInterval);
+                        } else {
+                            console.log('No peer connection found');
+                            RippleSDK.app.webRTC.getStatisticsIntervalId = setTimeout(runnerToPeerConnectionValidityCheck, 10000);
                         }
-                    }
-                    RippleSDK.app.webRTC.getStatisticsIntervalId = setTimeout(runnerToPeerConnectionValidityCheck,10_000)
+                    };
                     
+                    RippleSDK.app.webRTC.getStatisticsIntervalId = setTimeout(runnerToPeerConnectionValidityCheck, 10000);
                 } else {
-                    // Object 'getStats ' does not exist
-                    console.log('getStats  object does not exist. to get stats add this Lib: https://github.com/muaz-khan/getStats before this script');
+                    console.log('getStats object does not exist. To get stats, add this Lib: https://github.com/muaz-khan/getStats before this script');
                     console.log('Using native implementation');
-                    function runnerToPeerConnectionValidityCheck(){
-                        if(RippleSDK.app.webRTC.peerConnection){
+                    
+                    const runnerToPeerConnectionValidityCheck = () => {
+                        if (RippleSDK.app.webRTC.peerConnection) {
                             clearTimeout(RippleSDK.app.webRTC.getStatisticsIntervalId);
-                            RippleSDK.app.webRTC.peerConnection.getStats().then(stats=>{
-                                stats.forEach(report => {
+                            
+                            RippleSDK.app.webRTC.peerConnection.getStats().then((stats) => {
+                                stats.forEach((report) => {
                                     console.log('Report ID:', report.id);
                                     console.log('Type:', report.type);
                                     
-                                    // Access specific properties based on the report type
                                     if (report.type === 'inbound-rtp' || report.type === 'outbound-rtp') {
-                                       /* console.log('Packets sent:', report.packetsSent);
-                                        console.log('Packets lost:', report.packetsLost);
-                                        console.log('Bytes sent:', report.bytesSent);*/
-                                        //console.log("Stats - dump: " + stats);
+                                        // Access specific properties based on the report type
+                                        /* console.log('Packets sent:', report.packetsSent);
+                                         console.log('Packets lost:', report.packetsLost);
+                                         console.log('Bytes sent:', report.bytesSent); */
+                                        // console.log("Stats - dump: " + stats);
                                     }
                                 });
+                                
                                 const now = new Date();
                                 stats.ts = [now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds()];
-                                console.log("Stats - dump: " + stats);
-                                console.log("Stats - dump: " + stats);
+                                console.log('Stats - dump:', stats);
                                 RippleSDK.app.webRTC.getStatisticsTellClientCallBack(stats);
                                 
                                 setTimeout(runnerToPeerConnectionValidityCheck, 5000);
-                                
                             });
-                            
-                        }else{
-                            console.log("no peer connection found")
-                            RippleSDK.app.webRTC.getStatisticsIntervalId = setTimeout(runnerToPeerConnectionValidityCheck,10_000)
+                        } else {
+                            console.log('No peer connection found');
+                            RippleSDK.app.webRTC.getStatisticsIntervalId = setTimeout(runnerToPeerConnectionValidityCheck, 10000);
                         }
-                        
-                    }
-                    RippleSDK.app.webRTC.getStatisticsIntervalId = setTimeout(runnerToPeerConnectionValidityCheck,10_000)
+                    };
                     
+                    RippleSDK.app.webRTC.getStatisticsIntervalId = setTimeout(runnerToPeerConnectionValidityCheck, 10000);
                 }
-                
             },
             peerConnection: null,
             wasOfferSentSuccessfully:false,
