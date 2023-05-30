@@ -58,9 +58,8 @@ public final class Client implements PeerConnectionObserver {
 		return webRTCSendRecv;
 	}
 
-	public void setWebRTCSendRecv( GStreamMediaResource mediaResource) {
+	public void setWebRTCSendRecv(final GStreamMediaResource mediaResource) {
 		//peerConnection.close();
-//		gStreamMediaResource = new GStreamMediaResource("Waler Code" ,"C:\\Users\\Kinsl\\IdeaProjects\\Ripple-WebRTC-Server\\storage\\Kwesta_Spirit_ft_Wale.mp4");
 		this.gStreamMediaResource =mediaResource;
 		this.webRTCSendRecv = new WebRTCSendRecv(clientID);
 	}

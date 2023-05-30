@@ -6,8 +6,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.flogger.FluentLogger;
 import jakarta.inject.Inject;
 import org.freedesktop.gstreamer.*;
+
 import org.freedesktop.gstreamer.elements.DecodeBin;
+import org.freedesktop.gstreamer.elements.PlayBin;
 import org.freedesktop.gstreamer.lowlevel.GstAPI;
+import org.freedesktop.gstreamer.message.MessageType;
 import org.freedesktop.gstreamer.webrtc.WebRTCBin;
 import org.freedesktop.gstreamer.webrtc.WebRTCSDPType;
 import org.freedesktop.gstreamer.webrtc.WebRTCSessionDescription;
@@ -18,13 +21,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 
 /**
  *
  */
-public class WebRTCSendRecv {
+public class WebRTCSendRecv  {
 
     ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -198,7 +202,11 @@ public class WebRTCSendRecv {
         }
     }
 
+
+
+
     private void setupPipeLogging(Pipeline pipe) {
+
         Bus bus = pipe.getBus();
         bus.connect((Bus.EOS) source -> {
           //  logger.atInfo().log("Reached end of stream : " + source.toString());
@@ -215,6 +223,35 @@ public class WebRTCSendRecv {
                 logger.atInfo().log("Pipe state changed from " + old + " to " + current);
             }
         });
+
+        bus.connect((Bus.MESSAGE) (element, message) -> {
+           //Todo not really working needs to be updated to work as much , no idea to fix this yet
+            if (message.getType() == MessageType.ELEMENT) {
+                Structure structure = message.getStructure();
+
+                // Check if the structure is named "progress".
+                if ("progress".equals(structure.getName())) {
+                    // Get the "position" and "duration" values from the structure.
+                    int position = structure.getInteger("position");
+                    int duration = structure.getInteger("duration");
+
+                    // Calculate the current position in minutes and seconds.
+                    int currentPositionMinutes = position / 60;
+                    int currentPositionSeconds = position % 60;
+
+                    // Calculate the total duration in minutes and seconds.
+                    int totalDurationMinutes = duration / 60;
+                    int totalDurationSeconds = duration % 60;
+
+                    // Format the progress value as a string.
+                    String progress = String.format("%d:%02d/%d:%02d", currentPositionMinutes, currentPositionSeconds, totalDurationMinutes, totalDurationSeconds);
+
+                    // Print the progress value to the console.
+                    System.out.println("Progress: " + progress);
+                }
+            }
+        });
+
     }
 
     private final WebRTCBin.CREATE_OFFER onOfferCreated = offer -> {

@@ -47,23 +47,15 @@ public class GStreamMediaResource {
     }
 
     private void retrieveCodecInformation() {
+        //Todo still needs review as this will be passsed to the client
         try {
             if (XUtils.isURL(path)) {
                 final AtomicLong durationMillis = new AtomicLong();
                 FFmpeg.atPath()
                         .addInput((Input) UrlInput.fromUrl(path))
-                        //   .addInput(UrlInput.fromUrl(pathToSrc))
-
                         .addOutput(new NullOutput())
-                        .setProgressListener(new ProgressListener() {
-                            @Override
-                            public void onProgress(FFmpegProgress progress) {
-
-                                durationMillis.set(progress.getTimeMillis());
-                            }
-                        })
+                        .setProgressListener(progress -> durationMillis.set(progress.getTimeMillis()))
                         .execute();
-
 
                 System.out.println("Exact duration: " + durationMillis.get() + " milliseconds");
             } else {
@@ -71,30 +63,13 @@ public class GStreamMediaResource {
                         .setShowStreams(true)
                         .setInput(path)
                         .execute();
-                for (Stream stream : result.getStreams()) {
 
-                    System.out.println("Stream #" + stream.getIndex()
-                                       + " type: " + stream.getCodecType()
-                                       + " duration: " + stream.getDuration() + " seconds");
-                }
+                result.getStreams().stream().map(stream -> "Stream #" + stream.getIndex()
+                                                           + " type: " + stream.getCodecType()
+                                                           + " secs : " + stream.getDurationTs()
+                                                           + " duration: " + stream.getDuration() + " seconds")
+                        .forEach(System.out::println);
 
-
-                try {
-                    MultimediaInfo info = new MultimediaObject(new File(path)).getInfo();
-
-                    // Get the media file codec
-                    String codec = info.getFormat();
-                    var meta = info.getMetadata();
-                    System.out.println("Codec: " + codec);
-                    System.out.println("Codec: " + meta);
-
-                    // Get the media file length
-                    long durationInMillis = info.getDuration();
-                    long durationInSeconds = durationInMillis / 1000;
-                    System.out.println("Duration: " + durationInSeconds + " seconds");
-                } catch (EncoderException e) {
-                    e.printStackTrace();
-                }
 
 
             }
