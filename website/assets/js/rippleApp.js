@@ -422,7 +422,42 @@ const RippleSDK = {
                     
                 } else {
                     // Object 'getStats ' does not exist
-                    console.log('getStats  object does not exist. to get states add this Lib: https://github.com/muaz-khan/getStats before this script');
+                    console.log('getStats  object does not exist. to get stats add this Lib: https://github.com/muaz-khan/getStats before this script');
+                    console.log('Using native implementation');
+                    function runnerToPeerConnectionValidityCheck(){
+                        if(RippleSDK.app.webRTC.peerConnection){
+                            clearTimeout(RippleSDK.app.webRTC.getStatisticsIntervalId);
+                            RippleSDK.app.webRTC.peerConnection.getStats().then(stats=>{
+                                stats.forEach(report => {
+                                    console.log('Report ID:', report.id);
+                                    console.log('Type:', report.type);
+                                    
+                                    // Access specific properties based on the report type
+                                    if (report.type === 'inbound-rtp' || report.type === 'outbound-rtp') {
+                                       /* console.log('Packets sent:', report.packetsSent);
+                                        console.log('Packets lost:', report.packetsLost);
+                                        console.log('Bytes sent:', report.bytesSent);*/
+                                        //console.log("Stats - dump: " + stats);
+                                    }
+                                });
+                                const now = new Date();
+                                stats.ts = [now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds()];
+                                console.log("Stats - dump: " + stats);
+                                console.log("Stats - dump: " + stats);
+                                RippleSDK.app.webRTC.getStatisticsTellClientCallBack(stats);
+                                
+                                setTimeout(runnerToPeerConnectionValidityCheck, 5000);
+                                
+                            });
+                            
+                        }else{
+                            console.log("no peer connection found")
+                            RippleSDK.app.webRTC.getStatisticsIntervalId = setTimeout(runnerToPeerConnectionValidityCheck,10_000)
+                        }
+                        
+                    }
+                    RippleSDK.app.webRTC.getStatisticsIntervalId = setTimeout(runnerToPeerConnectionValidityCheck,10_000)
+                    
                 }
                 
             },
