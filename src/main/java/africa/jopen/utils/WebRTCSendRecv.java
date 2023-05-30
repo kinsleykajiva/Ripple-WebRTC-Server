@@ -32,6 +32,7 @@ public class WebRTCSendRecv {
     private WebRTCBin webRTCBin;
     private String clientID;
     private boolean isPaused =false;
+    private float currentVolume = 1.0f; // Initial volume level
 
     /**
      * max-size-buffers  set to 1000, which determines the maximum number of buffers that can be held in the queue.
@@ -48,13 +49,52 @@ public class WebRTCSendRecv {
                        
             webrtcbin name=webrtcbin bundle-policy=max-bundle stun-server=stun://stun.l.google.com:19302
                      
-             """; /// the target file is currently as test option but you can replace with your path but this is till neeeds to be stable still
+             """; /// the target file is currently as test option but you can replace with your path but this is still needs to be stable still
+
+
+    private String pipeLineMaker() {
+        var clientObject = connectionsManager.getClient(clientID);
+        String p = clientObject.get().getgStreamMediaResource().getPath();
+        p = p.replaceAll("\\\\", "\\\\\\\\");
+
+        return "filesrc location=" + p + " ! decodebin name=decoder\n" +
+               "\n" +
+               "decoder. ! videoconvert ! queue2 max-size-buffers=1000 ! vp8enc deadline=1 ! rtpvp8pay ! queue ! application/x-rtp,media=video,encoding-name=VP8,payload=97 ! webrtcbin.\n" +
+               "\n" +
+               "decoder. ! audioconvert ! audioresample ! audioamplify amplification=2.0 ! queue2 max-size-buffers=1000 ! opusenc ! rtpopuspay ! queue ! application/x-rtp,media=audio,encoding-name=OPUS,payload=96 ! webrtcbin.\n" +
+               "\n" +
+               "webrtcbin name=webrtcbin bundle-policy=max-bundle stun-server=stun://stun.l.google.com:19302\n" +
+               "\n";
+    }
+
+    // Increase the volume step-by-step
+    public void increaseVolume() {
+        if (currentVolume < 2.0f) {
+            currentVolume += 0.1f;
+            adjustVolume();
+        }
+    }
+    // Decrease the volume step-by-step
+    public void decreaseVolume() {
+        if (currentVolume > 0.1f) {
+            currentVolume -= 0.1f;
+            adjustVolume();
+        }
+    }
+
+    // Helper method to adjust the volume dynamically
+    private void adjustVolume() {
+        Element volumeElement = pipe.getElementByName("audioamplify");
+        if (volumeElement != null) {
+            volumeElement.set("amplification", currentVolume);
+        }
+    }
 
 
 
     public WebRTCSendRecv(String clientID) {
         this.clientID = clientID;
-        pipe = (Pipeline) Gst.parseLaunch(PIPELINE_DESCRIPTION);
+        pipe = (Pipeline) Gst.parseLaunch(pipeLineMaker());
         webRTCBin = (WebRTCBin) pipe.getElementByName("webrtcbin");
 
         setupPipeLogging(pipe);

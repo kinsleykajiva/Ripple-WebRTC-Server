@@ -101,6 +101,10 @@
     </dependency>
 
 
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-opentelemetry</artifactId>
+    </dependency>
 
 <!---->
     <dependency>
@@ -135,6 +139,12 @@
       <version>5.13.0</version>
     </dependency>
 
+    <!---->
+    <dependency>
+      <groupId>ws.schild</groupId>
+      <artifactId>jave-all-deps</artifactId>
+      <version>3.3.1</version>
+    </dependency>
     <!---->
     <dependency>
       <groupId>org.freedesktop.gstreamer</groupId>

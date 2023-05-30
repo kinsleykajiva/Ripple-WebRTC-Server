@@ -39,6 +39,7 @@ public final class Client implements PeerConnectionObserver {
 	private Map<String, Object> candidateMap = new HashMap<>();
 	private MutableList<Map<String, Object>> candidatesMapList = Lists.mutable.empty();
 	private VideCallNotification videCallNotification;
+	private GStreamMediaResource gStreamMediaResource;
 	
 	public Client(String clientAgentName) {
 		this.clientAgentName = clientAgentName;
@@ -59,7 +60,12 @@ public final class Client implements PeerConnectionObserver {
 
 	public void setWebRTCSendRecv() {
 		//peerConnection.close();
+		gStreamMediaResource = new GStreamMediaResource("Waler Code" ,"C:\\Users\\Kinsl\\IdeaProjects\\Ripple-WebRTC-Server\\storage\\Kwesta_Spirit_ft_Wale.mp4");
 		this.webRTCSendRecv = new WebRTCSendRecv(clientID);
+	}
+
+	public GStreamMediaResource getgStreamMediaResource() {
+		return gStreamMediaResource;
 	}
 
 	public void addIceCandidate(IceCandidate candidate) {

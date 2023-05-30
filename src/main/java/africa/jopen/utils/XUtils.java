@@ -4,7 +4,10 @@ import com.sun.jna.Platform;
 import com.sun.jna.platform.win32.Kernel32;
 import jakarta.ws.rs.core.Response;
 import org.json.JSONObject;
-
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Paths;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +17,24 @@ import java.util.stream.Stream;
 
 public class XUtils {
 
-	
+	public static boolean isFilePath(String path) {
+		try {
+			// Attempt to resolve the path
+			Paths.get(path);
+			return true; // If no exception, it's a valid file path
+		} catch (InvalidPathException e) {
+			return false;
+		}
+	}
+
+	public static boolean isURL(String path) {
+		try {
+			new URL(path); // Attempt to parse the string as a URL
+			return true; // If no exception, it's a valid URL
+		} catch (MalformedURLException e) {
+			return false;
+		}
+	}
 	public static String SERVER_NAME = "SERVER_ONE";
 	private static final Map<String,Object> GENERAL_RESPONSE_MAP = new HashMap<>();
 	private static final JSONObject GENERAL_RESPONSE_JSON = new JSONObject();
@@ -174,6 +194,8 @@ public class XUtils {
 				return "";
 			}
 		}
+
+
 
 	}
 	
