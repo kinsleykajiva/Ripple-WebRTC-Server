@@ -82,8 +82,9 @@ public class WebRTCSendRecv {
         }
     }
 
-    // Helper method to adjust the volume dynamically
+    // Helper method to adjust the volume dynamically.
     private void adjustVolume() {
+        // ToDo add limit or max level
         Element volumeElement = pipe.getElementByName("audioamplify");
         if (volumeElement != null) {
             volumeElement.set("amplification", currentVolume);
