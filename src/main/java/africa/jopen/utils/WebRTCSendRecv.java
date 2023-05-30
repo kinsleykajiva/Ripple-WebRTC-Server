@@ -37,7 +37,7 @@ public class WebRTCSendRecv {
      * max-size-buffers  set to 1000, which determines the maximum number of buffers that can be held in the queue.
      * The buffering element helps in smoothing out the stream by allowing a certain number of buffers to be accumulated before passing them downstream
      */
-    // "C:\Users\Kinsl\Downloads\Shatta Wale - Real Monster (SM Session _ EP 01).mp4"
+
     private final String PIPELINE_DESCRIPTION
             = """
             filesrc location="C:\\\\Users\\\\Kinsl\\\\Downloads\\\\Shatta Wale - Real Monster (SM Session _ EP 01).mp4" ! decodebin name=decoder
