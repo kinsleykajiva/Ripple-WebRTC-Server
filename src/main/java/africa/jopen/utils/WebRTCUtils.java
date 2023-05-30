@@ -6,6 +6,7 @@ import java.util.List;
 public class WebRTCUtils {
 
     public static List<String>  stunServerList(){
+        // https://raw.githubusercontent.com/pradt2/always-online-stun/master/valid_hosts.txt
         List<String> stunServers = new ArrayList<>();
         stunServers.add("stun.sipglobalphone.com:3478");
         stunServers.add("stun.vozelia.com:3478");
