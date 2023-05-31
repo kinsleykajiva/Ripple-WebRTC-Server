@@ -14,6 +14,7 @@ import org.freedesktop.gstreamer.Gst;
 import org.freedesktop.gstreamer.Version;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -157,7 +158,7 @@ public class ConnectionsManager {
 	 */
 	public void removeDeadCallNotifications() {
 		CLIENTS.stream()
-				.filter(client ->  client.getVideCallNotification()!=null)
+				.filter(client -> Objects.nonNull(client.getVideCallNotification()))
 				.filter(client -> System.currentTimeMillis() > client.getVideCallNotification().end())
 				.forEach(client -> client.setVideCallNotification(null));
 		
