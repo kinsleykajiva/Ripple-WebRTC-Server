@@ -1,32 +1,23 @@
 package africa.jopen.utils;
 
 import africa.jopen.models.Client;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.flogger.FluentLogger;
-import jakarta.inject.Inject;
 import org.freedesktop.gstreamer.*;
 
 import org.freedesktop.gstreamer.elements.DecodeBin;
-import org.freedesktop.gstreamer.elements.PlayBin;
-import org.freedesktop.gstreamer.lowlevel.GstAPI;
 import org.freedesktop.gstreamer.message.MessageType;
 import org.freedesktop.gstreamer.webrtc.WebRTCBin;
 import org.freedesktop.gstreamer.webrtc.WebRTCSDPType;
 import org.freedesktop.gstreamer.webrtc.WebRTCSessionDescription;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 
 
 /**
  *
  */
-public class WebRTCSendRecv  {
+public class WebRTCGStreamer {
 
     ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -122,7 +113,7 @@ public class WebRTCSendRecv  {
 
 
 
-    public WebRTCSendRecv(String clientID) {
+    public WebRTCGStreamer(String clientID) {
         this.clientID = clientID;
         pipe = (Pipeline) Gst.parseLaunch(pipeLineMaker());
         webRTCBin = (WebRTCBin) pipe.getElementByName("webrtcbin");

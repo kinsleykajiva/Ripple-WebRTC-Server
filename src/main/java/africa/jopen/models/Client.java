@@ -2,12 +2,10 @@ package africa.jopen.models;
 
 import africa.jopen.http.IceCandidate;
 import africa.jopen.utils.FeatureTypes;
-import africa.jopen.utils.WebRTCSendRecv;
-import africa.jopen.utils.WebRTCUtils;
+import africa.jopen.utils.WebRTCGStreamer;
 import africa.jopen.utils.XUtils;
 import com.google.common.flogger.FluentLogger;
 import dev.onvoid.webrtc.*;
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.websocket.Session;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
@@ -26,13 +24,13 @@ public final class Client implements PeerConnectionObserver {
 		}
 	};
 
-	private WebRTCSendRecv webRTCSendRecv;
+	private WebRTCGStreamer webRTCSendRecv;
 	private final String clientID = XUtils.IdGenerator();
 	private final Vector<String> messages = new Vector<>();
 	private final Recorder recorder = new Recorder();
 	private final RTCPeerConnection peerConnection;
 	private  Session socketSession;
-	private String clientAgentName;// this si the display name that will be used
+	private final String clientAgentName;// this si the display name that will be used
 	private FeatureTypes featureType;
 	private long lastTimeStamp = System.currentTimeMillis();
 	private Integer trackCounter = 0;
@@ -57,14 +55,14 @@ public final class Client implements PeerConnectionObserver {
 	}
 
 
-	public WebRTCSendRecv getWebRTCSendRecv() {
+	public WebRTCGStreamer getWebRTCSendRecv() {
 		return webRTCSendRecv;
 	}
 
 	public void setWebRTCSendRecv(final GStreamMediaResource mediaResource) {
 		//peerConnection.close();
 		this.gStreamMediaResource =mediaResource;
-		this.webRTCSendRecv = new WebRTCSendRecv(clientID);
+		this.webRTCSendRecv = new WebRTCGStreamer(clientID);
 	}
 
 	public GStreamMediaResource getgStreamMediaResource() {
