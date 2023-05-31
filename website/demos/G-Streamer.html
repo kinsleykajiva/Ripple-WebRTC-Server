@@ -69,7 +69,7 @@
     const targetAgentId = document.getElementById('targetAgentId');
     // RippleSDK.serverUrl="http://localhost:6060"
     RippleSDK.serverUrl="ws://localhost:6060";
-    RippleSDK.app.featureInUse='G_STREAM';
+    RippleSDK.app.featureInUse=  RippleSDK_CONST.featuresAvailable.G_STREAM;
     RippleSDK.init(true);
     console.log("Ripple" ,RippleSDK.clientID)
     console.log("isWebRTCSupported " ,RippleSDK.Utils.isWebRTCSupported())

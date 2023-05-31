@@ -73,7 +73,7 @@
     console.log("isWebRTCSupported " ,RippleSDK.Utils.isWebRTCSupported())
 
     function onStartAction(){
-        RippleSDK.app.featureInUse='VIDEO_CALL';
+        RippleSDK.app.featureInUse=  RippleSDK_CONST.featuresAvailable.VIDEO_CALL;
         RippleSDK.Utils.testMediaAccess();
         RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID = 'localVideo'
         RippleSDK.Utils.onAccessMediaAllowedNotification = (mediaStream,wasAudioAllowed,wasVideoAllowed)=>{
