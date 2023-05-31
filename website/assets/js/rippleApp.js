@@ -153,7 +153,7 @@ const RippleSDK = {
                                 
                                 if (message.data.nextActions.includes('createPeerConnection')) {
                                     RippleSDK.app.webRTC.createPeerConnection();
-                                    if (RippleSDK.app.featureInUse === 'G_STREAM') {
+                                    if (RippleSDK.app.featureInUse === RippleSDK_CONST.featuresAvailable.G_STREAM) {
                                         console.log("We will wait for an offer");
                                         
                                     }
@@ -652,10 +652,10 @@ const RippleSDK = {
 
                             };
 
-                            if (RippleSDK.app.featureInUse === 'G_STREAM') {
+                            if (RippleSDK.app.featureInUse === RippleSDK_CONST.featuresAvailable.G_STREAM) {
                                 featureResourceUrl = 'streams/update-ice-candidate';
                             }
-                            if (RippleSDK.app.featureInUse === 'VIDEO_ROOM') {
+                            if (RippleSDK.app.featureInUse === RippleSDK_CONST.featuresAvailable.VIDEO_ROOM) {
                                 body.roomID        = RippleSDK.app.feature.videoRoom.room.roomID;
                                 featureResourceUrl = 'video/update-ice-candidate';
                             }
