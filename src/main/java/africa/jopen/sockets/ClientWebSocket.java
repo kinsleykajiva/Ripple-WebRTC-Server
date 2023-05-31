@@ -2,7 +2,10 @@ package africa.jopen.sockets;
 
 import africa.jopen.controllers.VideoRoomController;
 import africa.jopen.http.IceCandidate;
-import africa.jopen.http.videoroom.*;
+import africa.jopen.http.videoroom.PostCreateRoom;
+import africa.jopen.http.videoroom.PostIceCandidate;
+import africa.jopen.http.videoroom.PostJoinRoom;
+import africa.jopen.http.videoroom.PostSDPAnswer;
 import africa.jopen.models.Client;
 import africa.jopen.models.GStreamMediaResource;
 import africa.jopen.models.RoomModel;
@@ -11,11 +14,7 @@ import africa.jopen.utils.FeatureTypes;
 import africa.jopen.utils.XUtils;
 import com.google.common.flogger.FluentLogger;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.websocket.OnClose;
-import jakarta.websocket.OnError;
-import jakarta.websocket.OnMessage;
-import jakarta.websocket.OnOpen;
-import jakarta.websocket.Session;
+import jakarta.websocket.*;
 import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
 import org.json.JSONObject;
@@ -25,9 +24,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
-import static java.util.Objects.requireNonNull;
 
 @ServerEndpoint("/client-access/{clientID}/{featureType}")
 @ApplicationScoped
