@@ -7,7 +7,7 @@
 </p>
 
 
-Ripple-WebRTC-Server is a Java-based WebRTC server built using the Quarkus framework. It provides support for video rooms and audio rooms. The server is still in development mode and aims to deliver a robust and efficient WebRTC experience.
+Ripple-WebRTC-Server is a Java-based WebRTC media server built using the Quarkus framework. It provides support for video rooms and audio rooms. The server is still in development mode and aims to deliver a robust and efficient WebRTC experience.
 The primary goal is to use this app as an Native Image created by [ GraalVM tools](https://github.com/graalvm)
 
 Check the branch before cloning this . This app is developed based on two web-based frameworks : [Helidon](https://helidon.io/) and [Quarkus](https://quarkus.io/)
@@ -109,7 +109,7 @@ Once it completes start the application using the native executable (no JVM!):
 ./target/ripple-webrtc-server
 ```
 
-Yep, it starts fast. You can exercise the application’s endpoints as before.
+If you don't have GraalVM installed, you can use the following command to build the native executable in a container:
 
 
 ## Building the Docker Image
@@ -170,15 +170,30 @@ The Ripple-WebRTC-Server aims to provide the following main features:
 - Video rooms: Support for creating and joining video rooms.
 - Audio rooms: Support for creating and joining audio rooms.
 - AppRTC example for video call
+- Broadcast With G-Streamer transcoding
 
+
+[Optional] JVM Memory managment has been : `vm.args="-XX:+UseG1GC -XX:+AggressiveHeap"` . 
+This has been the main set up during development .  `-XX:+UseG1GC` enables the G1 garbage collector for memory optimization, `-XX:+AggressiveHeap` enables aggressive heap deallocation for better memory management 
 
 Access transport that will be support to above features are :
-- Rest API
+- Rest HTTP 
 - Websockets
+
+Primary transport focus is  Rest HTTP for now  . Demo pages are so far  that are still in progress are : 
+
+* ![Video-Room Page](/website/demos/video-room.html)
+* ![Video-Call Page](/website/demos/video-call.html)
+* ![G-Streamer Page](/website/demos/G-Streamer.html)
+
+Client Javascript SDK/Lib -  ![Ripple JS](/website/assets/js/rippleApp.js)
 
 Please note that this server is still under development, and additional features and improvements are planned for future releases.
 
 Feel free to explore and contribute to the development of the Ripple-WebRTC-Server.
 
+<a href="https://bmc.link/kinsleyKAJIVA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
-###### Website Theme Credit founder under the website folder
+
+
+###### Website Theme Credit found under the website folder
