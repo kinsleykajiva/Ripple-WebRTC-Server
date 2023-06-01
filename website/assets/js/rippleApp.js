@@ -537,13 +537,14 @@ const RippleSDK = {
                         }else{
                             console.info("createOffer sdp",_sdp);
                         }
+                        const body = {
+                            clientID: RippleSDK.serverClientId,
+                            offer   : _sdp.sdp
+                        };
                             if(! RippleSDK.isWebSocketAccess ) {
                                 // ToDo this add a condition check on this part as to avoid repetition
                                 let featureResourceUrl = '';
-                                const body = {
-                                    clientID: RippleSDK.serverClientId,
-                                    offer   : _sdp.sdp
-                                };
+                                
                                 if (RippleSDK.app.featureInUse === RippleSDK_CONST.featuresAvailable.G_STREAM) {
                                     featureResourceUrl = 'streams/send-offer';
                                 }
@@ -567,7 +568,9 @@ const RippleSDK = {
                                     }
                                 }
                             }else{
-                            
+                                body.requestType = 'send-offer';
+                                RippleSDK.Utils.webSocketSendAction(body);
+                                console.log("Sending  offer" ,body);
                             }
                     });
             },
