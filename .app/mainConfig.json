@@ -4,7 +4,7 @@
   "serverPort": 6060,
   "serverSSLPort": 7070,
   "serverName": "",
-  "serverVersion": "",
+  "serverVersion": "0.1.5",
   "serverTimeZone": "",
   "basicAuth": {
     "username": "",
