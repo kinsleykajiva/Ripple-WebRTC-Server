@@ -1,7 +1,7 @@
 'use strict';
 const RippleSDK_CONST={
     notificationsTypes: Object.freeze({VIDEO_CALL: 'videoCall',VIDEO_ROOM: 'videoRoom',AUDIO_ROOM: 'audioRoom',}),
-    featuresAvailable: Object.freeze({VIDEO_ROOM: 'VIDEO_ROOM',AUDIO_ROOM: 'AUDIO_ROOM',VIDEO_CALL: 'VIDEO_CALL',G_STREAM:'G_STREAM'}),
+    featuresAvailable: Object.freeze({VIDEO_ROOM: 'VIDEO_ROOM',AUDIO_ROOM: 'AUDIO_ROOM',VIDEO_CALL: 'VIDEO_CALL',G_STREAM:'G_STREAM',G_STREAM_BROADCAST:'G_STREAM_BROADCASTER',G_STREAM_BROADCAST_CONSUMER:'G_STREAM_BROADCAST_CONSUMER'}),
 };
 
 
@@ -267,6 +267,13 @@ const RippleSDK = {
                     });
                 },
                 remoteOfferStringSDP:null,
+                startBroadCast: async ()=>{
+                    const body = {clientID: RippleSDK.serverClientId,};
+                    if (RippleSDK.isWebSocketAccess) {
+                        RippleSDK.Utils.webSocketSendAction(body);
+                        RippleSDK.app.webRTC.createPeerConnection();
+                    }
+                },
                 startStreaming: async media => {
 					if(!media || !media.path){
 						console.error("Media object is required and path of the media is required , it has to exist on the server as well" , media)
@@ -497,7 +504,7 @@ const RippleSDK = {
                     if (!RippleSDK.isWebSocketAccess) {
                         let featureResourceUrl = '';
 
-                        if (RippleSDK.app.featureInUse ===  'G_STREAM') {
+                        if (RippleSDK.app.featureInUse ===  RippleSDK_CONST.featuresAvailable.G_STREAM) {
                             featureResourceUrl = 'streams/send-answer';
                         }
 
@@ -530,34 +537,38 @@ const RippleSDK = {
                         }else{
                             console.info("createOffer sdp",_sdp);
                         }
-                        // ToDo this add a condition check on this part as to avoid repeatiton
-                        let featureResourceUrl = '';
-                        const body = {
-                            clientID: RippleSDK.serverClientId,
-                            offer:_sdp.sdp
-                        };
-                        if(RippleSDK.app.featureInUse==='G_STREAM'){
-                            featureResourceUrl = 'streams/send-offer';
-                        }
-                        if(RippleSDK.app.featureInUse==='VIDEO_ROOM'){
-                            featureResourceUrl = 'video/send-offer';
-                            body.roomID = RippleSDK.app.feature.videoRoom.room.roomID;
-                        }
-                        const post = await RippleSDK.Utils.fetchWithTimeout(featureResourceUrl, {
-                            method: 'POST',
-                            body
-                        });
-                        if(post.success){
-
-                            if(post.data.sdp){ // accommodates video room , video call
-
-                                RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
-                                    sdp : post.data.sdp,
-                                    type: 'answer',
+                            if(! RippleSDK.isWebSocketAccess ) {
+                                // ToDo this add a condition check on this part as to avoid repetition
+                                let featureResourceUrl = '';
+                                const body = {
+                                    clientID: RippleSDK.serverClientId,
+                                    offer   : _sdp.sdp
+                                };
+                                if (RippleSDK.app.featureInUse === RippleSDK_CONST.featuresAvailable.G_STREAM) {
+                                    featureResourceUrl = 'streams/send-offer';
+                                }
+                                if (RippleSDK.app.featureInUse === RippleSDK_CONST.featuresAvailable.VIDEO_ROOM) {
+                                    featureResourceUrl = 'video/send-offer';
+                                    body.roomID = RippleSDK.app.feature.videoRoom.room.roomID;
+                                }
+                                const post = await RippleSDK.Utils.fetchWithTimeout(featureResourceUrl, {
+                                    method: 'POST',
+                                    body
                                 });
-                                RippleSDK.app.webRTC.wasOfferSentSuccessfully = true;
+                                if (post.success) {
+                                    
+                                    if (post.data.sdp) { // accommodates video room , video call
+                                        
+                                        RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
+                                            sdp : post.data.sdp,
+                                            type: 'answer',
+                                        });
+                                        RippleSDK.app.webRTC.wasOfferSentSuccessfully = true;
+                                    }
+                                }
+                            }else{
+                            
                             }
-                        }
                     });
             },
             shutDownPeerConnection:()=>{
@@ -616,7 +627,10 @@ const RippleSDK = {
                      forceEncodedVideoInsertableStreams:true,*/
                     iceServers: RippleSDK.iceServerArray
                 };
-                if(RippleSDK.app.featureInUse === "G_STREAM"){
+                if(RippleSDK.app.featureInUse ===  RippleSDK_CONST.featuresAvailable.G_STREAM ||
+                    RippleSDK.app.featureInUse ===  RippleSDK_CONST.featuresAvailable.G_STREAM_BROADCAST ||
+                    RippleSDK.app.featureInUse ===  RippleSDK_CONST.featuresAvailable.G_STREAM_BROADCAST
+                ){
                     // Increasing the ICE candidate gathering timeout , allowing more time for connectivity checks
                     // this can be adjusted for based on your experience as much or needs after you have done some monitirng on the application
                     configuration.iceCandidatePoolSize= 10;
@@ -707,7 +721,12 @@ const RippleSDK = {
                 RippleSDK.app.webRTC.peerConnection.ontrack = ev => {
                     // this will be used to render remote peers track audio and video
                     console.log('onTrack event ', ev);
-                    if(RippleSDK.app.featureInUse==='G_STREAM') {
+                    
+                    if(RippleSDK.app.featureInUse=== RippleSDK_CONST.featuresAvailable.G_STREAM_BROADCAST) {
+                        // this is becuase already the broadcaster doesnot need to get any remote stream
+                        return
+                    }
+                    if(RippleSDK.app.featureInUse=== RippleSDK_CONST.featuresAvailable.G_STREAM) {
                         RippleSDK.app.rootCallbacks.websockets.tellClientOnMessage({
                             type:'stream',isGettingStreams:true,showLoadingUI:false,
                         });
@@ -725,6 +744,12 @@ const RippleSDK = {
                         }
                     }
                 };
+                
+                // we now have to make an offer to send to the server
+                if(RippleSDK.app.featureInUse=== RippleSDK_CONST.featuresAvailable.G_STREAM_BROADCAST) {
+                    RippleSDK.app.webRTC.offerOptions= {offerToReceiveVideo: false, offerToReceiveAudio: false};
+                    RippleSDK.app.webRTC.peerConnection.createOffer();
+                }
             }
 
         },
@@ -995,7 +1020,7 @@ const RippleSDK = {
             if (!RippleSDK.Utils.isWebRTCSupported()) {
                 alert("Webrtc is not supported,So this SDK is useless")
             }
-            RippleSDK.app.webRTC.getStatistics();
+           // RippleSDK.app.webRTC.getStatistics();
            
             
         }
