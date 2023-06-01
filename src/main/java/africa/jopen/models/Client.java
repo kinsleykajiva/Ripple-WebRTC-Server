@@ -2,14 +2,15 @@ package africa.jopen.models;
 
 import africa.jopen.http.IceCandidate;
 import africa.jopen.utils.FeatureTypes;
+import africa.jopen.utils.WebRTCGStreamer;
 import africa.jopen.utils.XUtils;
 import com.google.common.flogger.FluentLogger;
 import dev.onvoid.webrtc.*;
+import jakarta.websocket.Session;
+import org.eclipse.collections.api.factory.Lists;
+import org.eclipse.collections.api.list.MutableList;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -22,33 +23,52 @@ public final class Client implements PeerConnectionObserver {
 		public void onFailure(String s) {
 		}
 	};
+
+	private WebRTCGStreamer webRTCSendRecv;
 	private final String clientID = XUtils.IdGenerator();
 	private final Vector<String> messages = new Vector<>();
 	private final Recorder recorder = new Recorder();
 	private final RTCPeerConnection peerConnection;
-	private String clientAgentName;// this si the display name that will be used
+	private  Session socketSession;
+	private final String clientAgentName;// this si the display name that will be used
 	private FeatureTypes featureType;
 	private long lastTimeStamp = System.currentTimeMillis();
 	private Integer trackCounter = 0;
 	private RTCModel rtcModel = new RTCModel();
 	private Map<String, Object> candidateMap = new HashMap<>();
+	private MutableList<Map<String, Object>> candidatesMapList = Lists.mutable.empty();
 	private VideCallNotification videCallNotification;
+	private GStreamMediaResource gStreamMediaResource;
 	
 	public Client(String clientAgentName) {
 		this.clientAgentName = clientAgentName;
-		this.featureType = featureType;
+
 		RTCConfiguration rtcConfiguration = new RTCConfiguration();
 		RTCIceServer stunServer = new RTCIceServer();
 		stunServer.urls.add("stun:stun.l.google.com:19302");
+		stunServer.urls.add("stun:stun.services.mozilla.com");
+
 		PeerConnectionFactory peerConnectionFactory = new PeerConnectionFactory();
 		rtcConfiguration.iceServers.add(stunServer);
 		peerConnection = peerConnectionFactory.createPeerConnection(rtcConfiguration, this);
 		logger.atInfo().log("Creating peer connection");
 	}
-	
-	
-	
-	
+
+
+	public WebRTCGStreamer getWebRTCSendRecv() {
+		return webRTCSendRecv;
+	}
+
+	public void setWebRTCSendRecv(final GStreamMediaResource mediaResource) {
+		//peerConnection.close();
+		this.gStreamMediaResource =mediaResource;
+		this.webRTCSendRecv = new WebRTCGStreamer(clientID);
+	}
+
+	public GStreamMediaResource getgStreamMediaResource() {
+		return gStreamMediaResource;
+	}
+
 	public void addIceCandidate(IceCandidate candidate) {
 		
 		RTCIceCandidate rtcCandidate = new RTCIceCandidate(candidate.sdpMid(), candidate.sdpMidLineIndex(), candidate.candidate());
@@ -117,6 +137,14 @@ public final class Client implements PeerConnectionObserver {
 	public String getClientID() {
 		return clientID;
 		
+	}
+	
+	public Session getSocketSession() {
+		return socketSession;
+	}
+	
+	public void setSocketSession(Session socketSession) {
+		this.socketSession = socketSession;
 	}
 	
 	public VideCallNotification getVideCallNotification() {
@@ -193,12 +221,32 @@ public final class Client implements PeerConnectionObserver {
 			candidateMap.put("sdpMid", rtcIceCandidate.sdpMid);
 			candidateMap.put("sdpMLineIndex", rtcIceCandidate.sdpMLineIndex);
 			candidateMap.put("candidate", rtcIceCandidate.sdp);
+			candidatesMapList.add(candidateMap);
 			// When using Htt or Rest API access the best way to send this data is via the reminder request, the next time the client checks in then we send the data along is as an array.
 			
 		}
 	}
-	
+
+	public MutableList<Map<String, Object>> getCandidatesMapList() {
+		return candidatesMapList;
+	}
+
+	public void setCandidatesMapList(MutableList<Map<String, Object>> candidatesMapList) {
+		this.candidatesMapList = candidatesMapList;
+	}
+
+
 	public Map<String, Object> getCandidateMap() {
 		return candidateMap;
 	}
+	public void  resetCandidateMap() {
+		 candidateMap.clear();
+	}
+	public void setCandidateMap(Map<String,Object> candits) {
+		// ToDo check if this will require a review  during multi-threading case
+		 this.candidateMap=candits;
+	}
+
+
+
 }

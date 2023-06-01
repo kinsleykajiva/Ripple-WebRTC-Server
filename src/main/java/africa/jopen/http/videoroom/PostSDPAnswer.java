@@ -1,4 +1,4 @@
 package africa.jopen.http.videoroom;
 
-public record PostSDPAnswer(String roomID, String offer, String clientID) {
+public record PostSDPAnswer(String roomID, String answer, String clientID) {
 }

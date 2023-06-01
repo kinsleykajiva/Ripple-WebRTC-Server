@@ -1,33 +1,48 @@
 package africa.jopen.utils;
 
 
+import africa.jopen.events.ClientsEvents;
 import africa.jopen.exceptions.ClientException;
 import africa.jopen.models.Client;
 import africa.jopen.models.RoomModel;
 import africa.jopen.models.VideCallNotification;
 import com.google.common.flogger.FluentLogger;
-
+import jakarta.inject.Singleton;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
+import org.freedesktop.gstreamer.Gst;
+import org.freedesktop.gstreamer.Version;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 
-
+@Singleton
 public class ConnectionsManager {
+/*
+	@Inject
+	Event<ClientsEvents> clientsEventsEvent;
+*/
+
+/*	@Inject
+	@ClientsEventQualifier
+	Event<ClientsEvents> clientsEventsEvent;*/
+
 	private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 	private static final MutableList<Client> CLIENTS = Lists.mutable.empty();
 	public static MutableList<RoomModel> ROOMS = Lists.mutable.empty();
 	
 	private ConnectionsManager() {
 		// Private constructor to enforce singleton pattern
+		logger.atInfo().log("started now ConnectionsManager");
+		XUtils.GStreamerUtils.configurePaths();
+		//GLib.setEnv("GST_DEBUG", "4", true);
+		Gst.init(Version.of(1, 16));
 	}
-	
 	private static class Holder {
 		private static final ConnectionsManager INSTANCE = new ConnectionsManager();
 	}
-	
 	public static ConnectionsManager getInstance() {
 		return Holder.INSTANCE;
 	}
@@ -81,12 +96,16 @@ public class ConnectionsManager {
 		//  check if client exists using the client d property
 		return CLIENTS.select(client -> client.getClientID().equals(id)).stream().findFirst();
 	}
+
+
 	
 	public Client updateClientWhenRemembered(String id) {
 		// update client of the client object in the list and return the client object
 		for (Client client : CLIENTS) {
 			if (client.getClientID().equals(id)) {
 				client.updateLastTimeStamp(System.currentTimeMillis());
+				ClientsEvents mClientsEvent = new ClientsEvents(client);
+			//	clientsEventsEvent.fire(mClientsEvent);
 				return client;
 			}
 			
@@ -124,7 +143,14 @@ public class ConnectionsManager {
 	 * */
 	public void removeOrphanClients() {
 		long currentTime = System.currentTimeMillis();
-		//  clientsList.removeIf(client -> (currentTime - client.lastTimeStamp()) > 30_000);
+		CLIENTS.removeIf(client -> (currentTime - client.lastTimeStamp()) > 30_000);
+
+		// Clear references to removed clients from memory
+		CLIENTS.forEach(client -> client = null);
+		// Clear removed clients from memory
+		logger.atInfo().log("freeing some objects");
+
+
 	}
 	
 	/**
@@ -132,10 +158,11 @@ public class ConnectionsManager {
 	 */
 	public void removeDeadCallNotifications() {
 		CLIENTS.stream()
+				.filter(client -> Objects.nonNull(client.getVideCallNotification()))
 				.filter(client -> System.currentTimeMillis() > client.getVideCallNotification().end())
 				.forEach(client -> client.setVideCallNotification(null));
 		
 	}
 	
-	
+
 }
