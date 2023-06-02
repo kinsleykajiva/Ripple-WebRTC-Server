@@ -53,8 +53,6 @@ public class Main implements QuarkusApplication {
         }
 
 
-
-
         Quarkus.waitForExit();
         return 0;
     }
