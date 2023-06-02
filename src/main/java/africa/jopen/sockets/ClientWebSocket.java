@@ -164,13 +164,9 @@ public class ClientWebSocket {
         switch (requestType) {
             case "remember" -> response = rememberResponse(clientObject);
             case "update-ice-candidate" -> {
-
                 final var payload = new PostIceCandidate(
-                        null, new IceCandidate(
-                        messageObject.getString("candidate"),
-                        messageObject.getString("sdpMid"),
-                        messageObject.getInt("sdpMLineIndex")
-                ), messageObject.getString("clientID"));
+                        null, new IceCandidate(messageObject.getString("candidate"), messageObject.getString("sdpMid"), messageObject.getInt("sdpMLineIndex")), messageObject.getString("clientID")
+                );
                 clientObject.getWebRTCSendRecv()
                         .handleIceSdp(payload.iceCandidate().candidate(), payload.iceCandidate().sdpMidLineIndex());
             }
