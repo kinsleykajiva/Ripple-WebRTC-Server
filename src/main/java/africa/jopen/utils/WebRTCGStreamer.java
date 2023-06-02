@@ -82,19 +82,19 @@ public class WebRTCGStreamer {
         var clientObject = connectionsManager.getClient(clientID);
         assert clientObject.isPresent();
         final var maxCountSeconds = clientObject.get().getgStreamMediaResource().getDuration();
-        final long[] CountSeconds = {0};
+        final long[] countSeconds = {0};
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                if (CountSeconds[0] == maxCountSeconds) {
+                if (countSeconds[0] == maxCountSeconds) {
                     timer.cancel();
-                    CountSeconds[0] = 0;
+                    countSeconds[0] = 0;
                     return;
                 }
                 if (!isPaused) {
                     seconds++;
-                    CountSeconds[0]++;
+                    countSeconds[0]++;
 
                     if (seconds == SECONDS_PER_MINUTE) {
                         seconds = 0;
