@@ -83,23 +83,23 @@ public class WebRTCGStreamer {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                if(!isPaused){
-                seconds++;
+                if (!isPaused) {
+                    seconds++;
 
-                if (seconds == SECONDS_PER_MINUTE) {
-                    seconds = 0;
-                    minutes++;
-                }
+                    if (seconds == SECONDS_PER_MINUTE) {
+                        seconds = 0;
+                        minutes++;
+                    }
 
-                String formattedTime = String.format("%02d:%02d", minutes, seconds);
-                System.out.println(formattedTime);
+                    String formattedTime = String.format("%02d:%02d", minutes, seconds);
+                    System.out.println(formattedTime);
 
-                if (minutes == 1 && seconds == 1) {
-                    System.out.println("01:01");
-                }
+                    if (minutes == 1 && seconds == 1) {
+                        System.out.println("01:01");
+                    }
                 }
             }
-        }, 0, 1000); // Update every second
+        }, 0, 1_000); // Update every second
     }
 
     // Helper method to adjust the volume dynamically.
