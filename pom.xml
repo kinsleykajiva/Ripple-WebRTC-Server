@@ -31,6 +31,12 @@
             <artifactId>helidon-metrics</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.helidon.webserver</groupId>
+            <artifactId>helidon-webserver-tyrus</artifactId>
+            <version>3.0.0-M2</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.helidon.health</groupId>
             <artifactId>helidon-health</artifactId>
         </dependency>

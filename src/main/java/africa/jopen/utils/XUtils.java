@@ -6,6 +6,7 @@ import com.sun.jna.platform.win32.Kernel32;
 import io.helidon.common.http.Http;
 import io.helidon.webserver.ServerResponse;
 import jakarta.json.*;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -152,6 +153,33 @@ public class XUtils {
 				                          .add("data", data)
 				                          .build();
 		response.send(returnObject);
+	}
+
+	public static JSONObject buildJsonErrorResponse(int code, String messageTypeTitle, String messageType, String message, JSONObject data) {
+		JSONObject response = new JSONObject();
+		response.put("timeZoneName", TimeZone.getDefault().getDisplayName() );
+		response.put("timeZone", TimeZone.getDefault().toZoneId() /*"Africa/Johannesburg"*/);
+		response.put("serverName", SERVER_NAME);
+		response.put("timeStamp", System.currentTimeMillis());
+		response.put(messageTypeTitle,messageType);
+		response.put("message", message);
+		response.put("success", false);
+		response.put("code", code);
+		response.put("data",data);
+		return  response;
+	}
+	public static JSONObject buildJsonSuccessResponse(int code,String messageTypeTitle, String messageType, String message, JSONObject data) {
+		JSONObject response = new JSONObject();
+		response.put("timeZoneName", TimeZone.getDefault().getDisplayName() );
+		response.put("timeZone", TimeZone.getDefault().toZoneId() /*"Africa/Johannesburg"*/);
+		response.put("serverName", SERVER_NAME);
+		response.put("timeStamp", System.currentTimeMillis());
+		response.put(messageTypeTitle,messageType);
+		response.put("message", message);
+		response.put("success", true);
+		response.put("code", code);
+		response.put("data",data);
+		return  response;
 	}
 
 	public static final class GStreamerUtils{
