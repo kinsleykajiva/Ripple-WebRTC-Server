@@ -45,8 +45,7 @@ public final class Client implements PeerConnectionObserver {
 
 		RTCConfiguration rtcConfiguration = new RTCConfiguration();
 		RTCIceServer stunServer = new RTCIceServer();
-		stunServer.urls.add("stun:stun.l.google.com:19302");
-		stunServer.urls.add("stun:stun.services.mozilla.com");
+		stunServer.urls.addAll(XUtils.MAIN_CONFIG_MODEL.nat().stuns());
 
 		PeerConnectionFactory peerConnectionFactory = new PeerConnectionFactory();
 		rtcConfiguration.iceServers.add(stunServer);

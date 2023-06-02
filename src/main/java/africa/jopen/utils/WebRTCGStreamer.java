@@ -117,8 +117,7 @@ public class WebRTCGStreamer {
         this.clientID = clientID;
         pipe = (Pipeline) Gst.parseLaunch(pipeLineMaker());
         webRTCBin = (WebRTCBin) pipe.getElementByName("webrtcbin");
-
-        webRTCBin.setStunServer("stun:stun.l.google.com:19302");
+        XUtils.MAIN_CONFIG_MODEL.nat().stuns().stream().findFirst().ifPresent(server-> webRTCBin.setStunServer(server));
         setupPipeLogging(pipe);
         WebRTCBin.ON_NEGOTIATION_NEEDED onNegotiationNeeded = elem -> webRTCBin.createOffer(onOfferCreated);
         webRTCBin.connect(onNegotiationNeeded);
