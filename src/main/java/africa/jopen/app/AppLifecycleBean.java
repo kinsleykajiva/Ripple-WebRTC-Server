@@ -7,7 +7,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 @ApplicationScoped
 public class AppLifecycleBean {
-    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+    private  final FluentLogger logger = FluentLogger.forEnclosingClass();
     void onStart(@Observes StartupEvent ev) {
         logger.atInfo().log("The application is starting...");
     }

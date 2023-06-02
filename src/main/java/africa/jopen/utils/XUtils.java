@@ -36,6 +36,7 @@ public class XUtils {
 	public static String SERVER_NAME = "SERVER_ONE";
 	private static final Map<String,Object> GENERAL_RESPONSE_MAP = new HashMap<>();
 	private static final JSONObject GENERAL_RESPONSE_JSON = new JSONObject();
+	public static String BASE_APP_LOCATION_PATH ;
 
 	static {
 		// ToDo review this approach to load
