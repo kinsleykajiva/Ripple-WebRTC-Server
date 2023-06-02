@@ -171,7 +171,7 @@ const RippleSDK = {
                         }
                         if (message.eventType === 'remember') {
                             //? so far we can ignore any additional data as we don't need it.
-                            console.info(" client remembered ", message.message);
+                            console.info(" Client Remembered ", message.message);
                             return;
                         }
 
@@ -801,10 +801,10 @@ const RippleSDK = {
         webSocket:()=>{
             RippleSDK.serverUrl = RippleSDK.Utils.convertToWebSocketUrl(RippleSDK.serverUrl);
             RippleSDK.app.rootCallbacks.websockets.onConnecting();
-            let reconnectAttempts    = 0;
+            let reconnectAttempts       = 0;
             let maxReconnectAttempts    = 200
-            const reconnectDelays = [10, 20, 35, 45, 55]; // delays in seconds
-            const socketObject    = new WebSocket(`${RippleSDK.serverUrl}/client-access/${RippleSDK.serverClientId}/${RippleSDK.app.featureInUse}`);
+            const reconnectDelays       = [10, 20, 35, 45, 55]; // delays in seconds
+            const socketObject          = new WebSocket(`${RippleSDK.serverUrl}/client-access/${RippleSDK.serverClientId}/${RippleSDK.app.featureInUse}`);
 
             if (socketObject) {
                 socketObject.onopen    = () => {
@@ -813,7 +813,7 @@ const RippleSDK = {
                     RippleSDK.app.rootCallbacks.websockets.onConnected();
                 };
                 socketObject.onerror   = ev => {
-                RippleSDK.app.rootCallbacks.websockets.fatalError(ev);
+                    RippleSDK.app.rootCallbacks.websockets.fatalError(ev);
                 };
                 socketObject.onmessage = ev => {
                     RippleSDK.app.rootCallbacks.websockets.onMessage(ev.data);
@@ -829,8 +829,8 @@ const RippleSDK = {
                         }, delay * 1000); // convert delay to milliseconds
                     } else {
                         console.log(`Maximum reconnection attempts (${maxReconnectAttempts}) reached, giving up.`);
+                        RippleSDK.app.rootCallbacks.websockets.onClosed();
                     }
-                    RippleSDK.app.rootCallbacks.websockets.onClosed();
                 };
             }
             RippleSDK.Utils.webSocketObject=socketObject;
@@ -926,6 +926,7 @@ const RippleSDK = {
         onRemoteSDPReady                : () => {
         },
         onAccessMediaAllowedNotification: (mediaStream, wasAudioAllowed, wasVideoAllowed) => {
+            /*This section is here to help document this call back parameter.*/
         },
         myMedia                         : null,
         stopMyLocalMediaAccess: () => {
