@@ -24,7 +24,11 @@ import io.helidon.webserver.Routing;
 import io.helidon.webserver.WebServer;
 import io.helidon.webserver.tyrus.TyrusSupport;
 
+import java.util.Timer;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Flow;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -32,6 +36,7 @@ import java.util.concurrent.Flow;
  */
 public final class Main {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+   static ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
     /**
      * Cannot be instantiated.
      */
@@ -62,7 +67,11 @@ public final class Main {
 
         Single<WebServer> webserver = server.start();
 
-        // Try to start the server. If successful, print some info and arrange to
+         Runnable executeRemoveOrphans = () -> connectionsManager.removeOrphanClients();
+         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+         executor.scheduleAtFixedRate(executeRemoveOrphans, 0, 26, TimeUnit.SECONDS);
+
+         // Try to start the server. If successful, print some info and arrange to
         // print a message at shutdown. If unsuccessful, print the exception.
         webserver.forSingle(ws -> {
            System.out.println(BannerTxT.BANNER_TEXT);
@@ -83,7 +92,7 @@ public final class Main {
      * @param config configuration of this server
      */
     private static Routing createRouting(Config config) {
-        ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
+
         EventService eventService = new EventService(); // Create an instance of EventService
 
         SimpleGreetService simpleGreetService = new SimpleGreetService(config);
