@@ -234,6 +234,13 @@ public class VideoRoomService implements Service {
                 }).exceptionally(ex -> XUtils.buildErrorResponse(ex, response, 0, "Failed to process request"));
 
     }
+    public static void joinRoom(ConnectionsManager connectionsManager, PostJoinRoom room, RoomModel roomModel) {
+        Client clientObject = connectionsManager.updateClientWhenRemembered(room.clientID());
+        clientObject.setFeatureType(FeatureTypes.VIDEO_ROOM);
+        RoomModel updatedRoomModel = roomModel.addParticipant(clientObject);
+        connectionsManager.updateRoom(updatedRoomModel, room.clientID());
+    }
+
     public static Map<String, Object> createRoom(ConnectionsManager connectionsManager, PostCreateRoom room, Client client) {
         RoomModel roomModel = new RoomModel();
         roomModel.setFeatureTypes(FeatureTypes.VIDEO_ROOM);
