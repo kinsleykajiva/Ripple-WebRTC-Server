@@ -178,14 +178,14 @@ const RippleSDK = {
                     } else if (message.code === 400) {
                         if (message.eventType === "validation") {
                             RippleSDK.warn("Request InValid ", message.message);
-                            clientMessage.message = `Invalid Session/Request ,Please reconnect : ${message.message}`
+                            clientMessage.message = `Invalid Session/Request ,Please reconnect : ${message.message}`;
 
                         }
                     } else if (message.code === 500) {
 
                         if (message.eventType === "Error") {
                             RippleSDK.warn("Request Error ", message.message);
-                            clientMessage.message = `Fatal Server Error: ${message.message}`
+                            clientMessage.message = `Fatal Server Error: ${message.message}`;
                             clientMessage.isFatal = true;
                         }
 
@@ -327,9 +327,9 @@ const RippleSDK = {
                         console.error("room pin is required");
                         return;
                     }
-                    password = password.toString()
-                    roomName = roomName.toString()
-                    pin = pin.toString()
+                    password = password.toString();
+                    roomName = roomName.toString();
+                    pin      = pin.toString();
 
                     try {
                         const result = await RippleSDK.Utils.fetchWithTimeout('/video/create-room', {
@@ -373,7 +373,7 @@ const RippleSDK = {
                         return !!result.success;
 
                     } catch (e) {
-                        console.error(e)
+                        console.error(e);
                     }
 
                     return false;
@@ -641,7 +641,7 @@ const RippleSDK = {
                         type:'background',isGettingStreams:false,showLoadingUI:true,
                     });
                 }
-                console.log('creating a peer connection ...');
+                console.log('Creating a peer connection ...');
 
                 RippleSDK.app.webRTC.peerConnection = new RTCPeerConnection(configuration);
                 RippleSDK.app.webRTC.peerConnection.onicecandidate = async ev => {
@@ -707,7 +707,7 @@ const RippleSDK = {
                             if(RippleSDK.app.feature.gStream.remoteOfferStringSDP){
                                setTimeout(async () => {
                                  //  await RippleSDK.app.webRTC.createAnswer();
-                               },2_00);
+                               },2_000);
                             }
                             }
                         }
@@ -726,7 +726,7 @@ const RippleSDK = {
                     console.log('onTrack event ', ev);
                     
                     if(RippleSDK.app.featureInUse=== RippleSDK_CONST.featuresAvailable.G_STREAM_BROADCAST) {
-                        // this is becuase already the broadcaster doesnot need to get any remote stream
+                        // this is because already the broadcaster does not need to get any remote stream
                         return
                     }
                     if(RippleSDK.app.featureInUse=== RippleSDK_CONST.featuresAvailable.G_STREAM) {
@@ -816,7 +816,6 @@ const RippleSDK = {
                 RippleSDK.app.rootCallbacks.websockets.fatalError(ev);
                 };
                 socketObject.onmessage = ev => {
-
                     RippleSDK.app.rootCallbacks.websockets.onMessage(ev.data);
                 };
                 socketObject.onclose   = (ev) => {
@@ -903,8 +902,8 @@ const RippleSDK = {
         },
         uniqueIDGenerator: (seed = '', maxSize = 22) => {
             const alphabet       = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            const date           = new Date();
-            const timeString    = `${date.getHours()}${date.getMinutes()}${date.getSeconds()}`.padStart(6, '0');
+            const date            = new Date();
+            const timeString     = `${date.getHours()}${date.getMinutes()}${date.getSeconds()}`.padStart(6, '0');
             const dateTimeString = `${seed}${timeString}${Math.random().toString(36).substr(2, 4)}`.slice(0, 12);
             let uniID            = '';
             for (let i = 0; i < maxSize; i++) {
