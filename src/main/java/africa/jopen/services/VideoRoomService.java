@@ -310,15 +310,7 @@ public class VideoRoomService implements Service {
                         // ToDo : What wil happen if all the user have been removed by the Orphaning or deliberate exiting from the room of been removed  the admin
 
 
-                        Map<String, Object> responseData = new HashMap<>();
-                        responseData.put("roomID", roomModel.getRoomID());
-                        responseData.put("roomName", roomModel.getRoomName());
-                        responseData.put("createdTimeStamp", roomModel.getCreatedTimeStamp());
-                        responseData.put("password", roomModel.getPassword());
-                        responseData.put("pin", roomModel.getPin());
-                        responseData.put("maximumCapacity", roomModel.getMaximumCapacity());
-                        responseData.put("roomDescription", roomModel.getRoomDescription());
-                        responseData.put("creatorClientID", roomModel.getCreatorClientID());
+                        Map<String, Object> responseData = createRoom(connectionsManager, room, clientOptional.get());
 
                         JsonObject data = JSON.createObjectBuilder()
                                 .add("room", JSON.createObjectBuilder(responseData))
