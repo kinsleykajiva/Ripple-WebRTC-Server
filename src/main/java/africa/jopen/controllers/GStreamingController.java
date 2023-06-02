@@ -40,10 +40,10 @@ public class GStreamingController {
         }
         var clientObject = connectionsManager.updateClientWhenRemembered(payload.clientID());
 
-        if (Objects.isNull( clientObject.getWebRTCSendRecv())){
+        if (Objects.isNull( clientObject.getWebRTCGStreamer())){
             return XUtils.buildErrorResponse(false, 200, "Offer was not yet sent from this client", Map.of());
         }
-        clientObject.getWebRTCSendRecv()
+        clientObject.getWebRTCGStreamer()
                 .handleIceSdp(payload.iceCandidate().candidate() ,payload.iceCandidate().sdpMidLineIndex());
         return XUtils.buildSuccessResponse(true, 200, "Updated Clients Ice Candidates ", Map.of());
     }
@@ -69,11 +69,11 @@ public class GStreamingController {
 
        // connectionsManager.updateClient(clientObject);
        // clientObject.setWebRTCSendRecv();
-        clientObject.getWebRTCSendRecv().handleSdp(
+        clientObject.getWebRTCGStreamer().handleSdp(
                 payload.answer()
         );
 
-        clientObject.getWebRTCSendRecv().startCall();
+        clientObject.getWebRTCGStreamer().startCall();
         connectionsManager.updateClient(clientObject);
 
         Map<String, Object> responseMap = new HashMap<>();
@@ -99,12 +99,12 @@ public class GStreamingController {
         clientObject.setFeatureType(FeatureTypes.G_STREAM);
 
         connectionsManager.updateClient(clientObject);
-        clientObject.setWebRTCSendRecv(null);
-        clientObject.getWebRTCSendRecv().handleSdp(
+        clientObject.setWebRTCGStreamer(null);
+        clientObject.getWebRTCGStreamer().handleSdp(
                 payload.offer()
         );
 
-        clientObject.getWebRTCSendRecv().startCall();
+        clientObject.getWebRTCGStreamer().startCall();
         connectionsManager.updateClient(clientObject);
 
         Map<String, Object> responseMap = new HashMap<>();
@@ -150,7 +150,7 @@ public class GStreamingController {
         //clientObject.getRtcModel().setOffer(payload.answer());
         clientObject.setFeatureType(FeatureTypes.G_STREAM);
 
-        clientObject.setWebRTCSendRecv(null);
+        clientObject.setWebRTCGStreamer(null);
 
         //String offer = clientObject.getWebRTCSendRecv().startWebRTCDescriptions();
 

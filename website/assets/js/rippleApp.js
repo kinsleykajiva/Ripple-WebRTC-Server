@@ -542,7 +542,7 @@ const RippleSDK = {
                             offer   : _sdp.sdp
                         };
                             if(! RippleSDK.isWebSocketAccess ) {
-                                // ToDo this add a condition check on this part as to avoid repetition
+                                //! ToDo this add a condition check on this part as to avoid repetition
                                 let featureResourceUrl = '';
                                 
                                 if (RippleSDK.app.featureInUse === RippleSDK_CONST.featuresAvailable.G_STREAM) {

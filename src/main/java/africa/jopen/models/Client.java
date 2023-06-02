@@ -24,7 +24,7 @@ public final class Client implements PeerConnectionObserver {
 		}
 	};
 
-	private WebRTCGStreamer webRTCSendRecv;
+	private WebRTCGStreamer webRTCGStreamer;
 	private final String clientID = XUtils.IdGenerator();
 	private final Vector<String> messages = new Vector<>();
 	private final Recorder recorder = new Recorder();
@@ -54,14 +54,14 @@ public final class Client implements PeerConnectionObserver {
 	}
 
 
-	public WebRTCGStreamer getWebRTCSendRecv() {
-		return webRTCSendRecv;
+	public WebRTCGStreamer getWebRTCGStreamer() {
+		return webRTCGStreamer;
 	}
 
-	public void setWebRTCSendRecv(final GStreamMediaResource mediaResource) {
+	public void setWebRTCGStreamer(final GStreamMediaResource mediaResource) {
 		//peerConnection.close();
 		this.gStreamMediaResource =mediaResource;
-		this.webRTCSendRecv = new WebRTCGStreamer(clientID);
+		this.webRTCGStreamer = new WebRTCGStreamer(clientID);
 	}
 
 	public GStreamMediaResource getgStreamMediaResource() {

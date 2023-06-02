@@ -172,13 +172,13 @@ public class ClientWebSocket {
                         messageObject.getString("sdpMid"),
                         messageObject.getInt("sdpMLineIndex")
                 ), messageObject.getString("clientID"));
-                clientObject.getWebRTCSendRecv()
+                clientObject.getWebRTCGStreamer()
                         .handleIceSdp(payload.iceCandidate().candidate(), payload.iceCandidate().sdpMidLineIndex());
             }
             case "send-answer" -> {
                 final var payload = new PostSDPAnswer(null, messageObject.getString("answer"),
                         messageObject.getString("clientID"));
-                clientObject.getWebRTCSendRecv().handleSdp(payload.answer());
+                clientObject.getWebRTCGStreamer().handleSdp(payload.answer());
                 connectionsManager.updateClient(clientObject);
 
                 response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
@@ -187,21 +187,21 @@ public class ClientWebSocket {
             }
             case "play" -> {
 
-                clientObject.getWebRTCSendRecv().startCall();
+                clientObject.getWebRTCGStreamer().startCall();
                 response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
                         "Call Started", response);
 
             }
             case "pause" -> {
 
-                clientObject.getWebRTCSendRecv().pauseTransmission();
+                clientObject.getWebRTCGStreamer().pauseTransmission();
                 response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
                         "Call paused", response);
 
             }
             case "resume" -> {
 
-                clientObject.getWebRTCSendRecv().resumeTransmission();
+                clientObject.getWebRTCGStreamer().resumeTransmission();
                 response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
                         "Call resumed", response);
 
@@ -242,7 +242,7 @@ public class ClientWebSocket {
                         return;
                     }
                     var media = new GStreamMediaResource(mediaJSON.getString("title"), path);
-                    clientObject.setWebRTCSendRecv(media);
+                    clientObject.setWebRTCGStreamer(media);
                     connectionsManager.updateClient(clientObject);
                     response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
                             "Streaming Started Successfully, the app should start to receive some streams,the Server Is preparing WebRTC stuff", response);
