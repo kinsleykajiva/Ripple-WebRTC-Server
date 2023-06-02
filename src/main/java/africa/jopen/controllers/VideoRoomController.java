@@ -263,29 +263,4 @@ public class VideoRoomController {
 		responseData.put("creatorClientID", roomModel.getCreatorClientID());
 		return responseData;
 	}
-	
-	
-	@POST
-	@Path("/connect")
-	//@Deprecated
-	public Response connectClient(PostClient client) {
-		// ToDo : this is now moved to the general controller
-		if (client == null) {
-			return XUtils.buildErrorResponse(false, 400, "Client object is required!", Map.of());
-		}
-		
-		if (client.clientAgentName() == null || client.clientAgentName().isEmpty()) {
-			return XUtils.buildErrorResponse(false, 400, "Client agent name is required!", Map.of());
-		}
-		
-		Client clientObject = new Client(client.clientAgentName());
-		connectionsManager.addNewClient(clientObject);
-		
-		Map<String, Object> responseData = new HashMap<>();
-		responseData.put("clientID", clientObject.getClientID());
-		responseData.put("lastSeen", clientObject.lastTimeStamp());
-		
-		return XUtils.buildSuccessResponse(true, 200, "Client newly connected and recognized", responseData);
-	}
-	
 }

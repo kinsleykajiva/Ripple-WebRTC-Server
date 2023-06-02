@@ -16,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
 
 public final class Client implements PeerConnectionObserver {
 	private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-	final SetSessionDescriptionObserver localObserver = new SetSessionDescriptionObserver() {
+	private final SetSessionDescriptionObserver localObserver = new SetSessionDescriptionObserver() {
 		public void onSuccess() {
 		}
 		
