@@ -80,14 +80,15 @@ public class WebRTCGStreamer {
 
     public void startClock() {
         var clientObject = connectionsManager.getClient(clientID);
-      final var maxCountSeconds= clientObject.get().getgStreamMediaResource().getDuration();
+        final var maxCountSeconds = clientObject.get().getgStreamMediaResource().getDuration();
         final long[] CountSeconds = {0};
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                if(CountSeconds[0] == maxCountSeconds){
+                if (CountSeconds[0] == maxCountSeconds) {
                     timer.cancel();
+                    CountSeconds[0] = 0;
                     return;
                 }
                 if (!isPaused) {
@@ -105,6 +106,7 @@ public class WebRTCGStreamer {
                     if (minutes == 1 && seconds == 1) {
                         System.out.println("01:01");
                     }
+                    // emmit this to the client
                 }
             }
         }, 0, 1_000); // Update every second
