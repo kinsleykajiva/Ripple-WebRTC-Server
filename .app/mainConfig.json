@@ -1,11 +1,11 @@
 {
-  "appName": "",
+  "appName": "Ripple-server",
   "isDebugMode": false,
   "serverPort": 6060,
   "serverSSLPort": 7070,
-  "serverName": "",
+  "serverName": "Server-A",
   "serverVersion": "0.1.5",
-  "serverTimeZone": "",
+  "serverTimeZone": "Africa/Johannesburg",
   "basicAuth": {
     "username": "",
     "password": ""

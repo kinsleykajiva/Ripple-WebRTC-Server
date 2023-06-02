@@ -40,17 +40,7 @@ public class XUtils {
 	public static String BASE_APP_LOCATION_PATH ;
 	public static MainConfigModel MAIN_CONFIG_MODEL ;
 
-	static {
-		// ToDo review this approach to load
-		GENERAL_RESPONSE_JSON.put("timeZoneName", TimeZone.getDefault().getDisplayName() );
-		GENERAL_RESPONSE_JSON.put("timeZone", TimeZone.getDefault().toZoneId() /*"Africa/Johannesburg"*/);
-		GENERAL_RESPONSE_JSON.put("serverName", SERVER_NAME);
 
-		GENERAL_RESPONSE_MAP.put("timeZoneName", TimeZone.getDefault().getDisplayName() );
-		GENERAL_RESPONSE_MAP.put("timeZone", TimeZone.getDefault().toZoneId() /*"Africa/Johannesburg"*/);
-		GENERAL_RESPONSE_MAP.put("serverName", SERVER_NAME);
-
-	}
 	
 	public static String IdGenerator() {
 		UUID uuid = UUID.randomUUID();
@@ -101,9 +91,9 @@ public class XUtils {
 	private static Map<String, Object> buildResponseMap(boolean success, int code, String message, Map<String, Object> data) {
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", success);
-		response.put("timeZoneName", TimeZone.getDefault().getDisplayName() );
-		response.put("timeZone", TimeZone.getDefault().toZoneId() /*"Africa/Johannesburg"*/);
-		response.put("serverName", SERVER_NAME);
+
+		response.put("timeZone",MAIN_CONFIG_MODEL.serverTimeZone() /*"Africa/Johannesburg"*/);
+		response.put("serverName",MAIN_CONFIG_MODEL.serverName() );
 		response.put("timeStamp", System.currentTimeMillis());
 		response.put("code", code);
 		response.put("message", message);
@@ -112,9 +102,9 @@ public class XUtils {
 	}
 	public static JSONObject buildJsonErrorResponse(int code,String messageTypeTitle, String messageType, String message, JSONObject data) {
 		JSONObject response = new JSONObject();
-		response.put("timeZoneName", TimeZone.getDefault().getDisplayName() );
-		response.put("timeZone", TimeZone.getDefault().toZoneId() /*"Africa/Johannesburg"*/);
-		response.put("serverName", SERVER_NAME);
+
+		response.put("timeZone",MAIN_CONFIG_MODEL.serverTimeZone() /*"Africa/Johannesburg"*/);
+		response.put("serverName", MAIN_CONFIG_MODEL.serverName());
 		response.put("timeStamp", System.currentTimeMillis());
 		response.put(messageTypeTitle,messageType);
 		response.put("message", message);
@@ -125,9 +115,8 @@ public class XUtils {
 	}
 	public static JSONObject buildJsonSuccessResponse(int code,String messageTypeTitle, String messageType, String message, JSONObject data) {
 		JSONObject response = new JSONObject();
-		response.put("timeZoneName", TimeZone.getDefault().getDisplayName() );
-		response.put("timeZone", TimeZone.getDefault().toZoneId() /*"Africa/Johannesburg"*/);
-		response.put("serverName", SERVER_NAME);
+		response.put("timeZone",MAIN_CONFIG_MODEL.serverTimeZone() /*"Africa/Johannesburg"*/);
+		response.put("serverName", MAIN_CONFIG_MODEL.serverName());
 		response.put("timeStamp", System.currentTimeMillis());
 		response.put(messageTypeTitle,messageType);
 		response.put("message", message);
