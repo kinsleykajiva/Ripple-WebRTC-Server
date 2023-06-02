@@ -3,6 +3,7 @@ package africa.jopen.app;
 
 import africa.jopen.events.EventService;
 import africa.jopen.services.*;
+import africa.jopen.sockets.ClientWebSocket;
 import africa.jopen.utils.BannerTxT;
 import africa.jopen.utils.ConnectionsManager;
 import africa.jopen.utils.XUtils;
@@ -21,6 +22,7 @@ import io.helidon.common.reactive.Single;
 import io.helidon.config.Config;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.WebServer;
+import io.helidon.webserver.tyrus.TyrusSupport;
 
 import java.util.concurrent.Flow;
 
@@ -86,7 +88,6 @@ public final class Main {
 
         SimpleGreetService simpleGreetService = new SimpleGreetService(config);
         GreetService greetService = new GreetService(config);
-      
         
         
         HealthSupport health = HealthSupport.builder()
@@ -100,6 +101,7 @@ public final class Main {
                 .register("/video", new VideoRoomService(connectionsManager, eventService))
                 .register("/video-call", new VideoCallService(connectionsManager, eventService))
                 .register("/simple-greet", simpleGreetService)
+                .register("/", TyrusSupport.builder().register(ClientWebSocket.class).build())
                 .register("/greet", greetService);
 
 
