@@ -222,13 +222,10 @@ public class VideoRoomService implements Service {
                         XUtils.buildErrorResponse(null, response, 400, "Room authentication failed! Access rejected.");
                     }
 
-                    Client clientObject = connectionsManager.updateClientWhenRemembered(room.clientID());
-                    clientObject.setFeatureType(FeatureTypes.VIDEO_ROOM);
-                    RoomModel updatedRoomModel = roomModel.addParticipant(clientObject);
-                    connectionsManager.updateRoom(updatedRoomModel, room.clientID());
+                    joinRoom(connectionsManager, room, roomModel);
 
-                    JsonObject data = JSON.createObjectBuilder()
-                            .build();
+                    JsonObject data = JSON.createObjectBuilder().build();
+
                     XUtils.buildSuccessResponse(response, 200, "Added to room", data);
 
                 }).exceptionally(ex -> XUtils.buildErrorResponse(ex, response, 0, "Failed to process request"));
