@@ -7,7 +7,7 @@ import africa.jopen.models.Client;
 import africa.jopen.models.RoomModel;
 import africa.jopen.models.VideCallNotification;
 import com.google.common.flogger.FluentLogger;
-import jakarta.inject.Singleton;
+
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
 import org.freedesktop.gstreamer.Gst;
@@ -18,7 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 
-@Singleton
+
 public class ConnectionsManager {
 /*
 	@Inject
