@@ -1,5 +1,6 @@
 package africa.jopen.utils;
 
+import africa.jopen.models.configs.main.MainConfigModel;
 import com.sun.jna.Platform;
 import com.sun.jna.platform.win32.Kernel32;
 import jakarta.ws.rs.core.Response;
@@ -37,6 +38,7 @@ public class XUtils {
 	private static final Map<String,Object> GENERAL_RESPONSE_MAP = new HashMap<>();
 	private static final JSONObject GENERAL_RESPONSE_JSON = new JSONObject();
 	public static String BASE_APP_LOCATION_PATH ;
+	public static MainConfigModel MAIN_CONFIG_MODEL ;
 
 	static {
 		// ToDo review this approach to load

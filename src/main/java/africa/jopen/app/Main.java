@@ -17,34 +17,42 @@ import java.nio.file.Paths;
 import java.util.logging.Level;
 
 
-
-public class Main  implements QuarkusApplication  {
+public class Main implements QuarkusApplication {
     @ConfigProperty(name = "app.config.folderName")
     String configName;
-    private  final FluentLogger logger = FluentLogger.forEnclosingClass();
+    private final FluentLogger logger = FluentLogger.forEnclosingClass();
 
 
-   // @Override
+    // @Override
     public int run(String... args) throws Exception {
-        XUtils.BASE_APP_LOCATION_PATH =  Paths.get("").toAbsolutePath().toString();
+        XUtils.BASE_APP_LOCATION_PATH = Paths.get("").toAbsolutePath().toString();
 
         logger.atInfo().log("Server Started");
-        logger.atInfo().log("App running in folder path " +  XUtils.BASE_APP_LOCATION_PATH );
-        logger.atInfo().log("App running in config folder path " +  XUtils.BASE_APP_LOCATION_PATH +"/" + configName );
+        logger.atInfo().log("App running in folder path " + XUtils.BASE_APP_LOCATION_PATH);
+        logger.atInfo().log("App running in config folder path " + XUtils.BASE_APP_LOCATION_PATH + "/" + configName);
 
-        File file ;
+        File file;
         try {
-            // load the maincofig
+
+            file = new File(XUtils.BASE_APP_LOCATION_PATH + "/" + configName);
+            if (!file.exists()) {
+                logger.atSevere().log("Configs not found");
+                System.exit(1);
+            }
+        } catch (Exception e) {
+
+            logger.atSevere().withCause(e).log("Configs not found");
+        }
+
+        try {
             file = new File(XUtils.BASE_APP_LOCATION_PATH + "/" + configName + "/mainConfig.json");
             ObjectMapper objectMapper = new ObjectMapper();
-            MainConfigModel mainConfig = objectMapper.readValue(file, MainConfigModel.class);
-
-            // Access the loaded object
-            System.out.println("appName: " + mainConfig.appName());
-            System.out.println("serverTimeZone: " + mainConfig.serverTimeZone());
+            XUtils.MAIN_CONFIG_MODEL = objectMapper.readValue(file, MainConfigModel.class);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.atSevere().withCause(e).log("Failed to process");
         }
+
+
 
 
         Quarkus.waitForExit();
