@@ -20,14 +20,7 @@ import java.util.Optional;
 
 
 public class ConnectionsManager {
-/*
-	@Inject
-	Event<ClientsEvents> clientsEventsEvent;
-*/
 
-/*	@Inject
-	@ClientsEventQualifier
-	Event<ClientsEvents> clientsEventsEvent;*/
 
 	private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 	private static final MutableList<Client> CLIENTS = Lists.mutable.empty();
