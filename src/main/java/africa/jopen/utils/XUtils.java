@@ -4,15 +4,13 @@ import com.sun.jna.Platform;
 import com.sun.jna.platform.win32.Kernel32;
 import jakarta.ws.rs.core.Response;
 import org.json.JSONObject;
+
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class XUtils {
@@ -187,7 +185,7 @@ public class XUtils {
 								"GSTREAMER_1_0_ROOT_MINGW_X86_64",
 								"GSTREAMER_1_0_ROOT_X86_64")
 						.map(System::getenv)
-						.filter(p -> p != null)
+						.filter(Objects::nonNull)
 						.map(p -> p.endsWith("\\") ? p + "bin\\" : p + "\\bin\\")
 						.findFirst().orElse("");
 			} else {

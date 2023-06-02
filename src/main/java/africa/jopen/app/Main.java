@@ -12,7 +12,7 @@ import java.util.logging.Level;
 
 
 
-public class Main /* implements QuarkusApplication*/ {
+public class Main  implements QuarkusApplication {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
 
