@@ -46,6 +46,10 @@ public class Main implements QuarkusApplication {
 
         try {
             file = new File(XUtils.BASE_APP_LOCATION_PATH + "/" + configName + "/mainConfig.json");
+            if (!file.exists()) {
+                logger.atSevere().log("mainConfig .json not found");
+                System.exit(1);
+            }
             ObjectMapper objectMapper = new ObjectMapper();
             XUtils.MAIN_CONFIG_MODEL = objectMapper.readValue(file, MainConfigModel.class);
         } catch (Exception e) {
