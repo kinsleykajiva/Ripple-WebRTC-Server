@@ -842,8 +842,8 @@ const RippleSDK = {
                 options.headers = {
                     'Content-Type': 'application/json',
                 }
-                if(!options.body.clientID){
-                    options.body.clientID=RippleSDK.serverClientId
+                if (!options.body.clientID) {
+                  options.body.clientID = RippleSDK.serverClientId;
                 }
                 options.body.timeStamp  = new Date().getTime();
                 options.body.timeZone   = RippleSDK.timeZone;

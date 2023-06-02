@@ -80,6 +80,7 @@ public class WebRTCGStreamer {
 
     public void startClock() {
         var clientObject = connectionsManager.getClient(clientID);
+        assert clientObject.isPresent();
         final var maxCountSeconds = clientObject.get().getgStreamMediaResource().getDuration();
         final long[] CountSeconds = {0};
         Timer timer = new Timer();
