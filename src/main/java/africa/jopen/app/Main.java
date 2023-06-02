@@ -26,10 +26,6 @@ public class Main implements QuarkusApplication {
     // @Override
     public int run(String... args) throws Exception {
         logger.atInfo().log("Server Started");
-
-
-
-
         Quarkus.waitForExit();
         return 0;
     }
