@@ -52,6 +52,7 @@ public class VideoCallSocketEvent {
                 }
             }
         }
+        broadcast(client, response.toString());
     }
 
 }
