@@ -1,4 +1,4 @@
-The files here are required . The folder location can be anywere on on the machine or box .
+The files here are required . The folder location can be anywhere on on the machine or box .
 Make sure the path of this folder is defined in the application.properties file.
 
 This is file is not required to run the server !
