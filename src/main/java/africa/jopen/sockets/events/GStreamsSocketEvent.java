@@ -18,7 +18,8 @@ import static africa.jopen.sockets.ClientWebSocket.rememberResponse;
 
 public class GStreamsSocketEvent {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-    public static void handleGStreamRequest(ConnectionsManager connectionsManager,Client clientObject, JSONObject messageObject, JSONObject response) {
+    private static final ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
+    public static void handleGStreamRequest(Client clientObject, JSONObject messageObject, JSONObject response) {
 
 
         final String requestType = messageObject.getString("requestType");

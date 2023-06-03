@@ -18,7 +18,8 @@ import static africa.jopen.sockets.ClientWebSocket.rememberResponse;
 
 public class VideoRoomSocketEvent {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-    public static void handleVideoRoomRequest(ConnectionsManager connectionsManager,Client clientObject, JSONObject messageObject, JSONObject response) {
+    private static final ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
+    public static void handleVideoRoomRequest(Client clientObject, JSONObject messageObject, JSONObject response) {
         String requestType = messageObject.getString("requestType");
         response.put("history", messageObject);
         switch (requestType) {

@@ -134,8 +134,8 @@ public class ClientWebSocket {
 
             FeatureTypes featureType = clientObject.getFeatureType();
             switch (featureType) {
-                case G_STREAM -> handleGStreamRequest(connectionsManager,clientObject, messageObject, response);
-                case VIDEO_ROOM -> handleVideoRoomRequest(connectionsManager, clientObject, messageObject, response);
+                case G_STREAM -> handleGStreamRequest(clientObject, messageObject, response);
+                case VIDEO_ROOM -> handleVideoRoomRequest( clientObject, messageObject, response);
                 default -> {
                     response.put("clientID", clientObject.getClientID());
                     response = XUtils.buildJsonErrorResponse(500, "eventType", "validation",
