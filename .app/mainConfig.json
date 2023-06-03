@@ -6,6 +6,10 @@
   "serverName": "Server-A",
   "serverVersion": "0.1.5",
   "serverTimeZone": "Africa/Johannesburg",
+  "adminMonitor": {
+    "username": "",
+    "password": ""
+  },
   "basicAuth": {
     "username": "",
     "password": ""
