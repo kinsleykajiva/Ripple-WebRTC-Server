@@ -28,7 +28,7 @@ public final class Client implements PeerConnectionObserver {
 	private final String clientID = XUtils.IdGenerator();
 	private final Vector<String> messages = new Vector<>();
 	private final Recorder recorder = new Recorder();
-	private final RTCPeerConnection peerConnection;
+	private  RTCPeerConnection peerConnection;
 	private  Session socketSession;
 	private final String clientAgentName;// this si the display name that will be used
 	private FeatureTypes featureType;
@@ -42,7 +42,12 @@ public final class Client implements PeerConnectionObserver {
 	
 	public Client(String clientAgentName) {
 		this.clientAgentName = clientAgentName;
-
+		createPeerConnection();
+	}
+	public void createPeerConnection(){
+		if(Objects.nonNull(peerConnection)){
+			return;
+		}
 		RTCConfiguration rtcConfiguration = new RTCConfiguration();
 		RTCIceServer stunServer = new RTCIceServer();
 		stunServer.urls.addAll(XUtils.MAIN_CONFIG_MODEL.nat().stuns());
@@ -51,6 +56,7 @@ public final class Client implements PeerConnectionObserver {
 		rtcConfiguration.iceServers.add(stunServer);
 		peerConnection = peerConnectionFactory.createPeerConnection(rtcConfiguration, this);
 		logger.atInfo().log("Creating peer connection");
+
 	}
 
 
