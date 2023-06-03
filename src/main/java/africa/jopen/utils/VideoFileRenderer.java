@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -19,14 +20,12 @@ public class VideoFileRenderer implements Runnable {
 	private final Queue<VideoFrame> frameQueue = new ConcurrentLinkedQueue<VideoFrame>();
 	private final File file;
 	private Thread thread = null;
-	
-	private int outputFileWidth;
-	private int outputFileHeight;
+
 	private int outputFrameSize;
 	
 	private FileOutputStream fileOutputStream;
 	
-	private AtomicBoolean headerWritten = new AtomicBoolean(false);
+	private final AtomicBoolean headerWritten = new AtomicBoolean(false);
 	
 	public VideoFileRenderer(File file) {
 		
@@ -35,14 +34,14 @@ public class VideoFileRenderer implements Runnable {
 	
 	public synchronized void queue(VideoFrame videoFrame) throws IOException {
 		
-		if (headerWritten.getAndSet(true) == false) {
+		if (!headerWritten.getAndSet(true)) {
 			
 			// first time in, set some things up
 			
 			final VideoFrameBuffer videoFrameBuffer = videoFrame.buffer;
-			
-			outputFileWidth = videoFrameBuffer.getWidth();
-			outputFileHeight = videoFrameBuffer.getHeight();
+
+			int outputFileWidth = videoFrameBuffer.getWidth();
+			int outputFileHeight = videoFrameBuffer.getHeight();
 			outputFrameSize = outputFileWidth * outputFileHeight * 3 / 2;
 			
 			final String fileHeader = String.format("YUV4MPEG2 C420 W%d H%d Ip F30:1 A1:1\n", outputFileWidth, outputFileHeight);
@@ -50,7 +49,7 @@ public class VideoFileRenderer implements Runnable {
 			logger.atInfo().log("Video file: %s\n%s", file.getName(), fileHeader);
 			
 			fileOutputStream = new FileOutputStream(file);
-			fileOutputStream.write(fileHeader.getBytes(Charset.forName("US-ASCII")));
+			fileOutputStream.write(fileHeader.getBytes(StandardCharsets.US_ASCII));
 			
 		}
 		
@@ -59,11 +58,13 @@ public class VideoFileRenderer implements Runnable {
 		
 		if (thread != null) {
 			
-			if (thread.isAlive()) return;
+			if (thread.isAlive()) {
+                return;
+            }
 		}
 		
 		Thread thread = new Thread(this);
-		thread.run();
+		thread.start();
 	}
 	
 	@Override
@@ -103,9 +104,8 @@ public class VideoFileRenderer implements Runnable {
 		
 		try {
 			
-			fileOutputStream.write("FRAME\n".getBytes(Charset.forName("US-ASCII")));
-			fileOutputStream.write(
-					outputFrameBuffer.array(), outputFrameBuffer.arrayOffset(), outputFrameSize);
+			fileOutputStream.write("FRAME\n".getBytes(StandardCharsets.US_ASCII));
+			fileOutputStream.write(outputFrameBuffer.array(), outputFrameBuffer.arrayOffset(), outputFrameSize);
 			
 		} catch (IOException e) {
 			throw new RuntimeException("Error writing video to disk", e);

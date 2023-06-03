@@ -77,7 +77,7 @@ public class TrackRecorder implements AudioTrackSink, VideoTrackSink {
 			fos.write(data);
 			
 		} catch (IOException ex) {
-			ex.printStackTrace();
+			logger.atSevere().withCause(ex).log(ex.getMessage());
 		}
 	}
 	
@@ -91,7 +91,7 @@ public class TrackRecorder implements AudioTrackSink, VideoTrackSink {
 			videoFileRenderer.queue(frame);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.atSevere().withCause(e).log(e.getMessage());
 		}
 	}
 	
