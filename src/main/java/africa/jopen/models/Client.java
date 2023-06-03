@@ -42,7 +42,7 @@ public final class Client implements PeerConnectionObserver {
 	
 	public Client(String clientAgentName) {
 		this.clientAgentName = clientAgentName;
-		createPeerConnection();
+
 	}
 	public void createPeerConnection(){
 		if(Objects.nonNull(peerConnection)){

@@ -64,12 +64,15 @@ public class ClientWebSocket {
                 }
                 if (Objects.equals(featureType, "VIDEO_ROOM")) {
                     clientObject.setFeatureType(FeatureTypes.VIDEO_ROOM);
+                    clientObject.createPeerConnection();
                 }
                 if (Objects.equals(featureType, "VIDEO_CALL")) {
                     clientObject.setFeatureType(FeatureTypes.VIDEO_CALL);
+                    clientObject.createPeerConnection();
                 }
                 if (Objects.equals(featureType, "AUDIO_ROOM")) {
                     clientObject.setFeatureType(FeatureTypes.AUDIO_ROOM);
+                    clientObject.createPeerConnection();
                 }
                 clientObject.setSocketSession(session);
                 connectionsManager.addNewClient(clientObject);
