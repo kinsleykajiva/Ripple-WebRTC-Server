@@ -111,7 +111,7 @@ public final class Client implements PeerConnectionObserver {
 			
 			@Override
 			public void onFailure(String s) {
-			
+				logger.atWarning().log("SetSessionDescriptionObserver-OnFailure " + s);
 			}
 		};
 		peerConnection.setRemoteDescription(description, remoteSDP);
@@ -119,8 +119,7 @@ public final class Client implements PeerConnectionObserver {
 			// Wait for the CompletableFuture to complete (or complete exceptionally)
 			return future.get();
 		} catch (Exception e) {
-			
-			logger.atInfo().withCause(e).log("Error");
+			logger.atSevere().withCause(e).log("Error");
 		}
 		
 		return "";

@@ -50,7 +50,6 @@ public class App {
                 System.exit(1);
             }
         } catch (Exception e) {
-
             logger.atSevere().withCause(e).log("Configs not found");
         }
 

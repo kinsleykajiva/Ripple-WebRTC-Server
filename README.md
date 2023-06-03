@@ -104,7 +104,7 @@ Access transport that will be support to above features are :
 - Rest HTTP 
 - Websockets
 
-Primary transport focus is  Rest HTTP for now  . Demo pages are so far  that are still in progress are : 
+Demo pages are so far  that are still in progress are : 
 
 * ![Video-Room Page](/website/demos/video-room.html)
 * ![Video-Call Page](/website/demos/video-call.html)

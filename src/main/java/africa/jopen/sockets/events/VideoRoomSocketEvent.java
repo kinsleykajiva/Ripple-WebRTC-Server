@@ -20,7 +20,7 @@ public class VideoRoomSocketEvent {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private static final ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
     public static void handleVideoRoomRequest(Client clientObject, JSONObject messageObject, JSONObject response) {
-        String requestType = messageObject.getString("requestType");
+        final String requestType = messageObject.getString("requestType");
         response.put("history", messageObject);
         switch (requestType) {
             case "remember" -> response = rememberResponse(connectionsManager,clientObject);

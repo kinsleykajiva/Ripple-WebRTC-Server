@@ -121,7 +121,7 @@ public class ClientWebSocket {
 
         JSONObject response = new JSONObject();
         try {
-            logger.atInfo().log("..." + clientID);
+
             JSONObject messageObject = new JSONObject(message);
 
             if (!messageObject.has("requestType")) {
