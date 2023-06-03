@@ -136,6 +136,7 @@ public class ConnectionsManager {
 	
 	public void removeClient(Client client) {
 		CLIENTS.remove(client);
+		logger.atInfo().log("freeing some objects");
 	}
 	
 	/*
