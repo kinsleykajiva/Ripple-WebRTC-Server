@@ -26,6 +26,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static africa.jopen.sockets.events.GStreamsSocketEvent.handleGStreamRequest;
+import static africa.jopen.sockets.events.VideoCallSocketEvent.handleVideoCallRequest;
 import static africa.jopen.sockets.events.VideoRoomSocketEvent.handleVideoRoomRequest;
 
 @ServerEndpoint("/client-access/{clientID}/{featureType}")
@@ -136,6 +137,7 @@ public class ClientWebSocket {
             switch (featureType) {
                 case G_STREAM -> handleGStreamRequest(clientObject, messageObject, response);
                 case VIDEO_ROOM -> handleVideoRoomRequest( clientObject, messageObject, response);
+                case VIDEO_CALL -> handleVideoCallRequest( clientObject, messageObject, response);
                 default -> {
                     response.put("clientID", clientObject.getClientID());
                     response = XUtils.buildJsonErrorResponse(500, "eventType", "validation",
