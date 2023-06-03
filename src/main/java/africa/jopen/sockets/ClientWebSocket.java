@@ -207,9 +207,7 @@ public class ClientWebSocket {
                 clientObject.getWebRTCGStreamer().resumeTransmission();
                 response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
                         "Call resumed", response);
-
             }
-
 
             case "start" -> {
                 if (!messageObject.has("clientID")) {
@@ -224,15 +222,13 @@ public class ClientWebSocket {
                     broadcast(clientObject, response.toString());
                     return;
                 }
-                JSONObject mediaJSON =  messageObject.getJSONObject("media");
+                JSONObject mediaJSON = messageObject.getJSONObject("media");
                 if (!mediaJSON.has("path")) {
                     response = XUtils.buildJsonErrorResponse(400, "eventType", "validation",
                             "media Path is required", response);
                     broadcast(clientObject, response.toString());
                     return;
                 }
-
-
                 response.put("nextActions", Arrays.asList("createPeerConnection", "shareIceCandidates", "play"));
                 try {
 
@@ -249,7 +245,7 @@ public class ClientWebSocket {
                     connectionsManager.updateClient(clientObject);
                     response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
                             "Streaming Started Successfully, the app should start to receive some streams,the Server Is preparing WebRTC stuff", response);
-                    // clientObject.getWebRTCSendRecv().startCall();
+
                 } catch (Exception e) {
                     logger.atSevere().withCause(e).log("Failed to make a pipeline");
                     response = XUtils.buildJsonErrorResponse(500, "eventType", "Error",

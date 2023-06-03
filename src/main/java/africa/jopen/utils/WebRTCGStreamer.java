@@ -139,7 +139,6 @@ public class WebRTCGStreamer {
             Map<String, Object> candidateMap = new HashMap<>();
             candidateMap.put("sdpMLineIndex", sdpMLineIndex);
             candidateMap.put("candidate", candidate);
-            //System.out.println("xxxxxxxxxxxxxxxcccccccccccccc ice my ice  " + ice);
             var clientObject = connectionsManager.getClient(clientID);
             assert clientObject.isPresent();
             clientObject.get().setCandidateMap(candidateMap);
@@ -159,7 +158,7 @@ public class WebRTCGStreamer {
         };
         webRTCBin.connect(onIceCandidate);
         Element.PAD_ADDED onIncomingStream = (element, pad) -> {
-          //  logger.atInfo().log("Receiving stream! Element : " + element.getName()                    + " Pad : " + pad.getName());
+            logger.atInfo().log("Receiving stream! Element : " + element.getName() + " Pad : " + pad.getName());
             if (pad.getDirection() != PadDirection.SRC) {
                 return;
             }
