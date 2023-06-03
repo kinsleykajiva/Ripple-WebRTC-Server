@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import static africa.jopen.sockets.ClientWebSocket.broadcast;
 import static africa.jopen.sockets.ClientWebSocket.rememberResponse;
 
 public class VideoCallSocketEvent {
@@ -26,8 +27,6 @@ public class VideoCallSocketEvent {
             case "remember" -> response = rememberResponse(connectionsManager,client);
 
             case "send-offer" -> {
-
-                //PostSDPOffer payload = objectMapper.readValue(file, PostSDPOffer.class);
                 PostSDPOffer payload = new PostSDPOffer(messageObject.getString("offer") ,client.getClientID());
                 var clientOptional = connectionsManager.getClient(payload.clientID());
 
@@ -43,6 +42,10 @@ public class VideoCallSocketEvent {
                 try {
                     // Retrieve the response from the CompletableFuture
                     var sdp= future.get();
+                    response.put("sdp", sdp);
+                    response = XUtils.buildJsonSuccessResponse(200, "eventType", "answer",
+                            "SDP Offer processed, here is the answer ", response);
+                    broadcast(clientObject, response.toString());
                 } catch (Exception e) {
                     logger.atInfo().withCause(e).log("Error");
                    // return XUtils.buildErrorResponse(false, 500, "Error processing SDP Offer", Map.of());
