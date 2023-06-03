@@ -177,12 +177,11 @@ public class WebRTCGStreamer {
 
     public void startCall() {
         if (!isPaused) {
-        if (!pipe.isPlaying()) {
-            logger.atInfo().log("initiating streams");
-            pipe.play();
-            startClock();
-         //   System.out.println("xxxxxxxxxxxxxxxcccccccccccccc play");
-        }
+            if (!pipe.isPlaying()) {
+                logger.atInfo().log("initiating streams");
+                pipe.play();
+                startClock();
+            }
         }
     }
     public void pauseTransmission() {
@@ -213,7 +212,6 @@ public class WebRTCGStreamer {
             WebRTCSessionDescription description = new WebRTCSessionDescription(WebRTCSDPType.ANSWER, sdpMessage);
             webRTCBin.setRemoteDescription(description);
             //Todo remove some of the code here is useless
-          //  System.out.println("xxxxxxxxxxxxxxxcccccccccccccc handleSdp " + sdpStr);
 
         } catch (Exception exception) {
             logger.atSevere().withCause(exception).log(exception.getLocalizedMessage());
@@ -222,7 +220,6 @@ public class WebRTCGStreamer {
 
     public void handleIceSdp(String candidate, int sdpMLineIndex) {
         try {
-          //  System.out.println("xxxxxxxxxxxxxxxcccccccccccccc ice  " + candidate);
             logger.atInfo().log("Adding remote client ICE candidate : " );
             webRTCBin.addIceCandidate(sdpMLineIndex, candidate);
         } catch (Exception exception) {
@@ -237,12 +234,12 @@ public class WebRTCGStreamer {
 
         Bus bus = pipe.getBus();
         bus.connect((Bus.EOS) source -> {
-          //  logger.atInfo().log("Reached end of stream : " + source.toString());
+            logger.atInfo().log("Reached end of stream : " + source.toString());
             endCall();
         });
 
         bus.connect((Bus.ERROR) (source, code, message) -> {
-           // logger.atInfo().log("Error from source : " + source                 + ", with code : " + code + ", and message : " + message);
+            logger.atInfo().log("Error from source : " + source + ", with code : " + code + ", and message : " + message);
             endCall();
         });
 
@@ -253,7 +250,8 @@ public class WebRTCGStreamer {
         });
 
         bus.connect((Bus.MESSAGE) (element, message) -> {
-           //Todo not really working needs to be updated to work as much , no idea to fix this yet
+           //Todo not really working needs to be updated to work as much , no idea to fix this yet. #startClock() is in use at the mean time
+
             if (message.getType() == MessageType.ELEMENT) {
                 Structure structure = message.getStructure();
 
@@ -290,7 +288,6 @@ public class WebRTCGStreamer {
                 .put("type", "offer")
                 .put("sdp", sdpp));
         String json = sdp.toString();
-       // System.out.println("xxxxxxxxxxxxxxxcccccccccccccc sdp json " + json);
         logger.atInfo().log("Sending answer:\n");
         //Todo remove some of the code here is useless
         var clientObject = connectionsManager.getClient(clientID);

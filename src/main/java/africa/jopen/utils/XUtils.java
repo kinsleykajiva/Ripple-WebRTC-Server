@@ -91,7 +91,6 @@ public class XUtils {
 	private static Map<String, Object> buildResponseMap(boolean success, int code, String message, Map<String, Object> data) {
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", success);
-
 		response.put("timeZone",MAIN_CONFIG_MODEL.serverTimeZone() /*"Africa/Johannesburg"*/);
 		response.put("serverName",MAIN_CONFIG_MODEL.serverName() );
 		response.put("timeStamp", System.currentTimeMillis());
@@ -102,7 +101,6 @@ public class XUtils {
 	}
 	public static JSONObject buildJsonErrorResponse(int code,String messageTypeTitle, String messageType, String message, JSONObject data) {
 		JSONObject response = new JSONObject();
-
 		response.put("timeZone",MAIN_CONFIG_MODEL.serverTimeZone() /*"Africa/Johannesburg"*/);
 		response.put("serverName", MAIN_CONFIG_MODEL.serverName());
 		response.put("timeStamp", System.currentTimeMillis());
