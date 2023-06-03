@@ -40,4 +40,7 @@ nb-configuration.xml
 .env
 
 # Plugin directory
-/.quarkus/cli/plugins/
+/.quarkus/cli/plugins
+
+.app/keys/*.pem
+
