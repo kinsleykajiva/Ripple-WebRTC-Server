@@ -6,6 +6,7 @@ import africa.jopen.http.videoroom.PostJoinRoom;
 import africa.jopen.models.Client;
 import africa.jopen.models.RoomModel;
 import africa.jopen.utils.ConnectionsManager;
+import africa.jopen.utils.Events;
 import africa.jopen.utils.XUtils;
 import com.google.common.flogger.FluentLogger;
 import org.json.JSONObject;
@@ -26,13 +27,13 @@ public class VideoRoomSocketEvent {
             case "remember" -> response = rememberResponse(connectionsManager,clientObject);
             case "joinRoom" -> {
                 if (!messageObject.has("password")) {
-                    response = XUtils.buildJsonErrorResponse(400, "password", "validation",
+                    response = XUtils.buildJsonErrorResponse(400, "password",  Events.VALIDATION_ERROR_EVENT,
                             "password is required", response);
                     broadcast(clientObject, response.toString());
                     return;
                 }
                 if (!messageObject.has("clientID")) {
-                    response = XUtils.buildJsonErrorResponse(400, "clientID", "validation",
+                    response = XUtils.buildJsonErrorResponse(400, "clientID",  Events.VALIDATION_ERROR_EVENT,
                             "clientID is required", response);
                     broadcast(clientObject, response.toString());
                     return;
@@ -44,7 +45,7 @@ public class VideoRoomSocketEvent {
                 );
                 Optional<RoomModel> roomModelOptional = connectionsManager.getRoomById(room.roomID());
                 if (roomModelOptional.isEmpty()) {
-                    response = XUtils.buildJsonErrorResponse(400, "room", "validation",
+                    response = XUtils.buildJsonErrorResponse(400, "room",  Events.VALIDATION_ERROR_EVENT,
                             "Invalid room ID!", response);
                     broadcast(clientObject, response.toString());
                     return;
@@ -62,19 +63,19 @@ public class VideoRoomSocketEvent {
             }
             case "createRoom" -> {
                 if (!messageObject.has("pin")) {
-                    response = XUtils.buildJsonErrorResponse(400, "pin", "validation",
+                    response = XUtils.buildJsonErrorResponse(400, "pin",  Events.VALIDATION_ERROR_EVENT,
                             "Pin is required", response);
                     broadcast(clientObject, response.toString());
                     return;
                 }
                 if (!messageObject.has("password")) {
-                    response = XUtils.buildJsonErrorResponse(400, "password", "validation",
+                    response = XUtils.buildJsonErrorResponse(400, "password",  Events.VALIDATION_ERROR_EVENT,
                             "password is required", response);
                     broadcast(clientObject, response.toString());
                     return;
                 }
                 if (!messageObject.has("creatorClientID")) {
-                    response = XUtils.buildJsonErrorResponse(400, "creatorClientID", "validation",
+                    response = XUtils.buildJsonErrorResponse(400, "creatorClientID",  Events.VALIDATION_ERROR_EVENT,
                             "creatorClientID is required", response);
                     broadcast(clientObject, response.toString());
                     return;
@@ -92,7 +93,7 @@ public class VideoRoomSocketEvent {
             }
             default -> {
                 response.put("clientID", clientObject.getClientID());
-                response = XUtils.buildJsonErrorResponse(400, "requestType", "validation",
+                response = XUtils.buildJsonErrorResponse(400, "requestType",  Events.VALIDATION_ERROR_EVENT,
                         "Invalid request type for VIDEO_ROOM feature", response);
             }
         }

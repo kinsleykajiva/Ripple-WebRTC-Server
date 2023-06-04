@@ -6,6 +6,7 @@ import africa.jopen.http.videoroom.PostSDPAnswer;
 import africa.jopen.models.Client;
 import africa.jopen.models.GStreamMediaResource;
 import africa.jopen.utils.ConnectionsManager;
+import africa.jopen.utils.Events;
 import africa.jopen.utils.XUtils;
 import com.google.common.flogger.FluentLogger;
 import org.json.JSONObject;
@@ -70,20 +71,20 @@ public class GStreamsSocketEvent {
 
             case "start" -> {
                 if (!messageObject.has("clientID")) {
-                    response = XUtils.buildJsonErrorResponse(400, "eventType", "validation",
+                    response = XUtils.buildJsonErrorResponse(400, "eventType",  Events.VALIDATION_ERROR_EVENT,
                             "clientID is required", response);
                     broadcast(clientObject, response.toString());
                     return;
                 }
                 if (!messageObject.has("media")) {
-                    response = XUtils.buildJsonErrorResponse(400, "eventType", "validation",
+                    response = XUtils.buildJsonErrorResponse(400, "eventType",  Events.VALIDATION_ERROR_EVENT,
                             "media Object is required", response);
                     broadcast(clientObject, response.toString());
                     return;
                 }
                 JSONObject mediaJSON = messageObject.getJSONObject("media");
                 if (!mediaJSON.has("path")) {
-                    response = XUtils.buildJsonErrorResponse(400, "eventType", "validation",
+                    response = XUtils.buildJsonErrorResponse(400, "eventType",  Events.VALIDATION_ERROR_EVENT,
                             "media Path is required", response);
                     broadcast(clientObject, response.toString());
                     return;
@@ -94,7 +95,7 @@ public class GStreamsSocketEvent {
                     final var path = mediaJSON.getString("path");
                     if (!new File(path).exists()) {
                         logger.atInfo().log("File not found error");
-                        response = XUtils.buildJsonErrorResponse(400, "eventType", "validation",
+                        response = XUtils.buildJsonErrorResponse(400, "eventType",  Events.VALIDATION_ERROR_EVENT,
                                 "media Path is invalid ", response);
                         broadcast(clientObject, response.toString());
                         return;
@@ -115,7 +116,7 @@ public class GStreamsSocketEvent {
             }
             default -> {
                 response.put("clientID", clientObject.getClientID());
-                response = XUtils.buildJsonErrorResponse(400, "requestType", "validation",
+                response = XUtils.buildJsonErrorResponse(400, "requestType",  Events.VALIDATION_ERROR_EVENT,
                         "Invalid request type for G_STREAM feature", response);
                 broadcast(clientObject, response.toString());
             }

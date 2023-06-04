@@ -18,4 +18,10 @@ public class IndexController {
 
         return XUtils.buildSuccessResponse(true, 200, "About Server", Map.of("details", XUtils.MAIN_CONFIG_MODEL , "features", List.of("Video Call" ,"Video Room" ,"G Stream")));
     }
+    @GET
+    @Path("/")
+    public Response index() {
+
+        return XUtils.buildSuccessResponse(true, 200, "Index Server", Map.of());
+    }
 }

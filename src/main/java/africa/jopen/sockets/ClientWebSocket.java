@@ -10,6 +10,7 @@ import africa.jopen.models.Client;
 import africa.jopen.models.GStreamMediaResource;
 import africa.jopen.models.RoomModel;
 import africa.jopen.utils.ConnectionsManager;
+import africa.jopen.utils.Events;
 import africa.jopen.utils.FeatureTypes;
 import africa.jopen.utils.XUtils;
 import com.google.common.flogger.FluentLogger;
@@ -127,7 +128,7 @@ public class ClientWebSocket {
 
             if (!messageObject.has("requestType")) {
                 response.put("clientID", clientObject.getClientID());
-                response = XUtils.buildJsonErrorResponse(400, "eventType", "validation",
+                response = XUtils.buildJsonErrorResponse(400, "eventType", Events.VALIDATION_ERROR_EVENT,
                         "Failed to understand the purpose of the request", response);
                 broadcast(clientObject, response.toString());
                 return;
@@ -140,7 +141,7 @@ public class ClientWebSocket {
                 case VIDEO_CALL -> handleVideoCallRequest( clientObject, messageObject, response);
                 default -> {
                     response.put("clientID", clientObject.getClientID());
-                    response = XUtils.buildJsonErrorResponse(500, "eventType", "validation",
+                    response = XUtils.buildJsonErrorResponse(500, "eventType",  Events.VALIDATION_ERROR_EVENT   ,
                             "Invalid feature type", response);
                     broadcast(clientObject, response.toString());
                 }
@@ -162,7 +163,7 @@ public class ClientWebSocket {
         response.put("clientID", clientObject.getClientID());
         response.put("lastSeen", clientObject.lastTimeStamp());
         response.put("featureInUse", clientObject.getFeatureType().toString());
-        response = XUtils.buildJsonSuccessResponse(200, "eventType", "remember",
+        response = XUtils.buildJsonSuccessResponse(200, "eventType", Events.REMEMBER_EVENT,
                 "Client Remembered Successfully", response);
 
         return response;
