@@ -1,6 +1,7 @@
 package africa.jopen.sockets;
 
 import africa.jopen.controllers.VideoRoomController;
+import africa.jopen.exceptions.ClientException;
 import africa.jopen.http.IceCandidate;
 import africa.jopen.http.videoroom.PostCreateRoom;
 import africa.jopen.http.videoroom.PostIceCandidate;
@@ -98,14 +99,14 @@ public class ClientWebSocket {
     @OnClose
     public void onClose(Session session, @PathParam("clientID") String clientID) {
         logger.atInfo().log("onClose > " + clientID);
-        Client clientObject = connectionsManager.getClient(clientID).orElseThrow(() -> new IllegalStateException("Client object not found"));
+        Client clientObject = connectionsManager.getClient(clientID).orElseThrow(() -> new ClientException("Client object not found"));
         connectionsManager.removeClient(clientObject);
     }
 
     @OnError
     public void onError(Session session, @PathParam("clientID") String clientID, Throwable throwable) {
         logger.atSevere().withCause(throwable).log("onError > " + clientID + ": " + throwable);
-        Client clientObject = connectionsManager.getClient(clientID).orElseThrow(() -> new IllegalStateException("Client object not found"));
+        Client clientObject = connectionsManager.getClient(clientID).orElseThrow(() -> new ClientException("Client object not found"));
         connectionsManager.removeClient(clientObject);
     }
 
@@ -119,7 +120,7 @@ public class ClientWebSocket {
         }
 
         Client clientObject = connectionsManager.getClient(clientID)
-                .orElseThrow(() -> new IllegalStateException("Client object not found"));
+                .orElseThrow(() -> new ClientException("Client object not found"));
 
         JSONObject response = new JSONObject();
         try {
@@ -128,8 +129,7 @@ public class ClientWebSocket {
 
             if (!messageObject.has("requestType")) {
                 response.put("clientID", clientObject.getClientID());
-                response = XUtils.buildJsonErrorResponse(400, "eventType", Events.VALIDATION_ERROR_EVENT,
-                        "Failed to understand the purpose of the request", response);
+                response = XUtils.buildJsonErrorResponse(400,  Events.EVENT_TYPE, Events.VALIDATION_ERROR_EVENT,"Failed to understand the purpose of the request", response);
                 broadcast(clientObject, response.toString());
                 return;
             }
@@ -141,14 +141,11 @@ public class ClientWebSocket {
                 case VIDEO_CALL -> handleVideoCallRequest( clientObject, messageObject, response);
                 default -> {
                     response.put("clientID", clientObject.getClientID());
-                    response = XUtils.buildJsonErrorResponse(500, "eventType",  Events.VALIDATION_ERROR_EVENT   ,
-                            "Invalid feature type", response);
+                    response = XUtils.buildJsonErrorResponse(500,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,"Invalid feature type", response);
                     broadcast(clientObject, response.toString());
                 }
             }
-
-            clientObject = connectionsManager.getClient(clientID)
-                    .orElseThrow(() -> new IllegalStateException("Client object not found"));
+            clientObject = connectionsManager.getClient(clientID).orElseThrow(() -> new ClientException("Client object not found"));
 
             broadcast(clientObject, response.toString());
         } catch (Exception ex) {
@@ -163,8 +160,7 @@ public class ClientWebSocket {
         response.put("clientID", clientObject.getClientID());
         response.put("lastSeen", clientObject.lastTimeStamp());
         response.put("featureInUse", clientObject.getFeatureType().toString());
-        response = XUtils.buildJsonSuccessResponse(200, "eventType", Events.REMEMBER_EVENT,
-                "Client Remembered Successfully", response);
+        response = XUtils.buildJsonSuccessResponse(200,  Events.EVENT_TYPE, Events.REMEMBER_EVENT,"Client Remembered Successfully", response);
 
         return response;
     }

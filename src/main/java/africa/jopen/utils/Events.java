@@ -11,4 +11,5 @@ public interface Events {
     final String SYSTEM_FATAL_ERROR_EVENT = "fatalError";
     final String VALIDATION_ERROR_EVENT = "validation";
     final String AUTH_ERROR_EVENT = "auth";
+    String EVENT_TYPE = "eventType";
 }

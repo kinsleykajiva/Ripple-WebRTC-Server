@@ -32,8 +32,7 @@ public class VideoCallSocketEvent {
 			
 			case "hangup" -> {
 				response.put("nextActions", Arrays.asList("closePeerConnection", "hangup"));
-				response = XUtils.buildJsonSuccessResponse(200, "eventType", Events.NOTIFICATION_EVENT,
-						"Call ended", response);
+				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.NOTIFICATION_EVENT,"Call ended", response);
 			}
 			case "update-ice-candidate" -> {
 				var payload = new PostIceCandidate(
@@ -46,8 +45,7 @@ public class VideoCallSocketEvent {
 				client.addIceCandidate(payload.iceCandidate());
 				connectionsManager.updateClient(client);
 				
-				response = XUtils.buildJsonSuccessResponse(200, "eventType", Events.NOTIFICATION_EVENT,
-						"Updated Clients Ice Candidates ", response);
+				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.NOTIFICATION_EVENT,"Updated Clients Ice Candidates ", response);
 			}
 			case "send-offer" -> {
 				PostSDPOffer payload        = new PostSDPOffer(messageObject.getString("offer"), client.getClientID());
@@ -66,13 +64,11 @@ public class VideoCallSocketEvent {
 					// Retrieve the response from the CompletableFuture
 					var sdp = future.get();
 					response.put("sdp", sdp);
-					response = XUtils.buildJsonSuccessResponse(200, "eventType", "answer",
-							"SDP Offer processed, here is the answer ", response);
+					response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, "answer","SDP Offer processed, here is the answer ", response);
 					
 				} catch (Exception e) {
 					logger.atInfo().withCause(e).log("Error");
-					response = XUtils.buildJsonErrorResponse(500, "eventType", Events.ERROR_EVENT,
-							"Error processing SDP Offer", response);
+					response = XUtils.buildJsonErrorResponse(500, Events.EVENT_TYPE, Events.ERROR_EVENT,"Error processing SDP Offer", response);
 				}
 			}
 		}
