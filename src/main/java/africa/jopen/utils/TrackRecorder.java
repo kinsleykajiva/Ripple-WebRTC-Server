@@ -97,28 +97,7 @@ public class TrackRecorder implements AudioTrackSink, VideoTrackSink {
 	
 	void writeInfo(final String message, Object... args) {
 		
-		/*if (infoWritten) return;
-		
-		final String infoFileName = file.getPath().concat(".info");
-		
-		try(final TextFileWriter textFileWriter = TextFileWriter.open(infoFileName)) {
-			
-			textFileWriter.writeLine(message, args);
-			Log.lo("Recording: %s ", infoFileName);
-			Log.log(message, args);				
-			
-		} catch (FileNotFoundException ex) {
-			// TODO Auto-generated catch block
-			ex.printStackTrace();
-		} catch (UnsupportedEncodingException ex) {
-			// TODO Auto-generated catch block
-			ex.printStackTrace();
-		} catch (Exception ex) {
-			// TODO Auto-generated catch block
-			ex.printStackTrace();
-		}
-		
-		infoWritten = true;*/
+
 	}
 	
 	
