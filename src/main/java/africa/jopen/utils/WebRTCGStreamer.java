@@ -108,7 +108,7 @@ public class WebRTCGStreamer {
                     if (minutes == 1 && seconds == 1) {
                         System.out.println("01:01");
                     }
-                    // emmit this to the client
+                    // Todo emmit this to the client
                 }
             }
         }, 0, 1_000); // Update every second
@@ -151,8 +151,7 @@ public class WebRTCGStreamer {
                 response.put("iceCandidates", candidateMap);
                 response.put("lastSeen", clientObject.get().lastTimeStamp());
                 response.put("featureInUse", clientObject.get().getFeatureType().toString());
-                response = XUtils.buildJsonSuccessResponse(200, "eventType", Events.ICE_CANDIDATES_EVENT,
-                        "Ice Shared", response);
+                response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.ICE_CANDIDATES_EVENT,"Ice Shared", response);
                 broadcast(clientObject.get(), response.toString());
             }
 
