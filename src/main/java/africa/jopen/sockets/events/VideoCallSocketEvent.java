@@ -65,7 +65,9 @@ public class VideoCallSocketEvent {
 
                 } catch (Exception e) {
                     logger.atInfo().withCause(e).log("Error");
-                    // return XUtils.buildErrorResponse(false, 500, "Error processing SDP Offer", Map.of());
+
+                    response = XUtils.buildJsonErrorResponse(500, "eventType",  Events.ERROR_EVENT   ,
+                            "Error processing SDP Offer", response);
                 }
             }
         }
