@@ -30,7 +30,7 @@ public final class Client implements PeerConnectionObserver {
 	private final Recorder recorder = new Recorder();
 	private  RTCPeerConnection peerConnection;
 	private  Session socketSession;
-	private final String clientAgentName;// this si the display name that will be used
+	private final String clientAgentName;// this is the display name that will be used
 	private FeatureTypes featureType;
 	private long lastTimeStamp = System.currentTimeMillis();
 	private Integer trackCounter = 0;
