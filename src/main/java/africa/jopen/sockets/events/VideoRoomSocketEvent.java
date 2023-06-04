@@ -44,8 +44,7 @@ public class VideoRoomSocketEvent {
                 );
                 Optional<RoomModel> roomModelOptional = connectionsManager.getRoomById(room.roomID());
                 if (roomModelOptional.isEmpty()) {
-                    response = XUtils.buildJsonErrorResponse(400,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,
-                            "Invalid room ID!", response);
+                    response = XUtils.buildJsonErrorResponse(400,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,"Invalid room ID!", response);
                     broadcast(clientObject, response.toString());
                     return;
                 }
@@ -61,8 +60,7 @@ public class VideoRoomSocketEvent {
             }
             case "createRoom" -> {
                 if (!messageObject.has("pin")) {
-                    response = XUtils.buildJsonErrorResponse(400,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,
-                            "Pin is required", response);
+                    response = XUtils.buildJsonErrorResponse(400,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,"Pin is required", response);
                     broadcast(clientObject, response.toString());
                     return;
                 }
