@@ -236,7 +236,7 @@ public final class Client implements PeerConnectionObserver {
 				response.put("lastSeen", lastTimeStamp());
 				response.put("featureInUse",getFeatureType().toString());
 				response = XUtils.buildJsonSuccessResponse(200, "eventType", "iceCandidates",
-						"Updated Clients Ice Candidates ", response);
+						"Ice Shared", response);
 				broadcast(this,response.toString());
 
 			}
