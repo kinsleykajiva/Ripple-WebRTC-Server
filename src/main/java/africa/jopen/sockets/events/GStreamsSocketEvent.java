@@ -44,21 +44,21 @@ public class GStreamsSocketEvent {
                 clientObject.getWebRTCGStreamer().handleSdp(payload.answer());
                 connectionsManager.updateClient(clientObject);
 
-                response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
+                response = XUtils.buildJsonSuccessResponse(200, "eventType", Events.NOTIFICATION_EVENT,
                         "Client answered Successfully", response);
 
             }
             case "play" -> {
 
                 clientObject.getWebRTCGStreamer().startCall();
-                response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
+                response = XUtils.buildJsonSuccessResponse(200, "eventType", Events.NOTIFICATION_EVENT,
                         "Call Started", response);
 
             }
             case "pause" -> {
 
                 clientObject.getWebRTCGStreamer().pauseTransmission();
-                response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
+                response = XUtils.buildJsonSuccessResponse(200, "eventType", Events.NOTIFICATION_EVENT,
                         "Call paused", response);
 
             }
@@ -103,7 +103,7 @@ public class GStreamsSocketEvent {
                     var media = new GStreamMediaResource(mediaJSON.getString("title"), path);
                     clientObject.setWebRTCGStreamer(media);
                     connectionsManager.updateClient(clientObject);
-                    response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
+                    response = XUtils.buildJsonSuccessResponse(200, "eventType", Events.NOTIFICATION_EVENT,
                             "Streaming Started Successfully, the app should start to receive some streams,the Server Is preparing WebRTC stuff", response);
 
                 } catch (Exception e) {

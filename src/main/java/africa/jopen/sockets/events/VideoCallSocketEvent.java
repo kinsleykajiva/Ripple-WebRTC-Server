@@ -6,6 +6,7 @@ import africa.jopen.http.videocall.PostSDPOffer;
 import africa.jopen.models.Client;
 import africa.jopen.models.configs.main.MainConfigModel;
 import africa.jopen.utils.ConnectionsManager;
+import africa.jopen.utils.Events;
 import africa.jopen.utils.XUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.flogger.FluentLogger;
@@ -39,7 +40,7 @@ public class VideoCallSocketEvent {
                 client.addIceCandidate(payload.iceCandidate());
                 connectionsManager.updateClient(client);
 
-                response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
+                response = XUtils.buildJsonSuccessResponse(200, "eventType", Events.NOTIFICATION_EVENT,
                         "Updated Clients Ice Candidates ", response);
             }
             case "send-offer" -> {
