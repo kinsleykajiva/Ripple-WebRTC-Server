@@ -39,12 +39,12 @@ public class App {
         XUtils.BASE_APP_LOCATION_PATH = Paths.get("").toAbsolutePath().toString();
 
         logger.atInfo().log("App running in folder path " + XUtils.BASE_APP_LOCATION_PATH);
-        logger.atInfo().log("App running in config folder path " + XUtils.BASE_APP_LOCATION_PATH + "/" + configName);
+        logger.atInfo().log("App running in config folder path " + XUtils.BASE_APP_LOCATION_PATH +File.pathSeparator + configName);
 
         File file;
         try {
 
-            file = new File(XUtils.BASE_APP_LOCATION_PATH + "/" + configName);
+            file = new File(XUtils.BASE_APP_LOCATION_PATH + File.pathSeparator + configName);
             if (!file.exists()) {
                 logger.atSevere().log("Configs not found");
                 System.exit(1);
@@ -54,7 +54,7 @@ public class App {
         }
 
         try {
-            file = new File(XUtils.BASE_APP_LOCATION_PATH + "/" + configName + "/mainConfig.json");
+            file = new File(XUtils.BASE_APP_LOCATION_PATH + File.pathSeparator + configName + File.pathSeparator+ "mainConfig.json");
             if (!file.exists()) {
                 logger.atSevere().log("mainConfig .json not found");
                 System.exit(1);
@@ -72,12 +72,12 @@ public class App {
            final String privateKey = "privateKey.pem";
            final String publicKey = "publicKey.pem";
 
-           if(!new File(XUtils.BASE_APP_LOCATION_PATH +"/"+configName + "/keys").exists()) {
-               new File(XUtils.BASE_APP_LOCATION_PATH + "/" + configName + "/keys").mkdir();
+           if(!new File(XUtils.BASE_APP_LOCATION_PATH +File.pathSeparator+configName +File.pathSeparator+ "keys").exists()) {
+               new File(XUtils.BASE_APP_LOCATION_PATH + File.pathSeparator + configName + File.pathSeparator + "keys").mkdir();
            }
 
-            Path privateKeyPath = new File(XUtils.BASE_APP_LOCATION_PATH + "/" +configName + "/keys/"+privateKey).toPath();
-            Path publicKeyPath =  new File(XUtils.BASE_APP_LOCATION_PATH  + "/" + configName + "/keys/"+publicKey).toPath();
+            Path privateKeyPath = new File(XUtils.BASE_APP_LOCATION_PATH + File.pathSeparator +configName +File.pathSeparator + "keys"+File.pathSeparator+privateKey).toPath();
+            Path publicKeyPath =  new File(XUtils.BASE_APP_LOCATION_PATH  + File.pathSeparator + configName +File.pathSeparator + "keys"+File.pathSeparator+publicKey).toPath();
 
             if (Files.notExists(privateKeyPath)) {
                 try {

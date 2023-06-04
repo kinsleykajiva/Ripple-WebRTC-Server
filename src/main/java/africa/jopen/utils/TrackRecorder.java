@@ -24,7 +24,14 @@ public class TrackRecorder implements AudioTrackSink, VideoTrackSink {
 	
 	public TrackRecorder(String fileName, MediaStreamTrack mediaStreamTrack) {
 		
-		final String recordingPath = "recording" /*Properties.getPropertyS("RecordingPath", ".")*/;
+		final String recordingPath =XUtils.MAIN_CONFIG_MODEL.storagePath().recordings();
+		if(!new File(recordingPath).exists()){
+			boolean isFolderCreated = new File(XUtils.BASE_APP_LOCATION_PATH + File.pathSeparator + "storage" + File.pathSeparator + "recording").mkdir();
+			if (isFolderCreated) {
+				logger.atSevere().log("Failed to create create recording folder");
+			}
+			
+		}
 		
 		this.file = new File(recordingPath, fileName);
 		this.mediaStreamTrack = mediaStreamTrack;

@@ -4,6 +4,10 @@
   "serverPort": 6060,
   "serverSSLPort": 7070,
   "serverName": "Server-A",
+  "storagePath": {
+    "media"  : "C:\\Users\\Kinsl\\IdeaProjects\\Ripple-WebRTC-Server\\storage",
+    "recordings"  : "C:\\Users\\Kinsl\\IdeaProjects\\Ripple-WebRTC-Server\\storage"
+  },
   "serverVersion": "0.1.5",
   "serverTimeZone": "Africa/Johannesburg",
   "adminMonitor": {
