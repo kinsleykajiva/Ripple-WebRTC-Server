@@ -50,6 +50,7 @@ public class WebRTCGStreamer {
 
     private String pipeLineMaker() {
         var clientObject = connectionsManager.getClient(clientID);
+        assert clientObject.isPresent();
         String p = clientObject.get().getgStreamMediaResource().getPath();
         p = p.replaceAll("\\\\", "\\\\\\\\");
 
@@ -150,7 +151,7 @@ public class WebRTCGStreamer {
                 response.put("iceCandidates", candidateMap);
                 response.put("lastSeen", clientObject.get().lastTimeStamp());
                 response.put("featureInUse", clientObject.get().getFeatureType().toString());
-                response = XUtils.buildJsonSuccessResponse(200, "eventType", "iceCandidates",
+                response = XUtils.buildJsonSuccessResponse(200, "eventType", Events.ICE_CANDIDATES_EVENT,
                         "Ice Shared", response);
                 broadcast(clientObject.get(), response.toString());
             }

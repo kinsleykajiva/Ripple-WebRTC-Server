@@ -1,6 +1,7 @@
 package africa.jopen.models;
 
 import africa.jopen.http.IceCandidate;
+import africa.jopen.utils.Events;
 import africa.jopen.utils.FeatureTypes;
 import africa.jopen.utils.WebRTCGStreamer;
 import africa.jopen.utils.XUtils;
@@ -235,7 +236,7 @@ public final class Client implements PeerConnectionObserver {
 				response.put("iceCandidates", candidateMap);
 				response.put("lastSeen", lastTimeStamp());
 				response.put("featureInUse",getFeatureType().toString());
-				response = XUtils.buildJsonSuccessResponse(200, "eventType", "iceCandidates",
+				response = XUtils.buildJsonSuccessResponse(200, "eventType", Events.ICE_CANDIDATES_EVENT,
 						"Ice Shared", response);
 				broadcast(this,response.toString());
 
