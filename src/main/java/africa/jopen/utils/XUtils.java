@@ -144,13 +144,11 @@ public class XUtils {
 					if (systemPath == null || systemPath.trim().isEmpty()) {
 						Kernel32.INSTANCE.SetEnvironmentVariable("PATH", gstPath);
 					} else {
-						Kernel32.INSTANCE.SetEnvironmentVariable("PATH", gstPath
-								+ File.pathSeparator + systemPath);
+						Kernel32.INSTANCE.SetEnvironmentVariable("PATH", gstPath+ File.pathSeparator + systemPath);
 					}
 				}
 			} else if (Platform.isMac()) {
-				String gstPath = System.getProperty("gstreamer.path",
-						"/Library/Frameworks/GStreamer.framework/Libraries/");
+				String gstPath = System.getProperty("gstreamer.path","/Library/Frameworks/GStreamer.framework/Libraries/");
 				if (!gstPath.isEmpty()) {
 					String jnaPath = System.getProperty("jna.library.path", "").trim();
 					if (jnaPath.isEmpty()) {
@@ -172,13 +170,12 @@ public class XUtils {
 		 */
 		static String findWindowsLocation() {
 			if (Platform.is64Bit()) {
-				return Stream.of("GSTREAMER_1_0_ROOT_MSVC_X86_64",
-								"GSTREAMER_1_0_ROOT_MINGW_X86_64",
-								"GSTREAMER_1_0_ROOT_X86_64")
+				return Stream.of("GSTREAMER_1_0_ROOT_MSVC_X86_64","GSTREAMER_1_0_ROOT_MINGW_X86_64","GSTREAMER_1_0_ROOT_X86_64")
 						.map(System::getenv)
 						.filter(Objects::nonNull)
 						.map(p -> p.endsWith("\\") ? p + "bin\\" : p + "\\bin\\")
-						.findFirst().orElse("");
+						.findFirst()
+						.orElse("");
 			} else {
 				return "";
 			}
