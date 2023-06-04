@@ -1,5 +1,7 @@
 package africa.jopen.sockets.events;
 
+import africa.jopen.http.IceCandidate;
+import africa.jopen.http.videocall.PostIceCandidate;
 import africa.jopen.http.videocall.PostSDPOffer;
 import africa.jopen.models.Client;
 import africa.jopen.models.configs.main.MainConfigModel;
@@ -20,14 +22,28 @@ public class VideoCallSocketEvent {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private static final ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
 
-    public static void handleVideoCallRequest( Client client, JSONObject messageObject, JSONObject response) {
+    public static void handleVideoCallRequest(Client client, JSONObject messageObject, JSONObject response) {
         final String requestType = messageObject.getString("requestType");
         response.put("history", messageObject);
         switch (requestType) {
-            case "remember" -> response = rememberResponse(connectionsManager,client);
+            case "remember" -> response = rememberResponse(connectionsManager, client);
 
+            case "update-ice-candidate" -> {
+                var payload = new PostIceCandidate(
+                        new IceCandidate(
+                                messageObject.getString("candidate"),
+                                messageObject.getString("sdpMid"),
+                                messageObject.getInt("sdpMidLineIndex")
+                        ), client.getClientID()
+                );
+                client.addIceCandidate(payload.iceCandidate());
+                connectionsManager.updateClient(client);
+
+                response = XUtils.buildJsonSuccessResponse(200, "eventType", "notification",
+                        "Updated Clients Ice Candidates ", response);
+            }
             case "send-offer" -> {
-                PostSDPOffer payload = new PostSDPOffer(messageObject.getString("offer") ,client.getClientID());
+                PostSDPOffer payload = new PostSDPOffer(messageObject.getString("offer"), client.getClientID());
                 var clientOptional = connectionsManager.getClient(payload.clientID());
 
                 assert clientOptional.isPresent();
@@ -41,14 +57,14 @@ public class VideoCallSocketEvent {
 
                 try {
                     // Retrieve the response from the CompletableFuture
-                    var sdp= future.get();
+                    var sdp = future.get();
                     response.put("sdp", sdp);
                     response = XUtils.buildJsonSuccessResponse(200, "eventType", "answer",
                             "SDP Offer processed, here is the answer ", response);
-                    broadcast(clientObject, response.toString());
+
                 } catch (Exception e) {
                     logger.atInfo().withCause(e).log("Error");
-                   // return XUtils.buildErrorResponse(false, 500, "Error processing SDP Offer", Map.of());
+                    // return XUtils.buildErrorResponse(false, 500, "Error processing SDP Offer", Map.of());
                 }
             }
         }

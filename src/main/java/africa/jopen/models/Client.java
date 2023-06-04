@@ -9,9 +9,12 @@ import dev.onvoid.webrtc.*;
 import jakarta.websocket.Session;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
+import org.json.JSONObject;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+
+import static africa.jopen.sockets.ClientWebSocket.broadcast;
 
 
 public final class Client implements PeerConnectionObserver {
@@ -226,7 +229,17 @@ public final class Client implements PeerConnectionObserver {
 			candidateMap.put("candidate", rtcIceCandidate.sdp);
 			candidatesMapList.add(candidateMap);
 			// When using Htt or Rest API access the best way to send this data is via the reminder request, the next time the client checks in then we send the data along is as an array.
-			
+			if (getSocketSession() != null) {
+				JSONObject response = new JSONObject();
+				response.put("clientID", clientID);
+				response.put("iceCandidates", candidateMap);
+				response.put("lastSeen", lastTimeStamp());
+				response.put("featureInUse",getFeatureType().toString());
+				response = XUtils.buildJsonSuccessResponse(200, "eventType", "iceCandidates",
+						"Updated Clients Ice Candidates ", response);
+				broadcast(this,response.toString());
+
+			}
 		}
 	}
 
