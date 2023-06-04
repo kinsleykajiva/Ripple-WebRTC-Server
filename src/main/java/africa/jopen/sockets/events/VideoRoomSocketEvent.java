@@ -28,14 +28,12 @@ public class VideoRoomSocketEvent {
             case "remember" -> response = rememberResponse(connectionsManager,clientObject);
             case "joinRoom" -> {
                 if (!messageObject.has("password")) {
-                    response = XUtils.buildJsonErrorResponse(400,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,
-                            "password is required", response);
+                    response = XUtils.buildJsonErrorResponse(400,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,"password is required", response);
                     broadcast(clientObject, response.toString());
                     return;
                 }
                 if (!messageObject.has("clientID")) {
-                    response = XUtils.buildJsonErrorResponse(400,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,
-                            "clientID is required", response);
+                    response = XUtils.buildJsonErrorResponse(400,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,"clientID is required", response);
                     broadcast(clientObject, response.toString());
                     return;
                 }
@@ -53,8 +51,7 @@ public class VideoRoomSocketEvent {
                 }
                 RoomModel roomModel = roomModelOptional.get();
                 if (!roomModel.getPassword().equals(room.password())) {
-                    response = XUtils.buildJsonErrorResponse(400,  Events.EVENT_TYPE, "authentication",
-                            "Room authentication failed! Access rejected.", response);
+                    response = XUtils.buildJsonErrorResponse(400,  Events.EVENT_TYPE, "authentication","Room authentication failed! Access rejected.", response);
                     broadcast(clientObject, response.toString());
                     return;
                 }
@@ -70,14 +67,12 @@ public class VideoRoomSocketEvent {
                     return;
                 }
                 if (!messageObject.has("password")) {
-                    response = XUtils.buildJsonErrorResponse(400,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,
-                            "password is required", response);
+                    response = XUtils.buildJsonErrorResponse(400,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,"password is required", response);
                     broadcast(clientObject, response.toString());
                     return;
                 }
                 if (!messageObject.has("creatorClientID")) {
-                    response = XUtils.buildJsonErrorResponse(400,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,
-                            "creatorClientID is required", response);
+                    response = XUtils.buildJsonErrorResponse(400,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,"creatorClientID is required", response);
                     broadcast(clientObject, response.toString());
                     return;
                 }
@@ -89,13 +84,11 @@ public class VideoRoomSocketEvent {
                 );
                 Map<String, Object> resultRoom = VideoRoomController.createRoom(connectionsManager, post, clientObject);
                 response.put("room", resultRoom);
-                response = XUtils.buildJsonSuccessResponse(200,  Events.EVENT_TYPE, "createRoom",
-                        "Room created successfully", response);
+                response = XUtils.buildJsonSuccessResponse(200,  Events.EVENT_TYPE, "createRoom","Room created successfully", response);
             }
             default -> {
                 response.put("clientID", clientObject.getClientID());
-                response = XUtils.buildJsonErrorResponse(400,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,
-                        "Invalid request type for VIDEO_ROOM feature", response);
+                response = XUtils.buildJsonErrorResponse(400,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,"Invalid request type for VIDEO_ROOM feature", response);
             }
         }
         broadcast(clientObject, response.toString());
