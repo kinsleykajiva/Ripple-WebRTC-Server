@@ -13,6 +13,7 @@ import com.google.common.flogger.FluentLogger;
 import jakarta.ws.rs.core.Response;
 import org.json.JSONObject;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -20,58 +21,62 @@ import static africa.jopen.sockets.ClientWebSocket.broadcast;
 import static africa.jopen.sockets.ClientWebSocket.rememberResponse;
 
 public class VideoCallSocketEvent {
-    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-    private static final ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
-
-    public static void handleVideoCallRequest(Client client, JSONObject messageObject, JSONObject response) {
-        final String requestType = messageObject.getString("requestType");
-        response.put("history", messageObject);
-        switch (requestType) {
-            case "remember" -> response = rememberResponse(connectionsManager, client);
-
-            case "update-ice-candidate" -> {
-                var payload = new PostIceCandidate(
-                        new IceCandidate(
-                                messageObject.getString("candidate"),
-                                messageObject.getString("sdpMid"),
-                                messageObject.getInt("sdpMidLineIndex")
-                        ), client.getClientID()
-                );
-                client.addIceCandidate(payload.iceCandidate());
-                connectionsManager.updateClient(client);
-
-                response = XUtils.buildJsonSuccessResponse(200, "eventType", Events.NOTIFICATION_EVENT,
-                        "Updated Clients Ice Candidates ", response);
-            }
-            case "send-offer" -> {
-                PostSDPOffer payload = new PostSDPOffer(messageObject.getString("offer"), client.getClientID());
-                var clientOptional = connectionsManager.getClient(payload.clientID());
-
-                assert clientOptional.isPresent();
-
-                var clientObject = clientOptional.get();
-                CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
-                    String responseAnswer = clientObject.processSdpOfferAsRemoteDescription();
-                    connectionsManager.updateClient(clientObject);
-                    return responseAnswer;
-                });
-
-                try {
-                    // Retrieve the response from the CompletableFuture
-                    var sdp = future.get();
-                    response.put("sdp", sdp);
-                    response = XUtils.buildJsonSuccessResponse(200, "eventType", "answer",
-                            "SDP Offer processed, here is the answer ", response);
-
-                } catch (Exception e) {
-                    logger.atInfo().withCause(e).log("Error");
-
-                    response = XUtils.buildJsonErrorResponse(500, "eventType",  Events.ERROR_EVENT   ,
-                            "Error processing SDP Offer", response);
-                }
-            }
-        }
-        broadcast(client, response.toString());
-    }
-
+	private static final FluentLogger       logger             = FluentLogger.forEnclosingClass();
+	private static final ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
+	
+	public static void handleVideoCallRequest(Client client, JSONObject messageObject, JSONObject response) {
+		final String requestType = messageObject.getString("requestType");
+		response.put("history", messageObject);
+		switch (requestType) {
+			case "remember" -> response = rememberResponse(connectionsManager, client);
+			
+			case "hangup" -> {
+				response.put("nextActions", Arrays.asList("closePeerConnection", "hangup"));
+				response = XUtils.buildJsonSuccessResponse(200, "eventType", Events.NOTIFICATION_EVENT,
+						"Call ended", response);
+			}
+			case "update-ice-candidate" -> {
+				var payload = new PostIceCandidate(
+						new IceCandidate(
+								messageObject.getString("candidate"),
+								messageObject.getString("sdpMid"),
+								messageObject.getInt("sdpMidLineIndex")
+						), client.getClientID()
+				);
+				client.addIceCandidate(payload.iceCandidate());
+				connectionsManager.updateClient(client);
+				
+				response = XUtils.buildJsonSuccessResponse(200, "eventType", Events.NOTIFICATION_EVENT,
+						"Updated Clients Ice Candidates ", response);
+			}
+			case "send-offer" -> {
+				PostSDPOffer payload        = new PostSDPOffer(messageObject.getString("offer"), client.getClientID());
+				var          clientOptional = connectionsManager.getClient(payload.clientID());
+				
+				assert clientOptional.isPresent();
+				
+				var clientObject = clientOptional.get();
+				CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+					String responseAnswer = clientObject.processSdpOfferAsRemoteDescription();
+					connectionsManager.updateClient(clientObject);
+					return responseAnswer;
+				});
+				
+				try {
+					// Retrieve the response from the CompletableFuture
+					var sdp = future.get();
+					response.put("sdp", sdp);
+					response = XUtils.buildJsonSuccessResponse(200, "eventType", "answer",
+							"SDP Offer processed, here is the answer ", response);
+					
+				} catch (Exception e) {
+					logger.atInfo().withCause(e).log("Error");
+					response = XUtils.buildJsonErrorResponse(500, "eventType", Events.ERROR_EVENT,
+							"Error processing SDP Offer", response);
+				}
+			}
+		}
+		broadcast(client, response.toString());
+	}
+	
 }
