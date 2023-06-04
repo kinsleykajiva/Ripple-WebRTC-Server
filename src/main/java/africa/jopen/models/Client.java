@@ -94,7 +94,7 @@ public final class Client implements PeerConnectionObserver {
 			@Override
 			public void onSuccess(RTCSessionDescription rtcSessionDescription) {
 				peerConnection.setLocalDescription(rtcSessionDescription, localObserver);
-				// now we are responding to this cleint with the remote description
+				// now we are responding to this client with the remote description
 				rtcModel.setAnswer(rtcSessionDescription.sdp);
 				future.complete(rtcSessionDescription.sdp);
 			}
@@ -236,8 +236,7 @@ public final class Client implements PeerConnectionObserver {
 				response.put("iceCandidates", candidateMap);
 				response.put("lastSeen", lastTimeStamp());
 				response.put("featureInUse", getFeatureType().toString());
-				response = XUtils.buildJsonSuccessResponse(200, "eventType", Events.ICE_CANDIDATES_EVENT,
-						"Ice Shared", response);
+				response = XUtils.buildJsonSuccessResponse(200, "eventType", Events.ICE_CANDIDATES_EVENT,"Ice Shared", response);
 				broadcast(this, response.toString());
 				
 			}
