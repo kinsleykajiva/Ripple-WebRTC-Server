@@ -4,6 +4,7 @@ public interface Events {
 	
 	String NOTIFICATION_EVENT       = "notification";
 	String SDP_OFFER_EVENT          = "offer";
+	String WEBRTC_EVENT          = "webrtc";
 	String SDP_ANSWER_EVENT         = "answer";
 	String ICE_CANDIDATES_EVENT     = "iceCandidates";
 	String REMEMBER_EVENT           = "remember";

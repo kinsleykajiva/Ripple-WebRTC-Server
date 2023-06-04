@@ -300,8 +300,7 @@ public class WebRTCGStreamer {
             response.put("sdp", json);
             response.put("lastSeen", clientObject.get().lastTimeStamp());
             response.put("featureInUse", clientObject.get().getFeatureType().toString());
-            response = XUtils.buildJsonSuccessResponse(200, "eventType", "webrtc",
-                    "Client  Remembered Successfully", response);
+            response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.WEBRTC_EVENT,"offer details", response);
             broadcast(clientObject.get(), response.toString());
         }
 
