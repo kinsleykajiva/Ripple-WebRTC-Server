@@ -7,6 +7,7 @@ import africa.jopen.models.Client;
 import africa.jopen.models.GStreamMediaResource;
 import africa.jopen.utils.ConnectionsManager;
 import africa.jopen.utils.Events;
+import africa.jopen.utils.Requests;
 import africa.jopen.utils.XUtils;
 import com.google.common.flogger.FluentLogger;
 import org.json.JSONObject;
@@ -24,7 +25,7 @@ public class GStreamsSocketEvent {
 	public static void handleGStreamRequest(Client clientObject, JSONObject messageObject, JSONObject response) {
 		
 		
-		final String requestType = messageObject.getString("requestType");
+		final String requestType = messageObject.getString(Requests.REQUEST_TYPE);
 		response.put("history", messageObject);
 		switch (requestType) {
 			case "remember" -> response = rememberResponse(connectionsManager, clientObject);

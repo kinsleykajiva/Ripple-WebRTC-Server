@@ -7,6 +7,7 @@ import africa.jopen.models.Client;
 import africa.jopen.models.configs.main.MainConfigModel;
 import africa.jopen.utils.ConnectionsManager;
 import africa.jopen.utils.Events;
+import africa.jopen.utils.Requests;
 import africa.jopen.utils.XUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.flogger.FluentLogger;
@@ -25,7 +26,7 @@ public class VideoCallSocketEvent {
 	private static final ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
 	
 	public static void handleVideoCallRequest(Client client, JSONObject messageObject, JSONObject response) {
-		final String requestType = messageObject.getString("requestType");
+		final String requestType = messageObject.getString(Requests.REQUEST_TYPE);
 		response.put("history", messageObject);
 		switch (requestType) {
 			case "remember" -> response = rememberResponse(connectionsManager, client);

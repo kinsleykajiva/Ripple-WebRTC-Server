@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 public class XUtils {
-
+	
 	public static boolean isFilePath(String path) {
 		try {
 			// Attempt to resolve the path
@@ -25,7 +25,7 @@ public class XUtils {
 			return false;
 		}
 	}
-
+	
 	public static boolean isURL(String path) {
 		try {
 			new URL(path); // Attempt to parse the string as a URL
@@ -34,13 +34,11 @@ public class XUtils {
 			return false;
 		}
 	}
-	public static String SERVER_NAME = "SERVER_ONE";
-	private static final Map<String,Object> GENERAL_RESPONSE_MAP = new HashMap<>();
-	private static final JSONObject GENERAL_RESPONSE_JSON = new JSONObject();
-	public static String BASE_APP_LOCATION_PATH ;
-	public static MainConfigModel MAIN_CONFIG_MODEL ;
-
-
+	
+	private static final JSONObject          GENERAL_RESPONSE_JSON = new JSONObject();
+	public static        String              BASE_APP_LOCATION_PATH;
+	public static        MainConfigModel     MAIN_CONFIG_MODEL;
+	
 	
 	public static String IdGenerator() {
 		UUID uuid = UUID.randomUUID();
@@ -74,8 +72,8 @@ public class XUtils {
 	public void deprecatedMethod() {
 		// Deprecated method implementation
 	}
-
-
+	
+	
 	public static Response buildErrorResponse(boolean success, int code, String message, Map<String, Object> data) {
 		return Response.status(Response.Status.BAD_REQUEST)
 				.entity(buildResponseMap(success, code, message, data))
@@ -91,43 +89,46 @@ public class XUtils {
 	private static Map<String, Object> buildResponseMap(boolean success, int code, String message, Map<String, Object> data) {
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", success);
-		response.put("timeZone",MAIN_CONFIG_MODEL.serverTimeZone() /*"Africa/Johannesburg"*/);
-		response.put("serverName",MAIN_CONFIG_MODEL.serverName() );
+		response.put("timeZone", MAIN_CONFIG_MODEL.serverTimeZone() /*"Africa/Johannesburg"*/);
+		response.put("serverName", MAIN_CONFIG_MODEL.serverName());
 		response.put("timeStamp", System.currentTimeMillis());
 		response.put("code", code);
 		response.put("message", message);
 		response.put("data", data);
 		return response;
 	}
-	public static JSONObject buildJsonErrorResponse(int code,String messageTypeTitle, String messageType, String message, JSONObject data) {
+	
+	public static JSONObject buildJsonErrorResponse(int code, String messageTypeTitle, String messageType, String message, JSONObject data) {
 		JSONObject response = new JSONObject();
-		response.put("timeZone",MAIN_CONFIG_MODEL.serverTimeZone() /*"Africa/Johannesburg"*/);
+		response.put("timeZone", MAIN_CONFIG_MODEL.serverTimeZone() /*"Africa/Johannesburg"*/);
 		response.put("serverName", MAIN_CONFIG_MODEL.serverName());
 		response.put("timeStamp", System.currentTimeMillis());
-		response.put(messageTypeTitle,messageType);
+		response.put(messageTypeTitle, messageType);
 		response.put("message", message);
 		response.put("success", false);
 		response.put("code", code);
-		response.put("data",data);
-		return  response;
+		response.put("data", data);
+		return response;
 	}
-	public static JSONObject buildJsonSuccessResponse(int code,String messageTypeTitle, String messageType, String message, JSONObject data) {
+	
+	public static JSONObject buildJsonSuccessResponse(int code, String messageTypeTitle, String messageType, String message, JSONObject data) {
 		JSONObject response = new JSONObject();
-		response.put("timeZone",MAIN_CONFIG_MODEL.serverTimeZone() /*"Africa/Johannesburg"*/);
+		response.put("timeZone", MAIN_CONFIG_MODEL.serverTimeZone() /*"Africa/Johannesburg"*/);
 		response.put("serverName", MAIN_CONFIG_MODEL.serverName());
 		response.put("timeStamp", System.currentTimeMillis());
-		response.put(messageTypeTitle,messageType);
+		response.put(messageTypeTitle, messageType);
 		response.put("message", message);
 		response.put("success", true);
 		response.put("code", code);
-		response.put("data",data);
-		return  response;
+		response.put("data", data);
+		return response;
 	}
-
-	public static final class GStreamerUtils{
-
-		private GStreamerUtils(){}
-
+	
+	public static final class GStreamerUtils {
+		
+		private GStreamerUtils() {
+		}
+		
 		/**
 		 * Configures paths to the GStreamer libraries. On Windows queries various
 		 * GStreamer environment variables, and then sets up the PATH environment
@@ -158,10 +159,10 @@ public class XUtils {
 						System.setProperty("jna.library.path", jnaPath + File.pathSeparator + gstPath);
 					}
 				}
-
+				
 			}
 		}
-
+		
 		/**
 		 * Query over a stream of possible environment variables for GStreamer
 		 * location, filtering on the first non-null result, and adding \bin\ to the
@@ -182,9 +183,8 @@ public class XUtils {
 				return "";
 			}
 		}
-
-
-
+		
+		
 	}
 	
 	

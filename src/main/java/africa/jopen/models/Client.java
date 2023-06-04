@@ -19,64 +19,64 @@ import static africa.jopen.sockets.ClientWebSocket.broadcast;
 
 
 public final class Client implements PeerConnectionObserver {
-	private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-	private final SetSessionDescriptionObserver localObserver = new SetSessionDescriptionObserver() {
+	private final        SetSessionDescriptionObserver localObserver = new SetSessionDescriptionObserver() {
 		public void onSuccess() {
 		}
 		
 		public void onFailure(String s) {
 		}
 	};
-
-	private WebRTCGStreamer webRTCGStreamer;
-	private final String clientID = XUtils.IdGenerator();
-	private final Vector<String> messages = new Vector<>();
-	private final Recorder recorder = new Recorder();
-	private  RTCPeerConnection peerConnection;
-	private  Session socketSession;
-	private final String clientAgentName;// this is the display name that will be used
-	private FeatureTypes featureType;
-	private long lastTimeStamp = System.currentTimeMillis();
-	private Integer trackCounter = 0;
-	private RTCModel rtcModel = new RTCModel();
-	private Map<String, Object> candidateMap = new HashMap<>();
-	private MutableList<Map<String, Object>> candidatesMapList = Lists.mutable.empty();
-	private VideCallNotification videCallNotification;
-	private GStreamMediaResource gStreamMediaResource;
+	private static final FluentLogger                  logger        = FluentLogger.forEnclosingClass();
+	private       WebRTCGStreamer                  webRTCGStreamer;
+	private final String                           clientID          = XUtils.IdGenerator();
+	private final Vector<String>                   messages          = new Vector<>();
+	private final Recorder                         recorder          = new Recorder();
+	private       RTCPeerConnection                peerConnection;
+	private       Session                          socketSession;
+	private final String                           clientAgentName;// this is the display name that will be used
+	private       FeatureTypes                     featureType;
+	private       long                             lastTimeStamp     = System.currentTimeMillis();
+	private       Integer                          trackCounter      = 0;
+	private       RTCModel                         rtcModel          = new RTCModel();
+	private       Map<String, Object>              candidateMap      = new HashMap<>();
+	private       MutableList<Map<String, Object>> candidatesMapList = Lists.mutable.empty();
+	private       VideCallNotification             videCallNotification;
+	private       GStreamMediaResource             gStreamMediaResource;
 	
 	public Client(String clientAgentName) {
 		this.clientAgentName = clientAgentName;
 	}
-	public void createPeerConnection(){
-		if(Objects.nonNull(peerConnection)){
+	
+	public void createPeerConnection() {
+		if (Objects.nonNull(peerConnection)) {
 			return;
 		}
 		RTCConfiguration rtcConfiguration = new RTCConfiguration();
-		RTCIceServer stunServer = new RTCIceServer();
+		RTCIceServer     stunServer       = new RTCIceServer();
 		stunServer.urls.addAll(XUtils.MAIN_CONFIG_MODEL.nat().stuns());
-
+		
 		PeerConnectionFactory peerConnectionFactory = new PeerConnectionFactory();
 		rtcConfiguration.iceServers.add(stunServer);
 		peerConnection = peerConnectionFactory.createPeerConnection(rtcConfiguration, this);
 		logger.atInfo().log("Creating peer connection");
-
+		
 	}
-
-
+	
+	
 	public WebRTCGStreamer getWebRTCGStreamer() {
 		return webRTCGStreamer;
 	}
-
+	
 	public void setWebRTCGStreamer(final GStreamMediaResource mediaResource) {
 		//peerConnection.close();
-		this.gStreamMediaResource =mediaResource;
+		this.gStreamMediaResource = mediaResource;
 		this.webRTCGStreamer = new WebRTCGStreamer(clientID);
 	}
-
+	
 	public GStreamMediaResource getgStreamMediaResource() {
 		return gStreamMediaResource;
 	}
-
+	
 	public void addIceCandidate(IceCandidate candidate) {
 		
 		RTCIceCandidate rtcCandidate = new RTCIceCandidate(candidate.sdpMid(), candidate.sdpMidLineIndex(), candidate.candidate());
@@ -85,7 +85,7 @@ public final class Client implements PeerConnectionObserver {
 	}
 	
 	public String processSdpOfferAsRemoteDescription() {
-		logger.atInfo().log("ProcesSdpOfferAsRemoteDescription");
+		logger.atInfo().log("ProcessSdpOfferAsRemoteDescription");
 		RTCSessionDescription description = new RTCSessionDescription(RTCSdpType.OFFER, rtcModel.offer());
 		
 		CompletableFuture<String> future = new CompletableFuture<>();
@@ -235,35 +235,36 @@ public final class Client implements PeerConnectionObserver {
 				response.put("clientID", clientID);
 				response.put("iceCandidates", candidateMap);
 				response.put("lastSeen", lastTimeStamp());
-				response.put("featureInUse",getFeatureType().toString());
+				response.put("featureInUse", getFeatureType().toString());
 				response = XUtils.buildJsonSuccessResponse(200, "eventType", Events.ICE_CANDIDATES_EVENT,
 						"Ice Shared", response);
-				broadcast(this,response.toString());
-
+				broadcast(this, response.toString());
+				
 			}
 		}
 	}
-
+	
 	public MutableList<Map<String, Object>> getCandidatesMapList() {
 		return candidatesMapList;
 	}
-
+	
 	public void setCandidatesMapList(MutableList<Map<String, Object>> candidatesMapList) {
 		this.candidatesMapList = candidatesMapList;
 	}
-
-
+	
+	
 	public Map<String, Object> getCandidateMap() {
 		return candidateMap;
 	}
-	public void  resetCandidateMap() {
-		 candidateMap.clear();
+	
+	public void resetCandidateMap() {
+		candidateMap.clear();
 	}
-	public void setCandidateMap(Map<String,Object> candits) {
+	
+	public void setCandidateMap(Map<String, Object> candits) {
 		// ToDo check if this will require a review  during multi-threading case
-		 this.candidateMap=candits;
+		this.candidateMap = candits;
 	}
-
-
-
+	
+	
 }

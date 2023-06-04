@@ -7,6 +7,7 @@ import africa.jopen.models.Client;
 import africa.jopen.models.RoomModel;
 import africa.jopen.utils.ConnectionsManager;
 import africa.jopen.utils.Events;
+import africa.jopen.utils.Requests;
 import africa.jopen.utils.XUtils;
 import com.google.common.flogger.FluentLogger;
 import org.json.JSONObject;
@@ -21,7 +22,7 @@ public class VideoRoomSocketEvent {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private static final ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
     public static void handleVideoRoomRequest(Client clientObject, JSONObject messageObject, JSONObject response) {
-        final String requestType = messageObject.getString("requestType");
+        final String requestType = messageObject.getString(Requests.REQUEST_TYPE);
         response.put("history", messageObject);
         switch (requestType) {
             case "remember" -> response = rememberResponse(connectionsManager,clientObject);
