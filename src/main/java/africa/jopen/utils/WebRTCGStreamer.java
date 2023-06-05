@@ -51,17 +51,16 @@ public class WebRTCGStreamer {
     private String pipeLineMaker() {
         var clientObject = connectionsManager.getClient(clientID);
         assert clientObject.isPresent();
-        String p = clientObject.get().getgStreamMediaResource().getPath();
-        p = p.replaceAll("\\\\", "\\\\\\\\");
+        String path = clientObject.get().getgStreamMediaResource().getPath();
+        path        = path.replaceAll("\\\\", "\\\\\\\\");
 
-        return "filesrc location=" + p + " ! decodebin name=decoder\n" +
+        return "filesrc location=" + path + " ! decodebin name=decoder" +
                "\n" +
-               "decoder. ! videoconvert ! queue2 max-size-buffers=1000 ! vp8enc deadline=1 ! rtpvp8pay ! queue ! application/x-rtp,media=video,encoding-name=VP8,payload=97 ! webrtcbin.\n" +
+               "decoder. ! videoconvert ! queue2 max-size-buffers=1000 ! vp8enc deadline=1 ! rtpvp8pay ! queue ! application/x-rtp,media=video,encoding-name=VP8,payload=97 ! webrtcbin." +
                "\n" +
-               "decoder. ! audioconvert ! audioresample ! audioamplify amplification=2.0 ! queue2 max-size-buffers=1000 ! opusenc ! rtpopuspay ! queue ! application/x-rtp,media=audio,encoding-name=OPUS,payload=96 ! webrtcbin.\n" +
+               "decoder. ! audioconvert ! audioresample ! audioamplify amplification=2.0 ! queue2 max-size-buffers=1000 ! opusenc ! rtpopuspay ! queue ! application/x-rtp,media=audio,encoding-name=OPUS,payload=96 ! webrtcbin." +
                "\n" +
-               "webrtcbin name=webrtcbin bundle-policy=max-bundle stun-server=stun://stun.l.google.com:19302\n" +
-               "\n";
+               "webrtcbin name=webrtcbin bundle-policy=max-bundle stun-server=stun://stun.l.google.com:19302" ;
     }
 
     // Increase the volume step-by-step

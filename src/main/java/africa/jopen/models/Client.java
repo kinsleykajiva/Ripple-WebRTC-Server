@@ -230,7 +230,7 @@ public final class Client implements PeerConnectionObserver {
 			candidateMap.put("candidate", rtcIceCandidate.sdp);
 			candidatesMapList.add(candidateMap);
 			// When using Htt or Rest API access the best way to send this data is via the reminder request, the next time the client checks in then we send the data along is as an array.
-			if (getSocketSession() != null) {
+			if (Objects.nonNull(getSocketSession())) {
 				JSONObject response = new JSONObject();
 				response.put("clientID", clientID);
 				response.put("iceCandidates", candidateMap);
