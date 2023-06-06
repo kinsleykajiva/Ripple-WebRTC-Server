@@ -3,6 +3,7 @@ package africa.jopen.utils;
 public interface Events {
 	
 	String NOTIFICATION_EVENT       = "notification";
+	String INCOMING_CALL_NOTIFICATION_EVENT = "incomingCallNotification";
 	String SDP_OFFER_EVENT          = "offer";
 	String WEBRTC_EVENT          = "webrtc";
 	String SDP_ANSWER_EVENT         = "answer";

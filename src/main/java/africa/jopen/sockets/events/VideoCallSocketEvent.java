@@ -5,18 +5,14 @@ import africa.jopen.http.videocall.PostIceCandidate;
 import africa.jopen.http.videocall.PostSDPOffer;
 import africa.jopen.models.Client;
 import africa.jopen.models.VideCallNotification;
-import africa.jopen.models.configs.main.MainConfigModel;
 import africa.jopen.utils.ConnectionsManager;
 import africa.jopen.utils.Events;
 import africa.jopen.utils.Requests;
 import africa.jopen.utils.XUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.flogger.FluentLogger;
-import jakarta.ws.rs.core.Response;
 import org.json.JSONObject;
 
 import java.util.Arrays;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -42,6 +38,7 @@ public class VideoCallSocketEvent {
 					broadcast(client, response.toString());
 					return;
 				}
+				var toClient = connectionsManager.getClient(messageObject.getString("toClientID"));
 				if (!testFromClientExists) {
 					response = XUtils.buildJsonErrorResponse(500,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,"You the attempting Client Not Found, Register again to the server !", response);
 					broadcast(client, response.toString());
@@ -56,6 +53,12 @@ public class VideoCallSocketEvent {
 				long end = start + life;
 
 				var notification = new VideCallNotification(XUtils.IdGenerator(),fromClientOptional.get().getClientAgentName(), messageObject.getString("fromClientID"),messageObject.getString("fromClientID"), start, end);
+
+				response.put("videoCall", notification);
+				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.INCOMING_CALL_NOTIFICATION_EVENT,"Getting incoming call ", response);
+				broadcast(toClient.get(), response.toString());
+
+				response = new JSONObject();
 				response.put("videoCall", notification);
 				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.NOTIFICATION_EVENT,"Client notified, call in progress!", response);
 
