@@ -117,17 +117,8 @@
 
 
  async function onConnectAction() {
-     let canProceed = await RippleSDK.app.makeConnection();
-     if(canProceed){
-         canProceed =  await RippleSDK.app.feature.videoRoom.createRoom("Meeting At Twitter","qwerty" ,222);
-         if(canProceed){
-             canProceed =await RippleSDK.app.feature.videoRoom.joinRoom();
-             if(canProceed){
-                 RippleSDK.app.webRTC.createPeerConnection();
-                 RippleSDK.app.webRTC.createOffer();
-             }
-         }
-     }
+	 let canProceed = await RippleSDK.app.makeConnection();
+	 canProceed = RippleSDK.Utils.webSocket();
  }
 
 

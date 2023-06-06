@@ -123,7 +123,7 @@ public class VideoCallSocketEvent {
 					// Retrieve the response from the CompletableFuture
 					var sdp = future.get();
 					response.put("sdp", sdp);
-					response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, "answer","SDP Offer processed, here is the answer ", response);
+					response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.SDP_ANSWER_EVENT,"SDP Offer processed, here is the answer ", response);
 					
 				} catch (Exception e) {
 					logger.atInfo().withCause(e).log("Error");

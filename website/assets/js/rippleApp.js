@@ -136,7 +136,18 @@ const RippleSDK = {
 
                     if (message.code === 200) {
 
-                        if (message.eventType === 'webrtc') {
+                        if ( message.eventType === 'answer' ) {
+                            if (message.data.sdp) {
+                                if (RippleSDK.app.featureInUse === RippleSDK_CONST.featuresAvailable.VIDEO_CALL) {
+                            
+                                    console.log(" Happy yey ,  finally got our answer from the remote sever ");
+                                    await RippleSDK.app.webRTC.consumeAnswer(message.data.sdp);
+                                }
+                                
+                                //RippleSDK.Utils.onRemoteSDPReady();
+                            }
+                        }
+                        if ( message.eventType === 'webrtc' ) {
                             console.info(" WebRTC Server Response  ", message.message);
                             if (message.data.clientSDP) {
                                 RippleSDK.app.feature.gStream.remoteOfferStringSDP = message.data.clientSDP;
@@ -257,6 +268,17 @@ const RippleSDK = {
             }
         },
         feature: {
+            videoCall:{
+               
+                makeCall:(toClientID)=>{
+                    const body = {clientID: RippleSDK.serverClientId,};
+                    body.requestType = 'make-call';
+                    body.toClientID =toClientID;
+                    body.fromClientID = RippleSDK.serverClientId;
+                    RippleSDK.Utils.webSocketSendAction(body);
+                    RippleSDK.app.webRTC.createPeerConnection();
+                } ,
+            },
             gStream:{
                 requestToPauseTransmission:()=>{
                     RippleSDK.Utils.webSocketSendAction({
@@ -488,11 +510,17 @@ const RippleSDK = {
             peerConnection: null,
             wasOfferSentSuccessfully:false,
             offerOptions: {offerToReceiveVideo: true, offerToReceiveAudio: true},
+            consumeAnswer:async (sdp) => {
+                await RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
+                                                               sdp,
+                                                               type: 'answer',
+                                                           });
+            },
             createAnswer:async () => {
                 console.log("Creating answer ");
                 try {
                     await RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
-                        sdp: RippleSDK.app.feature.gStream.remoteOfferStringSDP,
+                        sdp : RippleSDK.app.feature.gStream.remoteOfferStringSDP,
                         type: 'offer',
                     });
 
@@ -746,10 +774,16 @@ const RippleSDK = {
                 };
                 
                 // we now have to make an offer to send to the server
-                if(RippleSDK.app.featureInUse=== RippleSDK_CONST.featuresAvailable.G_STREAM_BROADCAST) {
+                if(RippleSDK.app.featureInUse === RippleSDK_CONST.featuresAvailable.G_STREAM_BROADCAST) {
                     RippleSDK.app.webRTC.offerOptions= {offerToReceiveVideo: false, offerToReceiveAudio: false};
                     RippleSDK.app.webRTC.peerConnection.createOffer();
                 }
+                if(RippleSDK.app.featureInUse === RippleSDK_CONST.featuresAvailable.VIDEO_CALL) {
+                    RippleSDK.app.webRTC.offerOptions= {offerToReceiveVideo: true, offerToReceiveAudio: true};
+                    RippleSDK.app.webRTC.peerConnection.createOffer();
+                }
+                
+                
             }
 
         },
