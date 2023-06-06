@@ -33,7 +33,7 @@ public class VideoCallSocketEvent {
 				// this event is only from the called client
 				var testToClientExists   = connectionsManager.checkIfClientExists(messageObject.getString("toClientID"));
 				var testFromClientExists = connectionsManager.checkIfClientExists(messageObject.getString("fromClientID"));
-				final var notificationID = messageObject.getString("notificationID");
+				final var notificationID = messageObject.getString("notificationID"); // ToDo check what to do with this as much for cleaning reasons.
 
 				if (!testToClientExists) {
 					response = XUtils.buildJsonErrorResponse(500, Events.EVENT_TYPE, Events.VALIDATION_ERROR_EVENT, "Target Client Not Found !", response);
@@ -48,11 +48,10 @@ public class VideoCallSocketEvent {
 				}
 				var fromClientOptional = connectionsManager.getClient(messageObject.getString("fromClientID"));
 				assert fromClientOptional.isPresent();
-
+				response.put("notificationID", notificationID);
 				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.CALL_ANSWERED_NOTIFICATION_EVENT, "Call Answered ", response);
 				broadcast(fromClientOptional.get(), response.toString());
 				return;// this return is required as this will only send this message to the other client !
-
 
 			}
 			case "make-call" -> {
