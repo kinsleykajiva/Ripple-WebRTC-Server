@@ -613,7 +613,7 @@ const RippleSDK = {
                 setTimeout(() => {
                     clearTimeout(RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobTimeoutId);
                     console.log('Execution canceled');
-                }, 20000);
+                }, 20_000);
             },
             addIceCandidatePeerConnection: dataObject=>{
                 if(!RippleSDK.app.webRTC.peerConnection){
