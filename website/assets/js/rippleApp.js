@@ -545,37 +545,37 @@ const RippleSDK = {
                             clientID: RippleSDK.serverClientId,
                             offer   : _sdp.sdp
                         };
-                            if(! RippleSDK.isWebSocketAccess ) {
-                                //! ToDo this add a condition check on this part as to avoid repetition
-                                let featureResourceUrl = '';
-                                
-                                if (RippleSDK.app.featureInUse === RippleSDK_CONST.featuresAvailable.G_STREAM) {
-                                    featureResourceUrl = 'streams/send-offer';
-                                }
-                                if (RippleSDK.app.featureInUse === RippleSDK_CONST.featuresAvailable.VIDEO_ROOM) {
-                                    featureResourceUrl = 'video/send-offer';
-                                    body.roomID        = RippleSDK.app.feature.videoRoom.room.roomID;
-                                }
-                                const post = await RippleSDK.Utils.fetchWithTimeout(featureResourceUrl, {
-                                    method: 'POST',
-                                    body
-                                });
-                                if (post.success) {
-                                    
-                                    if (post.data.sdp) { // accommodates video room , video call
-                                        
-                                        RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
-                                            sdp : post.data.sdp,
-                                            type: 'answer',
-                                        });
-                                        RippleSDK.app.webRTC.wasOfferSentSuccessfully = true;
-                                    }
-                                }
-                            }else{
-                                body.requestType = 'send-offer';
-                                RippleSDK.Utils.webSocketSendAction(body);
-                                console.log("Sending  offer" ,body);
+                        if(! RippleSDK.isWebSocketAccess ) {
+                            //! ToDo this add a condition check on this part as to avoid repetition
+                            let featureResourceUrl = '';
+                            
+                            if (RippleSDK.app.featureInUse === RippleSDK_CONST.featuresAvailable.G_STREAM) {
+                                featureResourceUrl = 'streams/send-offer';
                             }
+                            if (RippleSDK.app.featureInUse === RippleSDK_CONST.featuresAvailable.VIDEO_ROOM) {
+                                featureResourceUrl = 'video/send-offer';
+                                body.roomID        = RippleSDK.app.feature.videoRoom.room.roomID;
+                            }
+                            const post = await RippleSDK.Utils.fetchWithTimeout(featureResourceUrl, {
+                                method: 'POST',
+                                body
+                            });
+                            if (post.success) {
+                                
+                                if (post.data.sdp) { // accommodates video room , video call
+                                    
+                                    RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
+                                        sdp : post.data.sdp,
+                                        type: 'answer',
+                                    });
+                                    RippleSDK.app.webRTC.wasOfferSentSuccessfully = true;
+                                }
+                            }
+                        }else{
+                            body.requestType = 'send-offer';
+                            RippleSDK.Utils.webSocketSendAction(body);
+                            console.log("Sending  offer" ,body);
+                        }
                     });
             },
             shutDownPeerConnection:()=>{
