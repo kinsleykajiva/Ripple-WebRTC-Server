@@ -1019,6 +1019,7 @@ const RippleSDK = {
             RippleSDK.isDebugSession = true
             if (!RippleSDK.Utils.isWebRTCSupported()) {
                 alert("Webrtc is not supported,So this SDK is useless")
+                window.location.reload()
             }
            // RippleSDK.app.webRTC.getStatistics();
            
