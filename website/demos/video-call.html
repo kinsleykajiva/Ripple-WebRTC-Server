@@ -38,6 +38,7 @@
 
                 <button type="button" class="col-auto btn btn-success"   onclick="onConnectAction()" id="connectButton" disabled>2. connect</button>
                 <button type="button" class="col-auto btn btn-success"   onclick="onCallAction()" id="callButton" disabled> 3. Call</button>
+                <button type="button" class="col-auto btn btn-success"   onclick="onReceiveAction()" id="receiveCallButton" disabled> 3. Answer Call</button>
 <!--                <button type="button" class="col-auto btn btn-success"   onclick="onRecordAction()" id="recordButton" disabled>Record</button>-->
                 <button type="button" class="col-auto btn btn-danger"   onclick="onStopCameraAction()" id="stopButton" disabled>Stop My Camera Access</button>
             </div>
@@ -65,6 +66,7 @@
     'use strict'
 
     const targetAgentId             = document.getElementById('targetAgentId');
+    const receiveCallButton             = document.getElementById('receiveCallButton');
     RippleSDK.serverUrl             = "http://localhost:6060"
     RippleSDK.isVideoAccessRequired = true;
     RippleSDK.isAudioAccessRequired = true;
@@ -86,6 +88,7 @@
             const stopButton = document.getElementById('stopButton');
             connectButton.disabled = false;
             stopButton.disabled = false;
+	        receiveCallButton.disabled = false;
         }
     }
 
@@ -98,7 +101,17 @@
 
 
  }
+ function onReceiveAction(){
+
+
+ }
+
  function onCallAction(){
+	 const targetPerson = targetAgentId.value ;
+	 if(targetPerson===''){
+		 alert("targetPerson Cant be empty");
+		 return
+	 }
 
  }
 
