@@ -677,18 +677,18 @@ const RippleSDK = {
                                 featureResourceUrl = 'video/update-ice-candidate';
                             }
 
-                            const reqst = RippleSDK.Utils.fetchWithTimeout(featureResourceUrl, {
+                            const request = RippleSDK.Utils.fetchWithTimeout(featureResourceUrl, {
                                 method: 'POST',
                                 body
                             });
 
                             if (!RippleSDK.app.webRTC.wasOfferSentSuccessfully) {
                                 //! ToDo deprecated!
-                                RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobPayloadsArray.push(reqst);
+                                RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobPayloadsArray.push(request);
                                 RippleSDK.app.webRTC.runPeerConnectionDelayedIceJobs();
                             } else {
 
-                                const post = await reqst;
+                                const post = await request;
                                 console.log("qqq", post)
                                 if (RippleSDK.isDebugSession) {
                                     console.log('fetchWithTimeout post  ', post);
@@ -696,20 +696,13 @@ const RippleSDK = {
                                     console.info('fetchWithTimeout post  ', post);
                                 }
                             }
-                        }else{
+                        }else {
                             RippleSDK.app.rootCallbacks.websockets.tellClientOnMessage({
-                                type:'background',isGettingStreams:false,showLoadingUI:true,
+                                type: 'background', isGettingStreams: false, showLoadingUI: true,
                             });
-                            payload.requestType='update-ice-candidate';
-                            console.log("sending  candidates " , payload);
+                            payload.requestType = 'update-ice-candidate';
+                            console.log("sending  candidates ", payload);
                             RippleSDK.Utils.webSocketSendAction(payload);
-                            if (RippleSDK.app.featureInUse === RippleSDK_CONST.featuresAvailable.G_STREAM) {
-                            if(RippleSDK.app.feature.gStream.remoteOfferStringSDP){
-                               setTimeout(async () => {
-                                 //  await RippleSDK.app.webRTC.createAnswer();
-                               },2_000);
-                            }
-                            }
                         }
 
                     }
