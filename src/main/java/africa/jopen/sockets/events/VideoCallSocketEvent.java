@@ -29,8 +29,41 @@ public class VideoCallSocketEvent {
 		switch (requestType) {
 			case "remember" -> response = rememberResponse(connectionsManager, client);
 
+			case "answer-call" -> {
+				// this event is only from the called client
+				var testToClientExists   = connectionsManager.checkIfClientExists(messageObject.getString("toClientID"));
+				var testFromClientExists = connectionsManager.checkIfClientExists(messageObject.getString("fromClientID"));
+				final var notificationID = messageObject.getString("notificationID");
+
+				if (!testToClientExists) {
+					response = XUtils.buildJsonErrorResponse(500, Events.EVENT_TYPE, Events.VALIDATION_ERROR_EVENT, "Target Client Not Found !", response);
+					broadcast(client, response.toString());
+					return;
+				}
+
+				if (!testFromClientExists) {
+					response = XUtils.buildJsonErrorResponse(500, Events.EVENT_TYPE, Events.VALIDATION_ERROR_EVENT, "You the attempting Client Not Found, Register again to the server !", response);
+					broadcast(client, response.toString());
+					return;
+				}
+				var fromClientOptional = connectionsManager.getClient(messageObject.getString("fromClientID"));
+				assert fromClientOptional.isPresent();
+
+				// send this as part of the next remeber cycle of the target Client
+				long start = System.currentTimeMillis();
+
+
+				var notification = new VideCallNotification(notificationID, fromClientOptional.get().getClientAgentName(), messageObject.getString("fromClientID"), messageObject.getString("fromClientID"), start, 0);
+
+				response.put("videoCall", notification);
+				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.CALL_ANSWERED_NOTIFICATION_EVENT, "Call Answerd ", response);
+				broadcast(fromClientOptional.get(), response.toString());
+				return;// this return is required as this will only send this message to the other client !
+
+
+			}
 			case "make-call" -> {
-				var testToClientExists = connectionsManager.checkIfClientExists(messageObject.getString("toClientID"));
+				var testToClientExists   = connectionsManager.checkIfClientExists(messageObject.getString("toClientID"));
 				var testFromClientExists = connectionsManager.checkIfClientExists(messageObject.getString("fromClientID"));
 
 				if (!testToClientExists) {
