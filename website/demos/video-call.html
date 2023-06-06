@@ -64,10 +64,10 @@
 <script>
     'use strict'
 
-    const targetAgentId = document.getElementById('targetAgentId');
-    RippleSDK.serverUrl="http://localhost:6060"
-    RippleSDK.isVideoAccessRequired=true;
-    RippleSDK.isAudioAccessRequired=true;
+    const targetAgentId             = document.getElementById('targetAgentId');
+    RippleSDK.serverUrl             = "http://localhost:6060"
+    RippleSDK.isVideoAccessRequired = true;
+    RippleSDK.isAudioAccessRequired = true;
     RippleSDK.init(true);
     console.log("Ripple" ,RippleSDK.clientID)
     console.log("isWebRTCSupported " ,RippleSDK.Utils.isWebRTCSupported())
@@ -77,7 +77,7 @@
         RippleSDK.Utils.testMediaAccess();
         RippleSDK.app.feature.videoRoom.loadMyLocalVideoObjectID = 'localVideo'
         RippleSDK.Utils.onAccessMediaAllowedNotification = (mediaStream,wasAudioAllowed,wasVideoAllowed)=>{
-            console.log('Media access allowed!');
+            console.log('Media access result!');
             console.log('Media Stream:', mediaStream);
             console.log('Was Audio Allowed?', wasAudioAllowed);
             console.log('Was Video Allowed?', wasVideoAllowed);
