@@ -167,6 +167,9 @@ public class ClientWebSocket {
 
 
     public static void broadcast(Client client, String message) {
+        if(Objects.isNull(client)){
+            return;
+        }
         client.getSocketSession().getAsyncRemote().sendObject(message, sendResult -> {
             if (sendResult.getException() != null) {
                 logger.atSevere().withCause(sendResult.getException()).log("Failed to send message");
