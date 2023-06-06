@@ -748,11 +748,11 @@ const RippleSDK = {
                     // this will be used to render remote peers track audio and video
                     console.log('onTrack event ', ev);
                     
-                    if(RippleSDK.app.featureInUse=== RippleSDK_CONST.featuresAvailable.G_STREAM_BROADCAST) {
+                    if(RippleSDK.app.featureInUse === RippleSDK_CONST.featuresAvailable.G_STREAM_BROADCAST) {
                         // this is because already the broadcaster does not need to get any remote stream
                         return
                     }
-                    if(RippleSDK.app.featureInUse=== RippleSDK_CONST.featuresAvailable.G_STREAM) {
+                    if(RippleSDK.app.featureInUse === RippleSDK_CONST.featuresAvailable.G_STREAM) {
                         RippleSDK.app.rootCallbacks.websockets.tellClientOnMessage({
                             type:'stream',isGettingStreams:true,showLoadingUI:false,
                         });
