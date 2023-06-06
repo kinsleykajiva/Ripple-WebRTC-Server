@@ -28,19 +28,19 @@ public class VideoCallSocketEvent {
 		response.put("history", messageObject);
 		switch (requestType) {
 			case "remember" -> response = rememberResponse(connectionsManager, client);
-			
+
 			case "make-call" -> {
 				var testToClientExists = connectionsManager.checkIfClientExists(messageObject.getString("toClientID"));
 				var testFromClientExists = connectionsManager.checkIfClientExists(messageObject.getString("fromClientID"));
 
 				if (!testToClientExists) {
-					response = XUtils.buildJsonErrorResponse(500,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,"Target Client Not Found !", response);
+					response = XUtils.buildJsonErrorResponse(500, Events.EVENT_TYPE, Events.VALIDATION_ERROR_EVENT, "Target Client Not Found !", response);
 					broadcast(client, response.toString());
 					return;
 				}
 				var toClient = connectionsManager.getClient(messageObject.getString("toClientID"));
 				if (!testFromClientExists) {
-					response = XUtils.buildJsonErrorResponse(500,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,"You the attempting Client Not Found, Register again to the server !", response);
+					response = XUtils.buildJsonErrorResponse(500, Events.EVENT_TYPE, Events.VALIDATION_ERROR_EVENT, "You the attempting Client Not Found, Register again to the server !", response);
 					broadcast(client, response.toString());
 					return;
 				}
@@ -52,15 +52,15 @@ public class VideoCallSocketEvent {
 				long life = TimeUnit.SECONDS.toMillis(20);
 				long end = start + life;
 
-				var notification = new VideCallNotification(XUtils.IdGenerator(),fromClientOptional.get().getClientAgentName(), messageObject.getString("fromClientID"),messageObject.getString("fromClientID"), start, end);
+				var notification = new VideCallNotification(XUtils.IdGenerator(), fromClientOptional.get().getClientAgentName(), messageObject.getString("fromClientID"), messageObject.getString("fromClientID"), start, end);
 
 				response.put("videoCall", notification);
-				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.INCOMING_CALL_NOTIFICATION_EVENT,"Getting incoming call ", response);
+				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.INCOMING_CALL_NOTIFICATION_EVENT, "Getting incoming call ", response);
 				broadcast(toClient.get(), response.toString());
 
 				response = new JSONObject();
 				response.put("videoCall", notification);
-				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.NOTIFICATION_EVENT,"Client notified, call in progress!", response);
+				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.NOTIFICATION_EVENT, "Client notified, call in progress!", response);
 
 			}
 			case "hangup" -> {
