@@ -4,6 +4,7 @@ import africa.jopen.http.IceCandidate;
 import africa.jopen.http.videocall.PostIceCandidate;
 import africa.jopen.http.videocall.PostSDPOffer;
 import africa.jopen.models.Client;
+import africa.jopen.models.VideCallNotification;
 import africa.jopen.models.configs.main.MainConfigModel;
 import africa.jopen.utils.ConnectionsManager;
 import africa.jopen.utils.Events;
@@ -17,6 +18,7 @@ import org.json.JSONObject;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import static africa.jopen.sockets.ClientWebSocket.broadcast;
 import static africa.jopen.sockets.ClientWebSocket.rememberResponse;
@@ -31,6 +33,33 @@ public class VideoCallSocketEvent {
 		switch (requestType) {
 			case "remember" -> response = rememberResponse(connectionsManager, client);
 			
+			case "make-call" -> {
+				var testToClientExists = connectionsManager.checkIfClientExists(messageObject.getString("toClientID"));
+				var testFromClientExists = connectionsManager.checkIfClientExists(messageObject.getString("fromClientID"));
+
+				if (!testToClientExists) {
+					response = XUtils.buildJsonErrorResponse(500,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,"Target Client Not Found !", response);
+					broadcast(client, response.toString());
+					return;
+				}
+				if (!testFromClientExists) {
+					response = XUtils.buildJsonErrorResponse(500,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,"You the attempting Client Not Found, Register again to the server !", response);
+					broadcast(client, response.toString());
+					return;
+				}
+				var fromClientOptional = connectionsManager.getClient(messageObject.getString("fromClientID"));
+				assert fromClientOptional.isPresent();
+
+				// send this as part of the next remeber cycle of the target Client
+				long start = System.currentTimeMillis();
+				long life = TimeUnit.SECONDS.toMillis(20);
+				long end = start + life;
+
+				var notification = new VideCallNotification(XUtils.IdGenerator(),fromClientOptional.get().getClientAgentName(), messageObject.getString("fromClientID"),messageObject.getString("fromClientID"), start, end);
+				response.put("videoCall", notification);
+				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.NOTIFICATION_EVENT,"Client notified, call in progress!", response);
+
+			}
 			case "hangup" -> {
 				response.put("nextActions", Arrays.asList("closePeerConnection", "hangup"));
 				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.NOTIFICATION_EVENT,"Call ended", response);
