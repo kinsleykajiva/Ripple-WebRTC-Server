@@ -49,20 +49,14 @@ public class VideoCallSocketEvent {
 				var fromClientOptional = connectionsManager.getClient(messageObject.getString("fromClientID"));
 				assert fromClientOptional.isPresent();
 
-				// send this as part of the next remeber cycle of the target Client
-				long start = System.currentTimeMillis();
-
-
-				var notification = new VideCallNotification(notificationID, fromClientOptional.get().getClientAgentName(), messageObject.getString("fromClientID"), messageObject.getString("fromClientID"), start, 0);
-
-				response.put("videoCall", notification);
-				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.CALL_ANSWERED_NOTIFICATION_EVENT, "Call Answerd ", response);
+				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.CALL_ANSWERED_NOTIFICATION_EVENT, "Call Answered ", response);
 				broadcast(fromClientOptional.get(), response.toString());
 				return;// this return is required as this will only send this message to the other client !
 
 
 			}
 			case "make-call" -> {
+				// ToDo will need to check if this tagert client is in a call or not then respond accordingly.
 				var testToClientExists   = connectionsManager.checkIfClientExists(messageObject.getString("toClientID"));
 				var testFromClientExists = connectionsManager.checkIfClientExists(messageObject.getString("fromClientID"));
 
