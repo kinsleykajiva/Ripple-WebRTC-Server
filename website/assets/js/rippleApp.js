@@ -104,7 +104,11 @@ const RippleSDK = {
                     method: 'POST',
                     body: {clientAgentName: RippleSDK.clientID}
                 });
-                console.log(result);
+                if(RippleSDK.isDebugSession) {
+                    console.log('makeConnection > ','fetchWithTimeout > ','app/connect',result);
+                }else {
+                    console.info('makeConnection > ','fetchWithTimeout > ','app/connect',result);
+                }
                 RippleSDK.serverClientId       = result.data.clientID;
                 RippleSDK.serverClientLastSeen = result.data.lastSeen;
                 RippleSDK.app.startToRemindServerOfMe();
@@ -256,8 +260,8 @@ const RippleSDK = {
             gStream:{
                 requestToPauseTransmission:()=>{
                     RippleSDK.Utils.webSocketSendAction({
-                        clientID: RippleSDK.serverClientId,
-                        requestType : 'pause'
+                        clientID   : RippleSDK.serverClientId,
+                        requestType: 'pause'
                     });
                 },
                 requestToResumeTransmission:()=>{
@@ -496,9 +500,9 @@ const RippleSDK = {
                     
                     await RippleSDK.app.webRTC.peerConnection.setLocalDescription(_sdp);
 
-                    const body = {
+                    const body   = {
                         clientID: RippleSDK.serverClientId,
-                        answer: RippleSDK.app.webRTC.peerConnection.localDescription.sdp,
+                        answer  : RippleSDK.app.webRTC.peerConnection.localDescription.sdp,
                     };
 
                     if (!RippleSDK.isWebSocketAccess) {
@@ -550,7 +554,7 @@ const RippleSDK = {
                                 }
                                 if (RippleSDK.app.featureInUse === RippleSDK_CONST.featuresAvailable.VIDEO_ROOM) {
                                     featureResourceUrl = 'video/send-offer';
-                                    body.roomID = RippleSDK.app.feature.videoRoom.room.roomID;
+                                    body.roomID        = RippleSDK.app.feature.videoRoom.room.roomID;
                                 }
                                 const post = await RippleSDK.Utils.fetchWithTimeout(featureResourceUrl, {
                                     method: 'POST',
@@ -630,7 +634,7 @@ const RippleSDK = {
                      forceEncodedVideoInsertableStreams:true,*/
                     iceServers: RippleSDK.iceServerArray
                 };
-                if(RippleSDK.app.featureInUse ===  RippleSDK_CONST.featuresAvailable.G_STREAM ||
+                if(RippleSDK.app.featureInUse  ===  RippleSDK_CONST.featuresAvailable.G_STREAM ||
                     RippleSDK.app.featureInUse ===  RippleSDK_CONST.featuresAvailable.G_STREAM_BROADCAST ||
                     RippleSDK.app.featureInUse ===  RippleSDK_CONST.featuresAvailable.G_STREAM_BROADCAST
                 ){
