@@ -136,15 +136,16 @@ const RippleSDK = {
 
                     if (message.code === 200) {
 
+                        if ( message.eventType === 'incomingCall' ) {
+                            RippleSDK.app.webRTC.createPeerConnection();
+                           
+                        }
                         if ( message.eventType === 'answer' ) {
                             if (message.data.sdp) {
                                 if (RippleSDK.app.featureInUse === RippleSDK_CONST.featuresAvailable.VIDEO_CALL) {
-                            
                                     console.log(" Happy yey ,  finally got our answer from the remote sever ");
                                     await RippleSDK.app.webRTC.consumeAnswer(message.data.sdp);
                                 }
-                                
-                                //RippleSDK.Utils.onRemoteSDPReady();
                             }
                         }
                         if ( message.eventType === 'webrtc' ) {
@@ -511,10 +512,7 @@ const RippleSDK = {
             wasOfferSentSuccessfully:false,
             offerOptions: {offerToReceiveVideo: true, offerToReceiveAudio: true},
             consumeAnswer:async (sdp) => {
-                await RippleSDK.app.webRTC.peerConnection.setRemoteDescription({
-                                                               sdp,
-                                                               type: 'answer',
-                                                           });
+                await RippleSDK.app.webRTC.peerConnection.setRemoteDescription({sdp,type: 'answer',});
             },
             createAnswer:async () => {
                 console.log("Creating answer ");
