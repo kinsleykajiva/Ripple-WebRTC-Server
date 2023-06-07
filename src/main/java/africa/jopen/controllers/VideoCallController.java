@@ -197,7 +197,6 @@ public class VideoCallController {
 						"lastSeen", clientObject.lastTimeStamp()
 				)));
 		
-		
 	}
 	
 }
