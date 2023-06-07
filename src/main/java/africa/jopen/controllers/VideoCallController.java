@@ -132,7 +132,6 @@ public class VideoCallController {
 		var testToClientExists = connectionsManager.checkIfClientExists(payload.toClientID());
 		var testFromClientExists = connectionsManager.checkIfClientExists(payload.fromClientID());
 		
-		
 		if (!testToClientExists) {
 			return XUtils.buildErrorResponse(false, 404, "Target Client Not Found !", Map.of());
 			
