@@ -34,7 +34,6 @@ public class VideoCallController {
 			return XUtils.buildErrorResponse(false, 400, "Client ID is required!", Map.of());
 		}
 		
-		
 		if (payload.iceCandidate().candidate() == null) {
 			return XUtils.buildErrorResponse(false, 400, "icecandidate is required!", Map.of());
 		}
