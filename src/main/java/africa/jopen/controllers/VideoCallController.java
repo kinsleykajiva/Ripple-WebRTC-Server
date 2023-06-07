@@ -41,7 +41,6 @@ public class VideoCallController {
 		
 		var clientOptional = connectionsManager.getClient(payload.clientID());
 		
-		
 		if (clientOptional.isEmpty()) {
 			return XUtils.buildErrorResponse(false, 400, "Client not found!", Map.of());
 		}
