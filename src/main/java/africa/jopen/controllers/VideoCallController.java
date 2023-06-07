@@ -53,7 +53,6 @@ public class VideoCallController {
 		
 		return XUtils.buildSuccessResponse(true, 200, "Updated Clients Ice Candidates ", Map.of());
 		
-		
 	}
 	
 	
