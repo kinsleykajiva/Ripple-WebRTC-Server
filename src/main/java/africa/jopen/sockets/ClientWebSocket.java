@@ -37,8 +37,13 @@ public class ClientWebSocket {
     private final ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     
+    /**
+     * @param session
+     * @param clientID
+     * @param featureType
+     */
     @OnOpen
-    public void onOpen(Session session, @PathParam("clientID") String clientID, @PathParam("featureType") String featureType) {
+    public void onOpen(Session session, @PathParam("clientID") String clientID, final @PathParam("featureType") String featureType) {
         
         logger.atInfo().log("OnOpen > " + clientID);
         // since this is the first . The client id will need to be set after the fact from the server , so the client id wil be the agent name
@@ -97,7 +102,7 @@ public class ClientWebSocket {
     }
 
     @OnClose
-    public void onClose(Session session, @PathParam("clientID") String clientID) {
+    public void onClose(final Session session, @PathParam("clientID") String clientID) {
         logger.atInfo().log("onClose > " + clientID);
         Client clientObject = connectionsManager.getClient(clientID).orElseThrow(() -> new ClientException("Client object not found"));
         connectionsManager.removeClient(clientObject);

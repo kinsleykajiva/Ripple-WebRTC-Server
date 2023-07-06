@@ -24,40 +24,25 @@ public class GStreamsSocketEvent {
 	
 	public static void handleGStreamRequest(Client clientObject, JSONObject messageObject, JSONObject response) {
 		
-		
 		final String requestType = messageObject.getString(Requests.REQUEST_TYPE);
 		response.put("history", messageObject);
 		switch (requestType) {
 			case "remember" -> response = rememberResponse(connectionsManager, clientObject);
 			case "update-ice-candidate" -> {
-				
-				final var payload = new PostIceCandidate(
-						null,
-						new IceCandidate(
-								messageObject.getString("candidate"),
-								messageObject.getString("sdpMid"),
-								messageObject.getInt("sdpMLineIndex")
-						),
-						messageObject.getString("clientID"));
+				final var iceCandidate = new IceCandidate(messageObject.getString("candidate"),messageObject.getString("sdpMid"),messageObject.getInt("sdpMLineIndex"));
+				final var payload = new PostIceCandidate(null,iceCandidate,messageObject.getString("clientID"));
 				clientObject.getWebRTCGStreamer().handleIceSdp(payload.iceCandidate().candidate(), payload.iceCandidate().sdpMidLineIndex());
 			}
 			case "send-answer" -> {
-				final var payload = new PostSDPAnswer(
-						null,
-						messageObject.getString("answer"),
-						messageObject.getString("clientID")
-				);
+				final var payload = new PostSDPAnswer(null,messageObject.getString("answer"),messageObject.getString("clientID"));
 				clientObject.getWebRTCGStreamer().handleSdp(payload.answer());
 				connectionsManager.updateClient(clientObject);
 				
 				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.NOTIFICATION_EVENT, "Client answered Successfully", response);
-				
 			}
 			case "play" -> {
-				
 				clientObject.getWebRTCGStreamer().startCall();
 				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.NOTIFICATION_EVENT, "Call Started", response);
-				
 			}
 			case "pause" -> {
 				
