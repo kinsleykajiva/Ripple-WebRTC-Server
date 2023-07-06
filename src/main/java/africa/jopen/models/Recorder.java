@@ -13,7 +13,6 @@ public class Recorder {
 	
 	
 	public Recorder() {
-	
 	}
 	
 	public Boolean getRecording() {
@@ -26,7 +25,6 @@ public class Recorder {
 		trackRecorders.add(trackRecorder);
 		
 		if (recording) {
-			
 			trackRecorder.start();
 		}
 	}
@@ -44,7 +42,6 @@ public class Recorder {
 	public void stop() {
 		
 		for (TrackRecorder trackRecorder : trackRecorders) {
-			
 			trackRecorder.stop();
 		}
 		
