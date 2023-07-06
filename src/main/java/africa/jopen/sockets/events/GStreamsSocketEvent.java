@@ -22,6 +22,11 @@ public class GStreamsSocketEvent {
 	private static final FluentLogger       logger             = FluentLogger.forEnclosingClass();
 	private static final ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
 	
+	/**
+	 * @param clientObject
+	 * @param messageObject
+	 * @param response
+	 */
 	public static void handleGStreamRequest(Client clientObject, JSONObject messageObject, JSONObject response) {
 		
 		final String requestType = messageObject.getString(Requests.REQUEST_TYPE);
