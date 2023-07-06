@@ -49,32 +49,37 @@ public class ClientWebSocket {
             if (testExists) {// this is a sub-sequent reconnection.
                 clientObject = connectionsManager.updateClientWhenRemembered(clientID);
                 clientObject.setSocketSession(session);
-	            switch (featureType) {
-		            case "G_STREAM" -> clientObject.setFeatureType(FeatureTypes.G_STREAM);
-		            case "VIDEO_ROOM" -> clientObject.setFeatureType(FeatureTypes.VIDEO_ROOM);
-		            case "VIDEO_CALL" -> clientObject.setFeatureType(FeatureTypes.VIDEO_CALL);
-		            case "AUDIO_ROOM" -> clientObject.setFeatureType(FeatureTypes.AUDIO_ROOM);
-                    default -> throw new IllegalStateException("Unexpected value: " + featureType);
+                
+                FeatureTypes enumFeatureType = FeatureTypes.getEnumByString(featureType);
+                switch (enumFeatureType) {
+                    case G_STREAM -> clientObject.setFeatureType(FeatureTypes.G_STREAM);
+                    case VIDEO_ROOM -> clientObject.setFeatureType(FeatureTypes.VIDEO_ROOM);
+                    case VIDEO_CALL -> clientObject.setFeatureType(FeatureTypes.VIDEO_CALL);
+                    case AUDIO_ROOM -> clientObject.setFeatureType(FeatureTypes.AUDIO_ROOM);
+                    default -> throw new IllegalStateException("Unexpected value: " + enumFeatureType);
                 }
                 connectionsManager.updateClient(clientObject);
             } else {
                 clientObject = new Client(clientID);
+                FeatureTypes enumFeatureType = FeatureTypes.getEnumByString(featureType);
 	            
-	            switch (featureType) {
-		            case "G_STREAM" -> clientObject.setFeatureType(FeatureTypes.G_STREAM);
-		            case "VIDEO_ROOM" -> {
+	            switch (enumFeatureType) {
+		            case G_STREAM -> clientObject.setFeatureType(FeatureTypes.G_STREAM);
+		            case VIDEO_ROOM -> {
 			            clientObject.setFeatureType(FeatureTypes.VIDEO_ROOM);
 			            clientObject.createPeerConnection();
 		            }
-		            case "VIDEO_CALL" -> {
+		            case VIDEO_CALL -> {
 			            clientObject.setFeatureType(FeatureTypes.VIDEO_CALL);
 			            clientObject.createPeerConnection();
 		            }
-		            case "AUDIO_ROOM" -> {
+		            case AUDIO_ROOM -> {
 			            clientObject.setFeatureType(FeatureTypes.AUDIO_ROOM);
 			            clientObject.createPeerConnection();
 		            }
+		            default -> throw new IllegalStateException("Unexpected value: " + enumFeatureType);
 	            }
+                
                 clientObject.setSocketSession(session);
                 connectionsManager.addNewClient(clientObject);
             }

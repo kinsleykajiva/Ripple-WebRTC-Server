@@ -15,4 +15,12 @@ public enum FeatureTypes {
 	public String getDescription() {
 		return this.description;
 	}
+	public static FeatureTypes getEnumByString(String featureType) {
+		for (FeatureTypes type : FeatureTypes.values()) {
+			if (type.description.equals(featureType)) {
+				return type;
+			}
+		}
+		throw new IllegalStateException("Unexpected value: " + featureType);
+	}
 }
