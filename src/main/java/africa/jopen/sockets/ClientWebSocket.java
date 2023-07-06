@@ -49,37 +49,31 @@ public class ClientWebSocket {
             if (testExists) {// this is a sub-sequent reconnection.
                 clientObject = connectionsManager.updateClientWhenRemembered(clientID);
                 clientObject.setSocketSession(session);
-                if (Objects.equals(featureType, "G_STREAM")) {
-                    clientObject.setFeatureType(FeatureTypes.G_STREAM);
-                }
-                if (Objects.equals(featureType, "VIDEO_ROOM")) {
-                    clientObject.setFeatureType(FeatureTypes.VIDEO_ROOM);
-                }
-                if (Objects.equals(featureType, "VIDEO_CALL")) {
-                    clientObject.setFeatureType(FeatureTypes.VIDEO_CALL);
-                }
-                if (Objects.equals(featureType, "AUDIO_ROOM")) {
-                    clientObject.setFeatureType(FeatureTypes.AUDIO_ROOM);
-                }
-
+	            switch (featureType) {
+		            case "G_STREAM" -> clientObject.setFeatureType(FeatureTypes.G_STREAM);
+		            case "VIDEO_ROOM" -> clientObject.setFeatureType(FeatureTypes.VIDEO_ROOM);
+		            case "VIDEO_CALL" -> clientObject.setFeatureType(FeatureTypes.VIDEO_CALL);
+		            case "AUDIO_ROOM" -> clientObject.setFeatureType(FeatureTypes.AUDIO_ROOM);
+	            }
                 connectionsManager.updateClient(clientObject);
             } else {
                 clientObject = new Client(clientID);
-                if (Objects.equals(featureType, "G_STREAM")) {
-                    clientObject.setFeatureType(FeatureTypes.G_STREAM);
-                }
-                if (Objects.equals(featureType, "VIDEO_ROOM")) {
-                    clientObject.setFeatureType(FeatureTypes.VIDEO_ROOM);
-                    clientObject.createPeerConnection();
-                }
-                if (Objects.equals(featureType, "VIDEO_CALL")) {
-                    clientObject.setFeatureType(FeatureTypes.VIDEO_CALL);
-                    clientObject.createPeerConnection();
-                }
-                if (Objects.equals(featureType, "AUDIO_ROOM")) {
-                    clientObject.setFeatureType(FeatureTypes.AUDIO_ROOM);
-                    clientObject.createPeerConnection();
-                }
+	            
+	            switch (featureType) {
+		            case "G_STREAM" -> clientObject.setFeatureType(FeatureTypes.G_STREAM);
+		            case "VIDEO_ROOM" -> {
+			            clientObject.setFeatureType(FeatureTypes.VIDEO_ROOM);
+			            clientObject.createPeerConnection();
+		            }
+		            case "VIDEO_CALL" -> {
+			            clientObject.setFeatureType(FeatureTypes.VIDEO_CALL);
+			            clientObject.createPeerConnection();
+		            }
+		            case "AUDIO_ROOM" -> {
+			            clientObject.setFeatureType(FeatureTypes.AUDIO_ROOM);
+			            clientObject.createPeerConnection();
+		            }
+	            }
                 clientObject.setSocketSession(session);
                 connectionsManager.addNewClient(clientObject);
             }
