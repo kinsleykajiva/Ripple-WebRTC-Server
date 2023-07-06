@@ -2,15 +2,16 @@ package africa.jopen.models;
 
 
 import africa.jopen.utils.TrackRecorder;
+import com.google.common.flogger.FluentLogger;
 import dev.onvoid.webrtc.media.MediaStreamTrack;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
 
 public class Recorder {
-	final private MutableList<TrackRecorder> trackRecorders = Lists.mutable.empty();
+	final private        MutableList<TrackRecorder> trackRecorders = Lists.mutable.empty();
+	private static final FluentLogger               logger         = FluentLogger.forEnclosingClass();
 	
-	Boolean recording = false;
-	
+	private Boolean recording = false;
 	
 	public Recorder() {
 	}
@@ -20,7 +21,7 @@ public class Recorder {
 	}
 	
 	public void addTrack(String filename, MediaStreamTrack mediaStreamTrack) {
-		
+		logger.atInfo().log("add track");
 		TrackRecorder trackRecorder = new TrackRecorder(filename, mediaStreamTrack);
 		trackRecorders.add(trackRecorder);
 		
@@ -32,7 +33,6 @@ public class Recorder {
 	public void start() {
 		
 		for (TrackRecorder trackRecorder : trackRecorders) {
-			
 			trackRecorder.start();
 		}
 		
@@ -40,11 +40,9 @@ public class Recorder {
 	}
 	
 	public void stop() {
-		
 		for (TrackRecorder trackRecorder : trackRecorders) {
 			trackRecorder.stop();
 		}
-		
 		this.recording = false;
 	}
 	
