@@ -54,7 +54,8 @@ public class ClientWebSocket {
 		            case "VIDEO_ROOM" -> clientObject.setFeatureType(FeatureTypes.VIDEO_ROOM);
 		            case "VIDEO_CALL" -> clientObject.setFeatureType(FeatureTypes.VIDEO_CALL);
 		            case "AUDIO_ROOM" -> clientObject.setFeatureType(FeatureTypes.AUDIO_ROOM);
-	            }
+                    default -> throw new IllegalStateException("Unexpected value: " + featureType);
+                }
                 connectionsManager.updateClient(clientObject);
             } else {
                 clientObject = new Client(clientID);
