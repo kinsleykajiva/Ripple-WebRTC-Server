@@ -36,16 +36,16 @@ import static africa.jopen.sockets.events.VideoRoomSocketEvent.handleVideoRoomRe
 public class ClientWebSocket {
     private final ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-
+    
     @OnOpen
     public void onOpen(Session session, @PathParam("clientID") String clientID, @PathParam("featureType") String featureType) {
-
-         logger.atInfo().log("OnOpen > " + clientID);
+        
+        logger.atInfo().log("OnOpen > " + clientID);
         // since this is the first . The client id will need to be set after the fact from the server , so the client id wil be the agent name
         try {
-            JSONObject response = new JSONObject();
-            Client clientObject;
-            var testExists = connectionsManager.checkIfClientExists(clientID);
+            JSONObject response   = new JSONObject();
+            Client     clientObject;
+            var        testExists = connectionsManager.checkIfClientExists(clientID);
             if (testExists) {// this is a sub-sequent reconnection.
                 clientObject = connectionsManager.updateClientWhenRemembered(clientID);
                 clientObject.setSocketSession(session);
@@ -62,23 +62,23 @@ public class ClientWebSocket {
             } else {
                 clientObject = new Client(clientID);
                 FeatureTypes enumFeatureType = FeatureTypes.getEnumByString(featureType);
-	            
-	            switch (enumFeatureType) {
-		            case G_STREAM -> clientObject.setFeatureType(FeatureTypes.G_STREAM);
-		            case VIDEO_ROOM -> {
-			            clientObject.setFeatureType(FeatureTypes.VIDEO_ROOM);
-			            clientObject.createPeerConnection();
-		            }
-		            case VIDEO_CALL -> {
-			            clientObject.setFeatureType(FeatureTypes.VIDEO_CALL);
-			            clientObject.createPeerConnection();
-		            }
-		            case AUDIO_ROOM -> {
-			            clientObject.setFeatureType(FeatureTypes.AUDIO_ROOM);
-			            clientObject.createPeerConnection();
-		            }
-		            default -> throw new IllegalStateException("Unexpected value: " + enumFeatureType);
-	            }
+                
+                switch (enumFeatureType) {
+                    case G_STREAM -> clientObject.setFeatureType(FeatureTypes.G_STREAM);
+                    case VIDEO_ROOM -> {
+                        clientObject.setFeatureType(FeatureTypes.VIDEO_ROOM);
+                        clientObject.createPeerConnection();
+                    }
+                    case VIDEO_CALL -> {
+                        clientObject.setFeatureType(FeatureTypes.VIDEO_CALL);
+                        clientObject.createPeerConnection();
+                    }
+                    case AUDIO_ROOM -> {
+                        clientObject.setFeatureType(FeatureTypes.AUDIO_ROOM);
+                        clientObject.createPeerConnection();
+                    }
+                    default -> throw new IllegalStateException("Unexpected value: " + enumFeatureType);
+                }
                 
                 clientObject.setSocketSession(session);
                 connectionsManager.addNewClient(clientObject);
@@ -88,9 +88,9 @@ public class ClientWebSocket {
             response.put("eventType", "registration");
             response.put("message", "Client newly connected and recognized");
             response.put("code", 200);
-
+            
             broadcast(clientObject, response.toString());
-
+            
         } catch (Exception ex) {
             logger.atSevere().withCause(ex).log("OnOpen Error");
         }
