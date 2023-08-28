@@ -40,13 +40,13 @@ public class VideoCallSocketEvent {
 				final var notificationID = messageObject.getString("notificationID"); // ToDo check what to do with this as much for cleaning reasons.
 
 				if (!testToClientExists) {
-					response = XUtils.buildJsonErrorResponse(500, Events.EVENT_TYPE, Events.VALIDATION_ERROR_EVENT, "Target Client Not Found !", response);
+					response = XUtils.buildJsonErrorResponse(Requests.SERVER_ERROR, Events.EVENT_TYPE, Events.VALIDATION_ERROR_EVENT, "Target Client Not Found !", response);
 					broadcast(client, response.toString());
 					return;
 				}
 
 				if (!testFromClientExists) {
-					response = XUtils.buildJsonErrorResponse(500, Events.EVENT_TYPE, Events.VALIDATION_ERROR_EVENT, "You the attempting Client Not Found, Register again to the server !", response);
+					response = XUtils.buildJsonErrorResponse(Requests.SERVER_ERROR, Events.EVENT_TYPE, Events.VALIDATION_ERROR_EVENT, "You the attempting Client Not Found, Register again to the server !", response);
 					broadcast(client, response.toString());
 					return;
 				}
@@ -64,13 +64,13 @@ public class VideoCallSocketEvent {
 				var testFromClientExists = connectionsManager.checkIfClientExists(messageObject.getString(fromClientID));
 
 				if (!testToClientExists) {
-					response = XUtils.buildJsonErrorResponse(500, Events.EVENT_TYPE, Events.VALIDATION_ERROR_EVENT, "Target Client Not Found !", response);
+					response = XUtils.buildJsonErrorResponse(Requests.SERVER_ERROR, Events.EVENT_TYPE, Events.VALIDATION_ERROR_EVENT, "Target Client Not Found !", response);
 					broadcast(client, response.toString());
 					return;
 				}
 				
 				if (!testFromClientExists) {
-					response = XUtils.buildJsonErrorResponse(500, Events.EVENT_TYPE, Events.VALIDATION_ERROR_EVENT, "You the attempting Client Not Found, Register again to the server !", response);
+					response = XUtils.buildJsonErrorResponse(Requests.SERVER_ERROR, Events.EVENT_TYPE, Events.VALIDATION_ERROR_EVENT, "You the attempting Client Not Found, Register again to the server !", response);
 					broadcast(client, response.toString());
 					return;
 				}
@@ -86,17 +86,17 @@ public class VideoCallSocketEvent {
 				var notification = new VideCallNotification(XUtils.IdGenerator(), fromClientOptional.get().getClientAgentName(), messageObject.getString("fromClientID"), messageObject.getString("fromClientID"), start, end);
 
 				response.put("videoCall", notification);
-				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.INCOMING_CALL_NOTIFICATION_EVENT, "Getting incoming call ", response);
+				response = XUtils.buildJsonSuccessResponse(Requests.OK_RESPONSE, Events.EVENT_TYPE, Events.INCOMING_CALL_NOTIFICATION_EVENT, "Getting incoming call ", response);
 				broadcast(toClient.get(), response.toString());
 
 				response = new JSONObject();
 				response.put("videoCall", notification);
-				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.NOTIFICATION_EVENT, "Client notified, call in progress!", response);
+				response = XUtils.buildJsonSuccessResponse(Requests.OK_RESPONSE, Events.EVENT_TYPE, Events.NOTIFICATION_EVENT, "Client notified, call in progress!", response);
 
 			}
 			case Requests.HANGUP ->  {
 				response.put("nextActions", Arrays.asList("closePeerConnection", "hangup"));
-				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.NOTIFICATION_EVENT,"Call ended", response);
+				response = XUtils.buildJsonSuccessResponse(Requests.OK_RESPONSE, Events.EVENT_TYPE, Events.NOTIFICATION_EVENT,"Call ended", response);
 			}
 			case Requests.UPDATE_ICE_CANDIDATE -> {
 				var payload = new PostIceCandidate(
@@ -109,7 +109,7 @@ public class VideoCallSocketEvent {
 				client.addIceCandidate(payload.iceCandidate());
 				connectionsManager.updateClient(client);
 				
-				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.NOTIFICATION_EVENT,"Updated Clients Ice Candidates ", response);
+				response = XUtils.buildJsonSuccessResponse(Requests.OK_RESPONSE, Events.EVENT_TYPE, Events.NOTIFICATION_EVENT,"Updated Clients Ice Candidates ", response);
 			}
 			case Requests.SEND_OFFER -> {
 				PostSDPOffer payload        = new PostSDPOffer(messageObject.getString("offer"), client.getClientID());
@@ -128,11 +128,11 @@ public class VideoCallSocketEvent {
 					// Retrieve the response from the CompletableFuture
 					var sdp = future.get();
 					response.put("sdp", sdp);
-					response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.SDP_ANSWER_EVENT,"SDP Offer processed, here is the answer ", response);
+					response = XUtils.buildJsonSuccessResponse(Requests.OK_RESPONSE, Events.EVENT_TYPE, Events.SDP_ANSWER_EVENT,"SDP Offer processed, here is the answer ", response);
 					
 				} catch (Exception e) {
 					logger.atInfo().withCause(e).log("Error");
-					response = XUtils.buildJsonErrorResponse(500, Events.EVENT_TYPE, Events.ERROR_EVENT,"Error processing SDP Offer", response);
+					response = XUtils.buildJsonErrorResponse(Requests.SERVER_ERROR, Events.EVENT_TYPE, Events.ERROR_EVENT,"Error processing SDP Offer", response);
 				}
 			}
 		}
