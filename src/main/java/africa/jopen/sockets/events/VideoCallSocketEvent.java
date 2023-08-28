@@ -25,14 +25,16 @@ public class VideoCallSocketEvent {
 	
 	public static void handleVideoCallRequest(Client client, JSONObject messageObject, JSONObject response) {
 		final String requestType = messageObject.getString(Requests.REQUEST_TYPE);
+		final String toClientID ="toClientID";
+		final String fromClientID ="fromClientID";
 		response.put("history", messageObject);
 		switch (requestType) {
-			case "remember" -> response = rememberResponse(connectionsManager, client);
+			case Requests.REMEMBER -> response = rememberResponse(connectionsManager, client);
 
-			case "answer-call" -> {
+			case Requests.ANSWER_CALL -> {
 				// this event is only from the called client
-				var testToClientExists   = connectionsManager.checkIfClientExists(messageObject.getString("toClientID"));
-				var testFromClientExists = connectionsManager.checkIfClientExists(messageObject.getString("fromClientID"));
+				var testToClientExists   = connectionsManager.checkIfClientExists(messageObject.getString(toClientID));
+				var testFromClientExists = connectionsManager.checkIfClientExists(messageObject.getString(fromClientID));
 				final var notificationID = messageObject.getString("notificationID"); // ToDo check what to do with this as much for cleaning reasons.
 
 				if (!testToClientExists) {
@@ -46,7 +48,7 @@ public class VideoCallSocketEvent {
 					broadcast(client, response.toString());
 					return;
 				}
-				var fromClientOptional = connectionsManager.getClient(messageObject.getString("fromClientID"));
+				var fromClientOptional = connectionsManager.getClient(messageObject.getString(fromClientID));
 				assert fromClientOptional.isPresent();
 				response.put("notificationID", notificationID);
 				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.CALL_ANSWERED_NOTIFICATION_EVENT, "Call Answered ", response);
@@ -54,30 +56,31 @@ public class VideoCallSocketEvent {
 				return;// this return is required as this will only send this message to the other client !
 
 			}
-			case "make-call" -> {
+			case Requests.MAKE_CALL ->  {
 				// ToDo will need to check if this tagert client is in a call or not then respond accordingly.
-				var testToClientExists   = connectionsManager.checkIfClientExists(messageObject.getString("toClientID"));
-				var testFromClientExists = connectionsManager.checkIfClientExists(messageObject.getString("fromClientID"));
+				var testToClientExists   = connectionsManager.checkIfClientExists(messageObject.getString(toClientID));
+				var testFromClientExists = connectionsManager.checkIfClientExists(messageObject.getString(fromClientID));
 
 				if (!testToClientExists) {
 					response = XUtils.buildJsonErrorResponse(500, Events.EVENT_TYPE, Events.VALIDATION_ERROR_EVENT, "Target Client Not Found !", response);
 					broadcast(client, response.toString());
 					return;
 				}
-				var toClient = connectionsManager.getClient(messageObject.getString("toClientID"));
+				
 				if (!testFromClientExists) {
 					response = XUtils.buildJsonErrorResponse(500, Events.EVENT_TYPE, Events.VALIDATION_ERROR_EVENT, "You the attempting Client Not Found, Register again to the server !", response);
 					broadcast(client, response.toString());
 					return;
 				}
-				var fromClientOptional = connectionsManager.getClient(messageObject.getString("fromClientID"));
+				var fromClientOptional = connectionsManager.getClient(messageObject.getString(fromClientID));
 				assert fromClientOptional.isPresent();
 
 				// send this as part of the next remeber cycle of the target Client
 				long start = System.currentTimeMillis();
 				long life = TimeUnit.SECONDS.toMillis(20);
 				long end = start + life;
-
+				var toClient = connectionsManager.getClient(messageObject.getString(toClientID));
+				assert toClient.isPresent();
 				var notification = new VideCallNotification(XUtils.IdGenerator(), fromClientOptional.get().getClientAgentName(), messageObject.getString("fromClientID"), messageObject.getString("fromClientID"), start, end);
 
 				response.put("videoCall", notification);
@@ -89,11 +92,11 @@ public class VideoCallSocketEvent {
 				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.NOTIFICATION_EVENT, "Client notified, call in progress!", response);
 
 			}
-			case "hangup" -> {
+			case Requests.HANGUP ->  {
 				response.put("nextActions", Arrays.asList("closePeerConnection", "hangup"));
 				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.NOTIFICATION_EVENT,"Call ended", response);
 			}
-			case "update-ice-candidate" -> {
+			case Requests.UPDATE_ICE_CANDIDATE -> {
 				var payload = new PostIceCandidate(
 						new IceCandidate(
 								messageObject.getString("candidate"),
@@ -106,7 +109,7 @@ public class VideoCallSocketEvent {
 				
 				response = XUtils.buildJsonSuccessResponse(200, Events.EVENT_TYPE, Events.NOTIFICATION_EVENT,"Updated Clients Ice Candidates ", response);
 			}
-			case "send-offer" -> {
+			case Requests.SEND_OFFER -> {
 				PostSDPOffer payload        = new PostSDPOffer(messageObject.getString("offer"), client.getClientID());
 				var          clientOptional = connectionsManager.getClient(payload.clientID());
 				
