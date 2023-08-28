@@ -18,6 +18,8 @@ import java.util.concurrent.TimeUnit;
 
 import static africa.jopen.sockets.ClientWebSocket.broadcast;
 import static africa.jopen.sockets.ClientWebSocket.rememberResponse;
+import static africa.jopen.utils.XUtils.buildErrorResponse;
+import static africa.jopen.utils.XUtils.buildSuccessResponse;
 
 public class VideoCallSocketEvent {
 	private static final FluentLogger       logger             = FluentLogger.forEnclosingClass();
@@ -57,7 +59,7 @@ public class VideoCallSocketEvent {
 
 			}
 			case Requests.MAKE_CALL ->  {
-				// ToDo will need to check if this tagert client is in a call or not then respond accordingly.
+				// ToDo will need to check if this target client is in a call or not then respond accordingly.
 				var testToClientExists   = connectionsManager.checkIfClientExists(messageObject.getString(toClientID));
 				var testFromClientExists = connectionsManager.checkIfClientExists(messageObject.getString(fromClientID));
 
@@ -75,7 +77,7 @@ public class VideoCallSocketEvent {
 				var fromClientOptional = connectionsManager.getClient(messageObject.getString(fromClientID));
 				assert fromClientOptional.isPresent();
 
-				// send this as part of the next remeber cycle of the target Client
+				// send this as part of the next remember cycle of the target Client
 				long start = System.currentTimeMillis();
 				long life = TimeUnit.SECONDS.toMillis(20);
 				long end = start + life;
