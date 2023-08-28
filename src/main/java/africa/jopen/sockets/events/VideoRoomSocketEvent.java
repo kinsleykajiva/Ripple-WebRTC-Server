@@ -25,7 +25,7 @@ public class VideoRoomSocketEvent {
         final String requestType = messageObject.getString(Requests.REQUEST_TYPE);
         response.put("history", messageObject);
         switch (requestType) {
-            case "remember" -> response = rememberResponse(connectionsManager,clientObject);
+            case Requests.REMEMBER -> response = rememberResponse(connectionsManager,clientObject);
             case "joinRoom" -> {
                 if (!messageObject.has("password")) {
                     response = XUtils.buildJsonErrorResponse(400,  Events.EVENT_TYPE,  Events.VALIDATION_ERROR_EVENT,"password is required", response);
