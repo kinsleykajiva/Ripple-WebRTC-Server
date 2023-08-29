@@ -24,6 +24,8 @@ public class VideoRoomSocketEvent {
     public static void handleVideoRoomRequest(Client clientObject, JSONObject messageObject, JSONObject response) {
         final String requestType = messageObject.getString(Requests.REQUEST_TYPE);
         response.put("history", messageObject);
+        
+        
         switch (requestType) {
             case Requests.REMEMBER -> response = rememberResponse(connectionsManager,clientObject);
             case "joinRoom" -> {
