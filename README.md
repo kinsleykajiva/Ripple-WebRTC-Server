@@ -27,9 +27,7 @@ There will be some form SDK/Library to help implement or utilise the server .
 
 ## For Documentation Please refer to:  ![Docs Page](/docs/index.md)
 
-![](https://placehold.it/400x90/ff0000/000000?text=STILL_IN_DEVELOPMENT!)
-
-The code don't make sense as much yet or not functional as required! There will be code example on how to set and run this.
+## This is still in progress and will be updated as we go along .
 
 ## Cheat Sheet
 
