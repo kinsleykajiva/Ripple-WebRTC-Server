@@ -113,6 +113,7 @@ Client Javascript SDK/Lib -  ![Ripple JS](/website/assets/js/rippleApp.js)
 Please note that this server is still under development, and additional features and improvements are planned for future releases.
 
 Feel free to explore and contribute to the development of the Ripple-WebRTC-Server.
+consdering to drop this version in favour of the helidon flavour based on jdk 21
 
 <a href="https://bmc.link/kinsleyKAJIVA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
