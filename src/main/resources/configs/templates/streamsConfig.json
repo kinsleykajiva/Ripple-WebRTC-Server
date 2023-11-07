@@ -1,0 +1,10 @@
+{
+  "mediaVideoCodecs": ["mpeg","avi","mov"],
+  "mediaAudioCodecs": ["mp3","wav","ogg"],
+  "maximumAudience": 200,
+  "rtpPortRange": {
+    "minimum": 0,
+    "maximum": 2000
+  }
+
+}

@@ -15,10 +15,9 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.time.Instant;
@@ -28,57 +27,82 @@ import java.util.Base64;
 
 @QuarkusMain
 public class App {
-
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-
+    public static void copyConfigFilesTemplates(Path sourceFolder, Path destinationFolder) throws IOException {
+        if (!Files.exists(destinationFolder)) {
+            Files.createDirectories(destinationFolder);
+        }
+        
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(sourceFolder)) {
+            for (Path file: stream) {
+                Path destFile = Paths.get(destinationFolder.toString(), file.getFileName().toString());
+                Files.copy(file, destFile, StandardCopyOption.REPLACE_EXISTING);
+            }
+        }
+    }
     public static void main(String... args) {
         logger.atInfo().log("Server Starting");
         Config configNameConfig = ConfigProvider.getConfig();
         final String configName = configNameConfig.getValue("app.config.folderName", String.class);
-
+        
         XUtils.BASE_APP_LOCATION_PATH = Paths.get("").toAbsolutePath().toString();
-
+        
         logger.atInfo().log("App running in folder path " + XUtils.BASE_APP_LOCATION_PATH);
-        logger.atInfo().log("App running in config folder path " + XUtils.BASE_APP_LOCATION_PATH +File.pathSeparator + configName);
-
+        logger.atInfo().log("App running in config folder path " + XUtils.BASE_APP_LOCATION_PATH +"/" + configName);
+        
         File file;
         try {
-
-            file = new File(XUtils.BASE_APP_LOCATION_PATH + File.pathSeparator + configName);
+            
+            file = new File(XUtils.BASE_APP_LOCATION_PATH + "/" + configName);
             if (!file.exists()) {
                 logger.atSevere().log("Configs not found");
-                System.exit(1);
+
+                Path sourceFolder = Paths.get(XUtils.BASE_APP_LOCATION_PATH + "/" + configName);
+                if (!Files.exists(sourceFolder)) {
+                    Files.createDirectories(sourceFolder);
+                }
+                if (!file.exists()) {
+                    logger.atSevere().log("Configs not found");System.exit(1);
+                }
             }
         } catch (Exception e) {
             logger.atSevere().withCause(e).log("Configs not found");
         }
-
+       
+        
         try {
-            file = new File(XUtils.BASE_APP_LOCATION_PATH + File.pathSeparator + configName + File.pathSeparator+ "mainConfig.json");
+          
+            
+            Path sourceFolder = Paths.get("src/main/resources/configs/templates");
+            Path destinationFolder = Paths.get(XUtils.BASE_APP_LOCATION_PATH +"/" + configName);
+            
+            copyConfigFilesTemplates(sourceFolder, destinationFolder);
+            
+            file = new File(XUtils.BASE_APP_LOCATION_PATH + "/"  + configName + "/" + "mainConfig.json");
             if (!file.exists()) {
                 logger.atSevere().log("mainConfig .json not found");
+                logger.atSevere().log("Exiting System");
                 System.exit(1);
             }
+            
             ObjectMapper objectMapper = new ObjectMapper();
             XUtils.MAIN_CONFIG_MODEL = objectMapper.readValue(file, MainConfigModel.class);
         } catch (Exception e) {
             logger.atSevere().withCause(e).log("Failed to process");
         }
-
-
-
+        
         if(XUtils.MAIN_CONFIG_MODEL.certificates().certFilePath().isEmpty()){
-           logger.atInfo().log("No certificates set , attempting to set this up !");
-           final String privateKey = "privateKey.pem";
-           final String publicKey = "publicKey.pem";
-
-           if(!new File(XUtils.BASE_APP_LOCATION_PATH +File.pathSeparator+configName +File.pathSeparator+ "keys").exists()) {
-               new File(XUtils.BASE_APP_LOCATION_PATH + File.pathSeparator + configName + File.pathSeparator + "keys").mkdir();
-           }
-
-            Path privateKeyPath = new File(XUtils.BASE_APP_LOCATION_PATH + File.pathSeparator +configName +File.pathSeparator + "keys"+File.pathSeparator+privateKey).toPath();
-            Path publicKeyPath =  new File(XUtils.BASE_APP_LOCATION_PATH  + File.pathSeparator + configName +File.pathSeparator + "keys"+File.pathSeparator+publicKey).toPath();
-
+            logger.atInfo().log("No certificates set , attempting to set this up !");
+            final String privateKey = "privateKey.pem";
+            final String publicKey = "publicKey.pem";
+            
+            if(!new File(XUtils.BASE_APP_LOCATION_PATH +"/" +configName +"/" + "keys").exists()) {
+                new File(XUtils.BASE_APP_LOCATION_PATH + "/"  + configName + "/"  + "keys").mkdir();
+            }
+            
+            Path privateKeyPath = new File(XUtils.BASE_APP_LOCATION_PATH + "/"  +configName +"/"  + "keys"+"/" +privateKey).toPath();
+            Path publicKeyPath =  new File(XUtils.BASE_APP_LOCATION_PATH  + "/"  + configName +"/"  + "keys"+"/" +publicKey).toPath();
+            
             if (Files.notExists(privateKeyPath)) {
                 try {
                     generateJwtKeys(privateKeyPath, publicKeyPath);
@@ -99,15 +123,15 @@ public class App {
                     logger.atSevere().withCause(e).log("Error " + e.getMessage());
                 }
             }
-
+            
             // restart the server
             // ToDo review how this is not better.
             logger.atInfo().log("Restart the sever if there were no key set foe sever as much!");
-
-
-
+            
+            
+            
         }
-
+        
         System.setProperty("quarkus.application.name", XUtils.MAIN_CONFIG_MODEL.serverName());
         System.setProperty("quarkus.http.port", String.valueOf(XUtils.MAIN_CONFIG_MODEL.serverPort()));
         System.setProperty("quarkus.http.ssl-port", String.valueOf(XUtils.MAIN_CONFIG_MODEL.serverSSLPort()));
@@ -115,6 +139,7 @@ public class App {
         logger.atInfo().log("Server configs loaded successfully !");
         Quarkus.run(Main.class, args);
     }
+   
     private static void generateJwtKeys(Path privateKeyPath, Path publicKeyPath) throws Exception {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
         kpg.initialize(2048);

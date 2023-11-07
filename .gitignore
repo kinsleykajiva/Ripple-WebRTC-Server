@@ -41,6 +41,6 @@ nb-configuration.xml
 
 # Plugin directory
 /.quarkus/cli/plugins
-
+.app-config
 .app/keys/*.pem
 
