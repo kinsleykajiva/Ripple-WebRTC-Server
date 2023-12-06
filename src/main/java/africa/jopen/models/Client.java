@@ -42,6 +42,8 @@ public final class Client implements PeerConnectionObserver {
 	private       MutableList<Map<String, Object>> candidatesMapList = Lists.mutable.empty();
 	private       VideCallNotification             videCallNotification;
 	private       GStreamMediaResource             gStreamMediaResource;
+	/*to keep track of the objects the key will auto-incremented key*/
+	private       Map<Integer, GStreamMediaResource>              gStreamMediaStreamsMap      = new HashMap<>();
 	
 	public Client(String clientAgentName) {
 		this.clientAgentName = clientAgentName;
