@@ -12,14 +12,16 @@ import io.helidon.webserver.WebServer;
 import io.helidon.webserver.http.HttpRouting;
 import io.helidon.webserver.websocket.WsRouting;
 
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
+import org.apache.log4j.NDC;
 
 
 /**
  * The application main class.
  */
 public class Main {
-    private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
+    
+    static  Logger log = Logger.getLogger(Main.class.getName());
    
     /**
      * Cannot be instantiated.
@@ -33,7 +35,8 @@ public class Main {
      * @param args command line arguments.
      */
     public static void main(String[] args) {
-        LoggerConfig.setupLogger(LOGGER);
+//        System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
+        log.info("Starting server...");
         // load logging configuration
         LogConfig.configureRuntime();
 
@@ -52,7 +55,7 @@ public class Main {
                 .build()
                 .start();
         
-        LOGGER.info("WEB server is up! http://localhost:" + server.port() + "/simple-greet");
+        log.info("WEB server is up! http://localhost:" + server.port() + "/simple-greet");
         
     }
 
@@ -61,6 +64,7 @@ public class Main {
      * Updates HTTP Routing.
      */
     static void routing(HttpRouting.Builder routing) {
+        log.info("-------------------------:");
         MessageQueueService messageQueueService = new MessageQueueService();
         
         

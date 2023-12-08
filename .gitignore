@@ -11,7 +11,7 @@ release.properties
 .classpath
 .settings/
 bin/
-
+/logs
 # IntelliJ
 .idea
 *.ipr
@@ -38,9 +38,11 @@ nb-configuration.xml
 
 # Local environment
 .env
-
+logs
+logs/*
 # Plugin directory
 /.quarkus/cli/plugins
 .app-config
 .app/keys/*.pem
+
 
