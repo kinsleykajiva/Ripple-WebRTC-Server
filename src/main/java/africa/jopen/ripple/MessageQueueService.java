@@ -11,9 +11,7 @@ public class MessageQueueService implements HttpService {
 	static    org.apache.log4j.Logger log          = Logger.getLogger(MessageQueueService.class.getName());
 	private final MessageQueue            messageQueue = MessageQueue.instance();
 	
-	public MessageQueueService() {
-		log.info("-------------------------:");
-	}
+	
 	
 	@Override
 	public void routing(HttpRules routingRules) {

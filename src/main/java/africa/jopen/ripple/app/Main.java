@@ -15,6 +15,8 @@ import io.helidon.webserver.websocket.WsRouting;
 import org.apache.log4j.Logger;
 import org.apache.log4j.NDC;
 
+import static africa.jopen.ripple.utils.BannerTxT.BANNER_TEXT;
+
 
 /**
  * The application main class.
@@ -35,8 +37,8 @@ public class Main {
      * @param args command line arguments.
      */
     public static void main(String[] args) {
-//        System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
         log.info("Starting server...");
+        System.out.println(BANNER_TEXT);
         // load logging configuration
         LogConfig.configureRuntime();
 
@@ -55,7 +57,7 @@ public class Main {
                 .build()
                 .start();
         
-        log.info("WEB server is up! http://localhost:" + server.port() + "/simple-greet");
+        log.info("WEB server is up! http://localhost:" + server.port() );
         
     }
 
@@ -64,7 +66,7 @@ public class Main {
      * Updates HTTP Routing.
      */
     static void routing(HttpRouting.Builder routing) {
-        log.info("-------------------------:");
+       
         MessageQueueService messageQueueService = new MessageQueueService();
         
         
