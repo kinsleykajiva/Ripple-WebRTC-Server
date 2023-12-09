@@ -11,11 +11,7 @@ public class LoggerConfig {
 		ConsoleHandler handler = new ColoredConsoleHandler();
 		logger.addHandler(handler);
 		/*try {
-			FileHandler handler = new FileHandler("%t/ripple-server-_%g.log", 1024 * 1024 * 1024, 1, true);
-			handler.setFormatter(new SimpleFormatter());
-			
-		} catch (IOException e) {
-			logger.log(Level.SEVERE, "Failed to setup logger handler", e);
+		RE, "Failed to setup logger handler", e);
 		}*/
 		
 		/*if (logMaintenanceThread == null) {
