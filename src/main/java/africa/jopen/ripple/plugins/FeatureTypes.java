@@ -6,6 +6,7 @@ public enum FeatureTypes {
 	G_STREAM("G_STREAM"),
 	VIDEO_CALL("VIDEO_CALL");
 	
+	
 	private final String description;
 	
 	FeatureTypes(String description) {
