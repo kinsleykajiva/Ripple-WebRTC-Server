@@ -33,6 +33,8 @@ public final class RTCModel {
 				Objects.equals(this.answer, that.answer);
 	}
 	
+	
+	
 	@Override
 	public int hashCode() {
 		return Objects.hash(offer, answer);
