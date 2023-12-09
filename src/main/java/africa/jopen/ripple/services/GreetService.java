@@ -82,6 +82,8 @@ public class GreetService implements HttpService {
         greeting.set(message.message());
         response.status(Status.NO_CONTENT_204).send();
     }
+    
+    
 
     /**
      * Set the greeting to use in future messages.
