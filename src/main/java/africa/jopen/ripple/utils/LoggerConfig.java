@@ -10,9 +10,7 @@ public class LoggerConfig {
 		logger.setUseParentHandlers(false);
 		ConsoleHandler handler = new ColoredConsoleHandler();
 		logger.addHandler(handler);
-		/*try {
-		RE, "Failed to setup logger handler", e);
-		}*/
+		
 		
 	}
 }
