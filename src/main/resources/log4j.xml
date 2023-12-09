@@ -4,7 +4,7 @@
     <!-- stdout Appender -->
     <appender name="stdout" class="org.apache.log4j.ConsoleAppender">
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="(%d{HH:mm:ss})(%F:%L)| %m%n" />
+            <param name="ConversionPattern" value="(%d{HH:mm:ss})(%F:%L)| %m%n"/>
 
         </layout>
     </appender>
@@ -13,24 +13,24 @@
     <appender name="R" class="org.apache.log4j.rolling.RollingFileAppender">
         <rollingPolicy class="org.apache.log4j.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover with zip compression -->
-            <param name="FileNamePattern" value="./logs/rippleServer.%d{yyyy-MM-dd}.log.gz" />
+            <param name="FileNamePattern" value="./logs/rippleServer.%d{yyyy-MM-dd}.log.gz"/>
 
         </rollingPolicy>
 
         <layout class="org.apache.log4j.PatternLayout">
-<!--            <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n" />-->
-            <param name="ConversionPattern" value="(%d{HH:mm:ss})(%F:%L)| %m%n" />
+            <!--            <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n" />-->
+            <param name="ConversionPattern" value="(%d{HH:mm:ss})(%F:%L)| %m%n"/>
         </layout>
     </appender>
 
     <!-- ERROR Appender -->
     <appender name="ERROR" class="org.apache.log4j.RollingFileAppender">
-        <param name="File" value="./logs/rippleServerError.log" />
-        <param name="MaxFileSize" value="5000KB" />
-        <param name="MaxBackupIndex" value="1" />
+        <param name="File" value="./logs/rippleServerError.log"/>
+        <param name="MaxFileSize" value="5000KB"/>
+        <param name="MaxBackupIndex" value="1"/>
         <layout class="org.apache.log4j.PatternLayout">
-<!--            <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n" />-->
-            <param name="ConversionPattern" value="(%d{HH:mm:ss})(%F:%L)| %m%n" />
+            <!--            <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n" />-->
+            <param name="ConversionPattern" value="(%d{HH:mm:ss})(%F:%L)| %m%n"/>
         </layout>
         <filter class="org.apache.log4j.varia.LevelMatchFilter">
             <param name="LevelToMatch" value="ERROR"/>
@@ -40,10 +40,10 @@
 
     <!-- Root logger configuration -->
     <root>
-        <priority value="DEBUG" />
-        <appender-ref ref="stdout" />
-        <appender-ref ref="R" />
-        <appender-ref ref="ERROR" />
+        <priority value="DEBUG"/>
+        <appender-ref ref="stdout"/>
+        <appender-ref ref="R"/>
+        <appender-ref ref="ERROR"/>
     </root>
 
 </log4j:configuration>
