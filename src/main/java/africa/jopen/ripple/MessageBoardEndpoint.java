@@ -1,16 +1,16 @@
 package africa.jopen.ripple;
 
 
+import africa.jopen.ripple.utils.MessageQueue;
 import io.helidon.websocket.WsListener;
 import io.helidon.websocket.WsSession;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.NDC;
 
 public class MessageBoardEndpoint implements WsListener {
 
-	static Logger log = Logger.getLogger(MessageBoardEndpoint.class.getName());
-	private final        MessageQueue messageQueue = MessageQueue.instance();
+	static        Logger       log          = Logger.getLogger(MessageBoardEndpoint.class.getName());
+	private final MessageQueue messageQueue = MessageQueue.instance();
 	
 	@Override
 	public void onMessage(WsSession session, String text, boolean last) {

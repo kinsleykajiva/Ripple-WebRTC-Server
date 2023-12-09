@@ -1,27 +1,5 @@
 package africa.jopen.ripple;
 
-public class Message {
+public record Message (String message, String greeting) implements java.io.Serializable {
 
-    private String message;
-
-    private String greeting;
-
-    public Message() {
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public String getMessage() {
-        return this.message;
-    }
-
-    public void setGreeting(String greeting) {
-        this.greeting = greeting;
-    }
-
-    public String getGreeting() {
-        return this.greeting;
-    }
 }

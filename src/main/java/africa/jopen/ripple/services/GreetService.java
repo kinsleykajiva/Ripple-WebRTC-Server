@@ -65,21 +65,21 @@ public class GreetService implements HttpService {
 
     private void sendResponse(ServerResponse response, String name) {
         String  msg     = String.format("%s %s!", greeting.get(), name);
-        Message message = new Message();
-        message.setMessage(msg);
+        Message message = new Message(msg,null);
+       
         response.send(message);
     }
 
     private void updateGreetingFromJson(Message message, ServerResponse response) {
-        if (message.getGreeting() == null) {
-            Message errorMessage = new Message();
-            errorMessage.setMessage("No greeting provided");
+        if (message.greeting() == null) {
+            Message errorMessage = new Message(null,"No greeting provided");
+           
             response.status(Status.BAD_REQUEST_400)
                     .send(errorMessage);
             return;
         }
 
-        greeting.set(message.getGreeting());
+        greeting.set(message.message());
         response.status(Status.NO_CONTENT_204).send();
     }
 

@@ -1,4 +1,4 @@
-package africa.jopen.ripple;
+package africa.jopen.ripple.utils;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;

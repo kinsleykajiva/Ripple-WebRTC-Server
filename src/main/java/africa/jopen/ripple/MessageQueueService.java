@@ -1,6 +1,6 @@
 package africa.jopen.ripple;
 
-import africa.jopen.ripple.app.Main;
+import africa.jopen.ripple.utils.MessageQueue;
 import io.helidon.webserver.http.HttpRules;
 import io.helidon.webserver.http.HttpService;
 import io.helidon.webserver.http.ServerRequest;
@@ -8,7 +8,7 @@ import io.helidon.webserver.http.ServerResponse;
 import org.apache.log4j.Logger;
 
 public class MessageQueueService implements HttpService {
-	static    org.apache.log4j.Logger log          = Logger.getLogger(MessageQueueService.class.getName());
+	static        org.apache.log4j.Logger log          = Logger.getLogger(MessageQueueService.class.getName());
 	private final MessageQueue            messageQueue = MessageQueue.instance();
 	
 	
