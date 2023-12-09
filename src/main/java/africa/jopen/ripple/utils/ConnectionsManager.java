@@ -69,10 +69,5 @@ public class ConnectionsManager {
 	
 	
 	
-	public Client updateClient(Client client_) {
-		
-		CLIENTS.replaceAll(oldClient -> oldClient.getClientID().equals(client_.getClientID()) ? client_ : oldClient);
-		
-		return updateClientWhenRemembered(client_.getClientID());
-	}
+	
 }
