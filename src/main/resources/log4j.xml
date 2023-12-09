@@ -12,7 +12,7 @@
     <!-- INFO Appender -->
     <appender name="R" class="org.apache.log4j.rolling.RollingFileAppender">
         <rollingPolicy class="org.apache.log4j.rolling.TimeBasedRollingPolicy">
-            <!-- daily rollover with zip compression -->
+
             <param name="FileNamePattern" value="./logs/rippleServer.%d{yyyy-MM-dd}.log.gz"/>
 
         </rollingPolicy>
