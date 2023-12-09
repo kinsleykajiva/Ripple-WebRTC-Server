@@ -60,6 +60,7 @@ public class WebsocketEndpoint implements WsListener {
 					}
 				}
 				
+				
 			}else{
 				log.info("Received message has no clientID");
 				session.send(
