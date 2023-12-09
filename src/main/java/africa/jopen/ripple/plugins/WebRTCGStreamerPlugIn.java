@@ -25,7 +25,7 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 	private              Pipeline            pipe;
 	private              WebRTCBin           webRTCBin;
 	private              boolean             isPaused           = false;
-	private              Map<String, Object> candidateMap       = new HashMap<>();
+
 	private static final int                 SECONDS_PER_MINUTE = 60;
 	
 	private int minutes = 0, seconds = 0;

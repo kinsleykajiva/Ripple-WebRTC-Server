@@ -2,10 +2,9 @@
 package africa.jopen.ripple.app;
 
 
-import africa.jopen.ripple.MessageBoardEndpoint;
+import africa.jopen.ripple.sockets.WebsocketEndpoint;
 import africa.jopen.ripple.MessageQueueService;
 import africa.jopen.ripple.services.GreetService;
-import africa.jopen.ripple.utils.LoggerConfig;
 import io.helidon.logging.common.LogConfig;
 import io.helidon.config.Config;
 import io.helidon.webserver.WebServer;
@@ -13,7 +12,6 @@ import io.helidon.webserver.http.HttpRouting;
 import io.helidon.webserver.websocket.WsRouting;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.NDC;
 
 import static africa.jopen.ripple.utils.BannerTxT.BANNER_TEXT;
 
@@ -51,7 +49,7 @@ public class Main {
                 .config(config.get("server"))
                 .routing(Main::routing)
                 .addRouting(WsRouting.builder()
-                        .endpoint("/websocket/client", new MessageBoardEndpoint())
+                        .endpoint("/websocket/client", new WebsocketEndpoint())
                         
                 )
                 .build()
