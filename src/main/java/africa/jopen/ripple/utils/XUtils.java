@@ -22,7 +22,7 @@ public class XUtils {
 		return concatenated.replaceAll("-", "");
 	}
 	
-	public static JSONObject failedResponse(String transactionId, String message, JSONObject data){
+	public static JSONObject failedResponse(String transactionId, String message, JSONObject data) {
 		LOGGER.info("Building error/failed response");
 		
 		JSONObject returnObject = new JSONObject()
@@ -34,6 +34,7 @@ public class XUtils {
 		
 		return returnObject;
 	}
+	
 	public static JSONObject successResponse(String transactionId, String message, JSONObject data) {
 		LOGGER.info("Building success response");
 		
