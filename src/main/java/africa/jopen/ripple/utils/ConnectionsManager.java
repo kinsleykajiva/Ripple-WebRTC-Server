@@ -34,7 +34,6 @@ public class ConnectionsManager {
 	}
 	
 	
-	
 	public Optional<Client> getClient(String id) {
 		//  check if client exists using the client d property
 		return CLIENTS.select(client -> client.getClientID().equals(id)).stream().findFirst();
