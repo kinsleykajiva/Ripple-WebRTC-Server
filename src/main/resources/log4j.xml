@@ -23,6 +23,7 @@
         </layout>
     </appender>
 
+
     <appender name="ERROR" class="org.apache.log4j.RollingFileAppender">
         <param name="File" value="./logs/rippleServerError.log"/>
         <param name="MaxFileSize" value="5000KB"/>
