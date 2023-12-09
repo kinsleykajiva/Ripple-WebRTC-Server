@@ -37,7 +37,6 @@ public final class RTCModel {
 	
 	
 	
-	
 	@Override
 	public int hashCode() {
 		return Objects.hash(offer, answer);
