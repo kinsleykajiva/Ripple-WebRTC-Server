@@ -43,29 +43,7 @@ public class ConnectionsManager {
 		return CLIENTS.select(client -> client.getClientID().equals(id)).stream().findFirst();
 	}
 	
-	/**
-	 * Updates the client object in the list when its ID matches the given ID.
-	 * The last time stamp of the client will be updated with the current system time.
-	 * Returns the updated client object.
-	 *
-	 * @param id The ID of the client to be updated.
-	 * @return The updated client object.
-	 * @throws ClientException If the client with the given ID is not found.
-	 */
-	public Client updateClientWhenRemembered(String id) {
-		// update client of the client object in the list and return the client object
-		for (Client client : CLIENTS) {
-			if (client.getClientID().equals(id)) {
-				client.updateLastTimeStamp(System.currentTimeMillis());
-				//ClientsEvents mClientsEvent = new ClientsEvents(client);
-				//	clientsEventsEvent.fire(mClientsEvent);
-				return client;
-			}
-			
-		}
-		
-		throw new ClientException("Client not found ,IllegalStateException");
-	}
+	
 	
 	
 	
