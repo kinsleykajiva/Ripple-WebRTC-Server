@@ -16,26 +16,33 @@ public class ConnectionsManager {
 	static {
 		LoggerConfig.setupLogger(LOGGER);
 	}
+	
 	private static final MutableList<Client> CLIENTS = Lists.mutable.empty();
+	
 	private ConnectionsManager() {
 		LOGGER.info("started now ConnectionsManager");
 		GStreamerUtils.configurePaths();
 		Gst.init(Version.of(1, 16));
 	}
+	
 	private static class Holder {
 		private static final ConnectionsManager INSTANCE = new ConnectionsManager();
 	}
+	
 	public static ConnectionsManager getInstance() {
 		return Holder.INSTANCE;
 	}
+	
 	public boolean checkIfClientExists(String id) {
 		
 		return CLIENTS.anySatisfy(client -> client.getClientID().equals(id));
 	}
+	
 	public Optional<Client> getClient(String id) {
 		//  check if client exists using the client d property
 		return CLIENTS.select(client -> client.getClientID().equals(id)).stream().findFirst();
 	}
+	
 	/**
 	 * Updates the client object in the list when its ID matches the given ID.
 	 * The last time stamp of the client will be updated with the current system time.
@@ -60,10 +67,7 @@ public class ConnectionsManager {
 		throw new ClientException("Client not found ,IllegalStateException");
 	}
 	
-	public void removeClient(Client client) {
-		CLIENTS.remove(client);
-		LOGGER.info("freeing some objects");
-	}
+	
 	
 	public Client updateClient(Client client_) {
 		

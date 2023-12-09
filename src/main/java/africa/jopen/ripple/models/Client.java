@@ -17,10 +17,10 @@ public class Client implements CommonAbout {
 	
 	private final MutableMap<Integer, WebRTCGStreamerPlugIn> webRTCStreamMap = Maps.mutable.empty();
 	
-	public void createAccessGStreamerPlugIn(MediaFile mediaFile){
-		var position = webRTCStreamMap.size() + 1;
-		var gStreamerPlugIn = new WebRTCGStreamerPlugIn(this,position,mediaFile);
-		webRTCStreamMap.put(position,gStreamerPlugIn);
+	public void createAccessGStreamerPlugIn(MediaFile mediaFile) {
+		var position        = webRTCStreamMap.size() + 1;
+		var gStreamerPlugIn = new WebRTCGStreamerPlugIn(this, position, mediaFile);
+		webRTCStreamMap.put(position, gStreamerPlugIn);
 	}
 	
 	public MutableMap<Integer, WebRTCGStreamerPlugIn> getWebRTCStreamMap() {
@@ -62,7 +62,7 @@ public class Client implements CommonAbout {
 	public void sendMessage(final JSONObject pluginData, final Integer objectPosition) {
 		//response.put("lastSeen", clientObject.get().lastTimeStamp());
 		var response = new JSONObject();
-		response.put("clientID",clientID);
+		response.put("clientID", clientID);
 		response.put("success", true);
 		response.put("handleId", objectPosition);
 		response.put("accessAuth", "GENERAL");
