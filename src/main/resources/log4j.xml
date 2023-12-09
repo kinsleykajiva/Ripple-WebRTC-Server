@@ -18,7 +18,7 @@
         </rollingPolicy>
 
         <layout class="org.apache.log4j.PatternLayout">
-            <!--            <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n" />-->
+
             <param name="ConversionPattern" value="(%d{HH:mm:ss})(%F:%L)| %m%n"/>
         </layout>
     </appender>
