@@ -3,7 +3,6 @@ package africa.jopen.ripple.sockets;
 
 import africa.jopen.ripple.models.Client;
 import africa.jopen.ripple.models.MediaFile;
-import africa.jopen.ripple.plugins.WebRTCGStreamerPlugIn;
 import africa.jopen.ripple.utils.JsonUtils;
 import io.helidon.websocket.WsListener;
 import io.helidon.websocket.WsSession;
@@ -44,14 +43,14 @@ public class WebsocketEndpoint implements WsListener {
 									.put("clientID", client.getClientID())
 									.toString()
 							, last);
-				}else{
+				} else {
 					String clientID = jsonObject.getString("clientID");
-					if(jsonObject.getString("feature").equals(G_STREAM)) {
-						var client = clientsList.detect(client1 -> client1.getClientID().equals(clientID));
-						String file = jsonObject.getString("file");
-						if(client.getWebRTCStreamMap().isEmpty()){
+					if (jsonObject.getString("feature").equals(G_STREAM)) {
+						var    client = clientsList.detect(client1 -> client1.getClientID().equals(clientID));
+						String file   = jsonObject.getString("file");
+						if (client.getWebRTCStreamMap().isEmpty()) {
 							log.info("Client has no stream");
-							client.createAccessGStreamerPlugIn(new MediaFile(file , 0));
+							client.createAccessGStreamerPlugIn(new MediaFile(file, 0));
 						}
 						if (Objects.nonNull(client)) {
 							client.sendMessage(jsonObject, jsonObject.getInt("handleId"));
@@ -61,7 +60,7 @@ public class WebsocketEndpoint implements WsListener {
 				}
 				
 				
-			}else{
+			} else {
 				log.info("Received message has no clientID");
 				session.send(
 						new JSONObject()
