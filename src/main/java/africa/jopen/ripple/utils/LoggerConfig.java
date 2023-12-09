@@ -14,19 +14,5 @@ public class LoggerConfig {
 		RE, "Failed to setup logger handler", e);
 		}*/
 		
-		/*if (logMaintenanceThread == null) {
-			logMaintenanceThread = new Thread(() -> {
-				
-				while (true) {ntain log files", e);
-									}
-								});
-						Thread.sleep(24 * 60 * 60 * 1000); // Sleep for a day
-					} catch (Exception e) {
-						logger.log(Level.SEVERE, "Failed to maintain log files", e);
-					}
-				}
-			});
-			logMaintenanceThread.start();
-		}*/
 	}
 }
