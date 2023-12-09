@@ -33,10 +33,7 @@ public class ConnectionsManager {
 		return Holder.INSTANCE;
 	}
 	
-	public boolean checkIfClientExists(String id) {
-		
-		return CLIENTS.anySatisfy(client -> client.getClientID().equals(id));
-	}
+	
 	
 	public Optional<Client> getClient(String id) {
 		//  check if client exists using the client d property
