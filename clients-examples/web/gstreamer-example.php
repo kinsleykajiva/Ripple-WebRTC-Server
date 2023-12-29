@@ -547,6 +547,8 @@
 
   <!-- Template Main JS File -->
   <script src="assets/js/main.js"></script>
+  <script src="adapter.min.js"></script>
+  <script src="rippleApp.js"></script>
 
 </body>
 
