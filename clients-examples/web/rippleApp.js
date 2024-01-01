@@ -23,6 +23,40 @@ const RippleSDK = {
             }, RippleSDK.app.remindServerTimeoutInSeconds *1000);
 
         },
+        callbacks:{
+            onMessage:messageObject=>{
+                RippleSDK.utils.log('onMessage', messageObject);
+                if(!messageObject){
+                    RippleSDK.utils.log('onMessage', 'no messageObject');
+                    return;
+                }
+                // test if the message is a string or an object
+                if(typeof messageObject === 'string'){
+                    messageObject = JSON.parse(messageObject);
+                }
+                const messageType = messageObject.messageType;
+
+            },
+            tellClientOnConnected:null,
+            onConnected:()=>{
+                RippleSDK.utils.log('onConnected');
+                RippleSDK.app.callbacks.tellClientOnConnected();
+            },
+            tellClientOnClosed:null,
+            onClosed:()=>{
+                RippleSDK.utils.log('onClosed');
+                RippleSDK.app.callbacks.tellClientOnClosed();
+            },
+            onConnecting:()=>{
+                RippleSDK.utils.log('onConnecting');
+                //Todo should be able to tell client this is connecting to the server
+            },
+            tellClientOnFatalError:null,
+            networkError:err=>{
+                RippleSDK.utils.log('networkError', err);
+                RippleSDK.app.callbacks.tellClientOnFatalError(err);
+            }
+        }
     },
     transports:{
         websocket: {
@@ -47,6 +81,9 @@ const RippleSDK = {
 
             },
             connect: () => {
+                let reconnectAttempts       = 0;
+                const maxReconnectAttempts = 200;
+                const reconnectDelays       = [10, 20, 35, 45, 55]; // delays in seconds
                 RippleSDK.transports.websocket.socket = new WebSocket(RippleSDK.serverUrl);
                 RippleSDK.transports.websocket.socket.onopen = () => {
                     RippleSDK.transports.websocket.isConnected = true;
@@ -54,6 +91,7 @@ const RippleSDK = {
                         clientID: RippleSDK.clientID,
                         requestType: 'connect',
                     }));
+                    RippleSDK.app.callbacks.onConnected();
                 };
                 RippleSDK.transports.websocket.socket.onmessage = (event) => {
                     const data = JSON.parse(event.data);
@@ -62,13 +100,30 @@ const RippleSDK = {
                         RippleSDK.utils.log('onmessage', 'connected');
                         RippleSDK.app.startToRemindServerOfMe();
                     }
+                    RippleSDK.app.callbacks.onMessage(data);
                 };
-                RippleSDK.transports.websocket.socket.onclose = () => {
+                RippleSDK.transports.websocket.socket.onclose = (ev) => {
                     RippleSDK.transports.websocket.isConnected = false;
-                    RippleSDK.utils.log('onclose');
+                    RippleSDK.utils.log(`WebSocket closed with code ${ev.code} and reason ${ev.reason}`);
+
+                    if(reconnectAttempts < maxReconnectAttempts){
+
+                        const reconnectDelay = reconnectDelays[Math.floor(Math.random() * reconnectDelays.length)];
+                        RippleSDK.utils.log(`WebSocket reconnecting in ${reconnectDelay} seconds`);
+                        setTimeout(() => {
+                            reconnectAttempts++;
+                            RippleSDK.transports.websocket.connect();
+                        }, reconnectDelay * 1000);
+                    }else{
+                        RippleSDK.utils.log(`WebSocket reconnecting failed after ${maxReconnectAttempts} attempts,giving up`);
+                        RippleSDK.app.callbacks.onClosed();
+                    }
+
+
                 };
                 RippleSDK.transports.websocket.socket.onerror = (error) => {
                     RippleSDK.utils.log('onerror', error);
+                    RippleSDK.app.callbacks.networkError(error);
                 };
             },
         }
