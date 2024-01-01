@@ -1,6 +1,7 @@
 'use strict';
 const RippleSDK = {
     serverUrl                   : '',
+    serverName                   : '',
     timeZone                    : Intl.DateTimeFormat().resolvedOptions().timeZone,
     clientID                    : '',
     isDebugSession              : false,
@@ -17,10 +18,14 @@ const RippleSDK = {
             RippleSDK.utils.log('startToRemindServerOfMe');
             RippleSDK.app.reminderInterval = setInterval(()=>{
                 const body =  {
-                    clientID: RippleSDK.serverClientId,
-                    requestType: '',
+                    clientID: RippleSDK.clientID,
+                    requestType: 'remember',
+                    isDebugSession: RippleSDK.isDebugSession,
                 };
+                RippleSDK.transports.websocket.webSocketSendAction(body);
+
             }, RippleSDK.app.remindServerTimeoutInSeconds *1000);
+
 
         },
         callbacks:{
@@ -136,6 +141,69 @@ const RippleSDK = {
         info              : console.info.bind(console),
         trace             : console.trace.bind(console),
         assert            : console.assert.bind(console),
+        convertToWebSocketUrl: (url) => {
+            const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+            return `${protocol}://${window.location.host}${url}`;
+        },
+        convertFromWebSocketUrl: (url) => {
+            const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+            return url.replace(`${protocol}://${window.location.host}`, '');
+        },
+        isChromeOrFirefox: () => {
+            try{
+                const isChrome = !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime);
+                const isFirefox = typeof InstallTrigger !== 'undefined';
+                return isChrome || isFirefox;
+            }catch (e) {
+                RippleSDK.utils.log('isChromeOrFirefox', e);
+                const userAgent = navigator.userAgent.toLowerCase();
+                return userAgent.indexOf('chrome') > -1 || userAgent.indexOf('firefox') > -1;
+            }
+        },
+        fetchWithTimeout: async (url, options) => {
+            const {timeout = 8000} = options;
+            if (options.method === 'POST') {
+                options.headers = {
+                    'Content-Type': 'application/json',
+                };
+                if (!options.body.clientID) {
+                    options.body.clientID = RippleSDK.clientID;
+
+                }
+                options.body.timeStamp = new Date().getTime();
+                options.body = JSON.stringify(options.body);
+
+            }
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            const _urlRoot = RippleSDK.utils.convertToWebSocketUrl(url);
+            try {
+                const response = await fetch(`${_urlRoot}/${url}`, {
+                    ...options,
+                    signal: controller.signal,
+                });
+
+                clearTimeout(id);
+                if (!response.ok) {
+                    RippleSDK.utils.warn('fetchWithTimeout', response);
+                    RippleSDK.app.callbacks.networkError(`HTTP error! Status: ${response.status}`);
+                   // throw new Error(`${response.status} ${response.statusText}`);
+                }
+                const json = await response.json();
+                if(json.serverName){
+                    RippleSDK.serverName = json.serverName;
+                }
+                if(json.success){
+
+                }
+                return json;
+            }catch (e) {
+                RippleSDK.utils.error('fetchWithTimeout', e);
+                RippleSDK.app.callbacks.networkError(`Request failed: ${e.message}`);
+                clearTimeout(id);
+            }
+
+        },
         isWebRTCSupported               : () => !!window.RTCPeerConnection,
         replaceAll: (f, r) => this.split(f).join(r),
         uniqueIDGenerator: (seed = '', maxSize = 22) => {
