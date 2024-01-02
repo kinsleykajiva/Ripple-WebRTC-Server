@@ -585,19 +585,20 @@
   <script src="assets/vendor/php-email-form/validate.js"></script>
 
   <!-- Template Main JS File -->
-  <script src="assets/js/main.js"></script>
+<!--  <script src="assets/js/main.js"></script>-->
   <script src="adapter.min.js"></script>
   <script src="rippleApp.js"></script>
 <script>
     RippleSDK.init(true,null,"http://localhost:8080/");
 
-    // Select the video and control elements
-    const video = document.getElementById('localVideo');
-    const playPauseButton = document.getElementById('playPauseButton');
-    const fastRewindButton = document.getElementById('fastRewindButton');
+
+    const video             = document.getElementById('localVideo');
+    const playPauseButton   = document.getElementById('playPauseButton');
+    const fastRewindButton  = document.getElementById('fastRewindButton');
     const fastForwardButton = document.getElementById('fastForwardButton');
-    const volumeControl = document.getElementById('volumeControl');
-    const fullscreenButton = document.getElementById('fullscreenButton');
+    const volumeControl     = document.getElementById('volumeControl');
+    const fullscreenButton  = document.getElementById('fullscreenButton');
+
     fullscreenButton.addEventListener('click', () => {
         if (video.requestFullscreen) {
             video.requestFullscreen();
