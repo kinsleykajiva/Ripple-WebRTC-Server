@@ -282,12 +282,20 @@ const RippleSDK = {
             tellClientOnConnected:null,
             onConnected:()=>{
                 RippleSDK.utils.log('onConnected');
-                RippleSDK.app.callbacks.tellClientOnConnected();
+                if(RippleSDK.app.callbacks.tellClientOnConnected) {
+                    RippleSDK.app.callbacks.tellClientOnConnected();
+                }else{
+                    RippleSDK.utils.log('onConnected', 'no callback');
+                }
             },
             tellClientOnClosed:null,
             onClosed:()=>{
                 RippleSDK.utils.log('onClosed');
-                RippleSDK.app.callbacks.tellClientOnClosed();
+                if(RippleSDK.app.callbacks.tellClientOnClosed) {
+                    RippleSDK.app.callbacks.tellClientOnClosed();
+                }else{
+                    RippleSDK.utils.log('onClosed', 'no callback');
+                }
             },
             onConnecting:()=>{
                 RippleSDK.utils.log('onConnecting');
@@ -296,7 +304,11 @@ const RippleSDK = {
             tellClientOnFatalError:null,
             networkError:err=>{
                 RippleSDK.utils.log('networkError', err);
-                RippleSDK.app.callbacks.tellClientOnFatalError(err);
+                if(RippleSDK.app.callbacks.tellClientOnFatalError) {
+                    RippleSDK.app.callbacks.tellClientOnFatalError(err);
+                }else{
+                    RippleSDK.utils.log('networkError', 'no callback');
+                }
             }
         }
     },
@@ -326,7 +338,13 @@ const RippleSDK = {
                 let reconnectAttempts                 = 0;
                 const maxReconnectAttempts            = 200;
                 const reconnectDelays               = [10, 20, 35, 45, 55]; // delays in seconds
-                RippleSDK.transports.websocket.socket           = new WebSocket(RippleSDK.serverUrl);
+                let url = RippleSDK.utils.convertToWebSocketUrl(RippleSDK.serverUrl);
+                if (url.endsWith('/')) {
+                    url = url+ 'websocket/client';
+                }else{
+                    url = url+ '/websocket/client';
+                }
+                RippleSDK.transports.websocket.socket           = new WebSocket(url);
                 RippleSDK.transports.websocket.socket.onopen = () => {
                     RippleSDK.transports.websocket.isConnected = true;
                     RippleSDK.transports.websocket.socket.send(JSON.stringify({
@@ -379,12 +397,22 @@ const RippleSDK = {
         trace             : console.trace.bind(console),
         assert            : console.assert.bind(console),
         convertToWebSocketUrl: (url) => {
-            const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-            return `${protocol}://${window.location.host}${url}`;
+            if (url.startsWith('https://')) {
+                return url.replace('https://', 'wss://');
+            } else if (url.startsWith('http://')) {
+                return url.replace('http://', 'ws://');
+            } else {
+                return url;
+            }
         },
         convertFromWebSocketUrl: (url) => {
-            const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-            return url.replace(`${protocol}://${window.location.host}`, '');
+            if (url.startsWith('wss://')) {
+                return url.replace('wss://', 'https://');
+            } else if (url.startsWith('ws://')) {
+                return url.replace('ws://', 'http://');
+            } else {
+                return url;
+            }
         },
         isChromeOrFirefox: () => {
             try{
@@ -459,11 +487,13 @@ const RippleSDK = {
             return uniID.replace(/[^a-z0-9]/gi, '') /*remove non-alphanumeric characters */;
         },
     },
-    init              : (isDebugging,iceCandidates) => {
+    init              : (isDebugging,iceCandidates,url) => {
+        RippleSDK.serverUrl = url;
         RippleSDK.isDebugSession = isDebugging;
+        RippleSDK.utils.log('init url ',RippleSDK.utils.convertToWebSocketUrl(RippleSDK.serverUrl));
         RippleSDK.clientID = RippleSDK.utils.uniqueIDGenerator("client",12)+RippleSDK.utils.uniqueIDGenerator(RippleSDK.timeZone);
         RippleSDK.utils.log('init', RippleSDK.clientID);
-        // RippleSDK.transports.websocket.connect();
+         RippleSDK.transports.websocket.connect();
         RippleSDK.app.iceServerArray = !iceCandidates ?RippleSDK.app.iceServerArray:iceCandidates;
         RippleSDK.app.webRTC.peerConnectionConfig.iceServers = RippleSDK.app.iceServerArray;
     },
@@ -471,10 +501,8 @@ const RippleSDK = {
 
 };
 
-RippleSDK.init(true)
+RippleSDK.init(true,null,"http://localhost:8080/")
 RippleSDK.utils.log('tt   ',RippleSDK.clientID);
-RippleSDK.utils.log('ID',RippleSDK.utils.uniqueIDGenerator(RippleSDK.timeZone,12));
-RippleSDK.utils.log('I4D',RippleSDK.utils.uniqueIDGenerator("client",12)+RippleSDK.utils.uniqueIDGenerator(RippleSDK.timeZone));
 // RippleSDK.log('RippleSDK loaded');
 RippleSDK.utils.log('This is a custom log message');
 

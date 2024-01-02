@@ -27,7 +27,6 @@ public class WebsocketEndpoint implements WsListener {
 		log.info("Received message last : " + last);
 		
 		if (JsonUtils.isJson(text)) {
-			log.info("Received message is json");
 			JSONObject jsonObject = new JSONObject(text);
 			if (jsonObject.has("clientID")) {
 				if ((Objects.equals(jsonObject.getString("clientID"), "null")) && jsonObject.getString("eventType").equals("register")) {
