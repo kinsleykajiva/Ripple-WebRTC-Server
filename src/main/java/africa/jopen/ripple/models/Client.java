@@ -11,11 +11,17 @@ import org.eclipse.collections.api.map.MutableMap;
 import org.json.JSONObject;
 
 public class Client implements CommonAbout {
-	private final String              clientID      = XUtils.IdGenerator();
+	private  String              clientID     ;
 	private final MutableList<String> transactions  = Lists.mutable.empty();
 	private       long                lastTimeStamp = System.currentTimeMillis();
 	
 	private final MutableMap<Integer, WebRTCGStreamerPlugIn> webRTCStreamMap = Maps.mutable.empty();
+	
+	public Client(String              clientID) {
+		if(clientID == null || clientID.equals("null") || clientID.isEmpty()){
+			this.clientID = XUtils.IdGenerator();
+		}
+	}
 	
 	public void createAccessGStreamerPlugIn(MediaFile mediaFile) {
 		var position        = webRTCStreamMap.size() + 1;
@@ -32,6 +38,7 @@ public class Client implements CommonAbout {
 	public String getClientID() {
 		return clientID;
 	}
+	
 	
 	public void setWsSession(WsSession wsSession) {
 		this.wsSession = wsSession;

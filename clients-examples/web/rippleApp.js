@@ -329,6 +329,7 @@ const RippleSDK = {
                     RippleSDK.utils.log('webSocketSendAction', 'not ready');
                     return;
                 }else{
+                    messageObject.transaction = RippleSDK.utils.uniqueIDGenerator("transaction",12);
                     RippleSDK.utils.log('webSocketSendAction', 'ready');
                     RippleSDK.transports.websocket.socket.send(JSON.stringify(messageObject));
                 }
@@ -347,17 +348,17 @@ const RippleSDK = {
                 RippleSDK.transports.websocket.socket           = new WebSocket(url);
                 RippleSDK.transports.websocket.socket.onopen = () => {
                     RippleSDK.transports.websocket.isConnected = true;
-                    RippleSDK.transports.websocket.socket.send(JSON.stringify({
-                        clientID: RippleSDK.clientID,
-                        requestType: 'connect',
-                    }));
                     RippleSDK.app.callbacks.onConnected();
+                    RippleSDK.transports.websocket.webSocketSendAction({
+                        clientID: RippleSDK.clientID,
+                        requestType: 'register',
+                    });
+
                 };
                 RippleSDK.transports.websocket.socket.onmessage = (event) => {
                     const data = JSON.parse(event.data);
                     RippleSDK.utils.log('onmessage', data);
-                    if (data.requestType === 'connect') {
-                        RippleSDK.utils.log('onmessage', 'connected');
+                    if (data.requestType === 'register') {
                         RippleSDK.app.startToRemindServerOfMe();
                     }
                     RippleSDK.app.callbacks.onMessage(data);
@@ -492,7 +493,7 @@ const RippleSDK = {
         RippleSDK.isDebugSession = isDebugging;
         RippleSDK.utils.log('init url ',RippleSDK.utils.convertToWebSocketUrl(RippleSDK.serverUrl));
         RippleSDK.clientID = RippleSDK.utils.uniqueIDGenerator("client",12)+RippleSDK.utils.uniqueIDGenerator(RippleSDK.timeZone);
-        RippleSDK.utils.log('init', RippleSDK.clientID);
+        RippleSDK.utils.log('clientID ', RippleSDK.clientID);
          RippleSDK.transports.websocket.connect();
         RippleSDK.app.iceServerArray = !iceCandidates ?RippleSDK.app.iceServerArray:iceCandidates;
         RippleSDK.app.webRTC.peerConnectionConfig.iceServers = RippleSDK.app.iceServerArray;
@@ -502,9 +503,7 @@ const RippleSDK = {
 };
 
 RippleSDK.init(true,null,"http://localhost:8080/")
-RippleSDK.utils.log('tt   ',RippleSDK.clientID);
-// RippleSDK.log('RippleSDK loaded');
-RippleSDK.utils.log('This is a custom log message');
+
 
 
 

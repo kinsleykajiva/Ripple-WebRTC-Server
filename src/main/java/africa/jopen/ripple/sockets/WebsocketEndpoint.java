@@ -25,12 +25,16 @@ public class WebsocketEndpoint implements WsListener {
 	public void onMessage(WsSession session, String text, boolean last) {
 		log.info("Received message: " + text);
 		log.info("Received message last : " + last);
+		var transaction = "";
 		
 		if (JsonUtils.isJson(text)) {
 			JSONObject jsonObject = new JSONObject(text);
+			if (jsonObject.has("transaction")) {
+				transaction = jsonObject.getString("transaction");
+			}
 			if (jsonObject.has("clientID")) {
-				if ((Objects.equals(jsonObject.getString("clientID"), "null")) && jsonObject.getString("eventType").equals("register")) {
-					var client = new Client();
+				if (jsonObject.getString("requestType").equals("register")) {
+					var client = new Client(jsonObject.getString("clientID"));
 					client.setWsSession(session);
 					
 					clientsList.add(client);
@@ -38,7 +42,9 @@ public class WebsocketEndpoint implements WsListener {
 					session.send(
 							new JSONObject()
 									.put("success", true)
+									.put("eventType", jsonObject.getString("requestType"))
 									.put("accessAuth", "GENERAL")
+									.put("transaction", transaction)
 									.put("clientID", client.getClientID())
 									.toString()
 							, last);
