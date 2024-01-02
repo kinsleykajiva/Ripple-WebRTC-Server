@@ -8,6 +8,34 @@
   <title>G Streamer example</title>
 
   <?php include_once 'includes/css.php' ?>
+    <style>
+        .video-controls {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: #000;
+  color: #fff;
+
+}
+        .video-stream {
+            width: 100%;
+            height: auto;
+        }
+.video-controls button {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+}
+
+.video-controls button:hover {
+  color: #ddd;
+}
+
+.video-controls i {
+  font-size: 1.5em;
+}
+    </style>
 </head>
 
 <body>
@@ -495,12 +523,23 @@
       <div class="row">
         <div class="col-lg-6">
 
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Example Card</h5>
-              <p>This is an examle page with no contrnt. You can use it as a starter for your custom pages.</p>
-            </div>
-          </div>
+         <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">Video Stream</h5>
+                <video id="localVideo" class="video-stream" autoplay playsinline muted></video>
+                <div class="video-controls">
+                  <!-- Controls go here -->
+                    <div class="video-controls">
+                      <button id="playPauseButton"><i class="fas fa-play"></i></button>
+                      <button id="fastRewindButton"><i class="fas fa-backward"></i></button>
+                      <button id="fastForwardButton"><i class="fas fa-forward"></i></button>
+                      <input type="range" id="volumeControl" min="0" max="1" step="0.1">
+                      <button style="margin-left: 10%" id="fullscreenButton"><i class="fas fa-expand"></i></button>
+                    </div>
+                  <!-- Controls go here -->
+                </div>
+              </div>
+        </div>
 
         </div>
 
@@ -550,7 +589,54 @@
   <script src="adapter.min.js"></script>
   <script src="rippleApp.js"></script>
 <script>
-    RippleSDK.init(true,null,"http://localhost:8080/")
+    RippleSDK.init(true,null,"http://localhost:8080/");
+
+    // Select the video and control elements
+    const video = document.getElementById('localVideo');
+    const playPauseButton = document.getElementById('playPauseButton');
+    const fastRewindButton = document.getElementById('fastRewindButton');
+    const fastForwardButton = document.getElementById('fastForwardButton');
+    const volumeControl = document.getElementById('volumeControl');
+    const fullscreenButton = document.getElementById('fullscreenButton');
+    fullscreenButton.addEventListener('click', () => {
+        if (video.requestFullscreen) {
+            video.requestFullscreen();
+        } else if (video.mozRequestFullScreen) { // Firefox
+            video.mozRequestFullScreen();
+        } else if (video.webkitRequestFullscreen) { // Chrome, Safari and Opera
+            video.webkitRequestFullscreen();
+        } else if (video.msRequestFullscreen) { // IE/Edge
+            video.msRequestFullscreen();
+        }
+    });
+
+    // Add event listener to the play/pause button
+    playPauseButton.addEventListener('click', () => {
+        if (video.paused) {
+            video.play();
+            playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
+        } else {
+            video.pause();
+            playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
+        }
+    });
+
+    // Add event listener to the fast rewind button
+    fastRewindButton.addEventListener('click', () => {
+        video.currentTime -= 10; // Rewind 10 seconds
+    });
+
+    // Add event listener to the fast forward button
+    fastForwardButton.addEventListener('click', () => {
+        video.currentTime += 10; // Fast forward 10 seconds
+    });
+
+    // Add event listener to the volume control
+    volumeControl.addEventListener('input', () => {
+        video.volume = volumeControl.value;
+    });
+
+
 </script>
 
 </body>
