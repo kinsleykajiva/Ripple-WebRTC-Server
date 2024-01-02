@@ -549,6 +549,9 @@
   <script src="assets/js/main.js"></script>
   <script src="adapter.min.js"></script>
   <script src="rippleApp.js"></script>
+<script>
+    RippleSDK.init(true,null,"http://localhost:8080/")
+</script>
 
 </body>
 

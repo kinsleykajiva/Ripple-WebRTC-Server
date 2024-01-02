@@ -503,7 +503,7 @@ const RippleSDK = {
 
 };
 
-RippleSDK.init(true,null,"http://localhost:8080/")
+
 
 
 
