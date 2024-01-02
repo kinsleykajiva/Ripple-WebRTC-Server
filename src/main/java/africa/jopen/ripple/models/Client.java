@@ -2,8 +2,10 @@ package africa.jopen.ripple.models;
 
 import africa.jopen.ripple.interfaces.CommonAbout;
 import africa.jopen.ripple.plugins.WebRTCGStreamerPlugIn;
+import africa.jopen.ripple.sockets.WebsocketEndpoint;
 import africa.jopen.ripple.utils.XUtils;
 import io.helidon.websocket.WsSession;
+import org.apache.log4j.Logger;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.factory.Maps;
 import org.eclipse.collections.api.list.MutableList;
@@ -14,13 +16,22 @@ public class Client implements CommonAbout {
 	private  String              clientID     ;
 	private final MutableList<String> transactions  = Lists.mutable.empty();
 	private       long                lastTimeStamp = System.currentTimeMillis();
+	private boolean isDebugSession =false;
+	private Logger  log            = Logger.getLogger(Client.class.getName());
 	
 	private final MutableMap<Integer, WebRTCGStreamerPlugIn> webRTCStreamMap = Maps.mutable.empty();
 	
 	public Client(String              clientID) {
 		if(clientID == null || clientID.equals("null") || clientID.isEmpty()){
 			this.clientID = XUtils.IdGenerator();
+		}else{
+			this.clientID =clientID;
 		}
+		
+	}
+	
+	public void setDebugSession(boolean debugSession) {
+		isDebugSession = debugSession;
 	}
 	
 	public void createAccessGStreamerPlugIn(MediaFile mediaFile) {
@@ -75,7 +86,40 @@ public class Client implements CommonAbout {
 		response.put("accessAuth", "GENERAL");
 		response.put("lastSeen", lastTimeStamp);
 		wsSession.send(pluginData.toString(), true);
-		
-		//	response = successResponse(XUtils.IdGenerator(), Events.EVENT_TYPE, Events.ICE_CANDIDATES_EVENT,"Ice Shared", response);
+		if(isDebugSession) {
+			log.info(pluginData.toString());
+		}
+	}
+	
+	public void replyToRemembering(String transaction) {
+		onUpdateLastTimeStamp(System.currentTimeMillis());
+		var response = new JSONObject();
+		response.put("clientID", clientID);
+		response.put("success", true);
+		response.put("eventType", "remember");
+		response.put("transaction", transaction);
+		response.put("accessAuth", "GENERAL");
+		response.put("lastSeen", lastTimeStamp);
+		wsSession.send(response.toString(), true);
+		if(isDebugSession) {
+			log.info(response.toString());
+		}
+	}
+	public void replyToInvalidRequest(JSONObject jsonObject) {
+		onUpdateLastTimeStamp(System.currentTimeMillis());
+		var response = new JSONObject();
+		response.put("clientID", clientID);
+		if(!jsonObject.has("transaction")){
+			response.put("error", "transaction is required");
+			wsSession.send(response.toString(), true);
+		}
+		if(!jsonObject.has("requestType")){
+			response.put("error", "requestType is required");
+			wsSession.send(response.toString(), true);
+			
+		}
+		if(isDebugSession) {
+			log.info(response.toString());
+		}
 	}
 }

@@ -14,7 +14,7 @@ const RippleSDK = {
         hasAccessToVideoPermission  : false,
         hasAccessToAudioPermission  : false,
         maxRetries: 10,
-        remindServerTimeoutInSeconds: 26 ,
+        remindServerTimeoutInSeconds: 50 ,
         reminderInterval  : null,
         webRTC:{
             EVENT_NAMES : {
@@ -202,7 +202,7 @@ const RippleSDK = {
                 const body =  {
                     clientID: RippleSDK.clientID,
                     requestType: 'remember',
-                    isDebugSession: RippleSDK.isDebugSession,
+
                 };
                 RippleSDK.transports.websocket.webSocketSendAction(body);
 
@@ -276,7 +276,11 @@ const RippleSDK = {
                 if(typeof messageObject === 'string'){
                     messageObject = JSON.parse(messageObject);
                 }
-                const messageType = messageObject.messageType;
+                const eventType = messageObject.eventType;
+                if(eventType === "register"){
+                    RippleSDK.utils.log('onMessage', 'register');
+                    RippleSDK.app.startToRemindServerOfMe();
+                }
 
             },
             tellClientOnConnected:null,
@@ -329,6 +333,7 @@ const RippleSDK = {
                     RippleSDK.utils.log('webSocketSendAction', 'not ready');
                     return;
                 }else{
+                    messageObject. isDebugSession= RippleSDK.isDebugSession,
                     messageObject.transaction = RippleSDK.utils.uniqueIDGenerator("transaction",12);
                     RippleSDK.utils.log('webSocketSendAction', 'ready');
                     RippleSDK.transports.websocket.socket.send(JSON.stringify(messageObject));
@@ -357,10 +362,6 @@ const RippleSDK = {
                 };
                 RippleSDK.transports.websocket.socket.onmessage = (event) => {
                     const data = JSON.parse(event.data);
-                    RippleSDK.utils.log('onmessage', data);
-                    if (data.requestType === 'register') {
-                        RippleSDK.app.startToRemindServerOfMe();
-                    }
                     RippleSDK.app.callbacks.onMessage(data);
                 };
                 RippleSDK.transports.websocket.socket.onclose = (ev) => {
