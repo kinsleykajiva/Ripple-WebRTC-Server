@@ -16,6 +16,9 @@ const RippleSDK = {
         maxRetries: 10,
         remindServerTimeoutInSeconds: 50 ,
         reminderInterval  : null,
+        mediaUI:{
+          renderGroupParentId:""
+        },
         webRTC:{
             EVENT_NAMES : {
                 ICE_CANDIDATE: 'icecandidate',
@@ -214,6 +217,92 @@ const RippleSDK = {
             streaming:{
                 threads:[],
                 functions:{
+                    renderThreadUI: (threadRef) => {
+                        if (RippleSDK.app.features.streaming.threads.length === 0) {
+                            RippleSDK.utils.error('renderThreadUI', 'no threads found');
+                            return;
+                        }
+                        if (!threadRef) {
+                            RippleSDK.utils.error('renderThreadUI', 'no threadRef');
+                            return;
+                        }
+                        if (!RippleSDK.app.features.streaming.threads[threadRef]) {
+                            RippleSDK.utils.error('renderThreadUI', `no thread found with ref : ${threadRef}`);
+                            return;
+                        }
+                        const groupParentElement = document.getElementById(RippleSDK.app.mediaUI.renderGroupParentId);
+                        if(!groupParentElement){
+                            RippleSDK.utils.error('renderThreadUI', `no groupParentElement found with id : ${RippleSDK.app.mediaUI.renderGroupParentId}`);
+                            return;
+                        }
+
+                        const ui = ` 
+                                              <div class="card-body">
+                                                <h5 class="card-title">Video Stream</h5>
+                                                <video id="localVideo_${threadRef}" class="video-stream" autoplay playsinline muted></video>
+                                                <div class="video-controls">
+                                                  <!-- Controls go here -->
+                                                    <div class="video-controls">
+                                                      <button id="playPauseButton_${threadRef}"><i class="fas fa-play"></i></button>
+                                                      <button id="fastRewindButton_${threadRef}"><i class="fas fa-backward"></i></button>
+                                                      <button id="fastForwardButton_${threadRef}"><i class="fas fa-forward"></i></button>
+                                                      <input type="range" id="volumeControl_${threadRef}" min="0" max="1" step="0.1">
+                                                      <button style="margin-left: 10%" id="fullscreenButton_${threadRef}"><i class="fas fa-expand"></i></button>
+                                                    </div>
+                                                  <!-- Controls go here -->
+                                                </div>
+                                              </div>
+                                                `;
+                        // append the threadRef to the groupParentElement
+                        const newElement = document.createElement('div');
+                        newElement.setAttribute('id', `streamThread_${threadRef}`);
+                        // set class as card
+                        newElement.classList.add('card');
+
+                        newElement.innerHTML = ui;
+                        groupParentElement.appendChild(newElement);
+                        // add event listeners
+                        const playPauseButton = document.getElementById(`playPauseButton_${threadRef}`);
+                        const fastRewindButton = document.getElementById(`fastRewindButton_${threadRef}`);
+                        const fastForwardButton = document.getElementById(`fastForwardButton_${threadRef}`);
+                        const volumeControl = document.getElementById(`volumeControl_${threadRef}`);
+                        const fullscreenButton = document.getElementById(`fullscreenButton_${threadRef}`);
+                        const localVideo = document.getElementById(`localVideo_${threadRef}`);
+
+                        playPauseButton.addEventListener('click', () => {
+                            if (localVideo.paused) {
+                                localVideo.play();
+                                playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
+                            } else {
+                                localVideo.pause();
+                                playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
+                            }
+                        });
+
+                        fastRewindButton.addEventListener('click', () => {
+                            localVideo.currentTime -= 10;
+                        });
+
+                        fastForwardButton.addEventListener('click', () => {
+                            localVideo.currentTime += 10;
+                        });
+
+                        volumeControl.addEventListener('input', () => {
+                            localVideo.volume = volumeControl.value;
+
+                        });
+
+                        fullscreenButton.addEventListener('click', () => {
+                            if (localVideo.requestFullscreen) {
+                                localVideo.requestFullscreen();
+                            } else if (localVideo.mozRequestFullScreen) {
+                                localVideo.mozRequestFullScreen(); // Firefox
+                            } else if (localVideo.webkitRequestFullscreen) {
+                                localVideo.webkitRequestFullscreen(); // Chrome and Safari
+                            }
+                        })
+
+                    },
                     startBroadCast:(threadRef)=>{
                         if(RippleSDK.app.features.streaming.threads.length === 0){
                             RippleSDK.utils.error('startBroadCast', 'no threads found');
@@ -489,16 +578,17 @@ const RippleSDK = {
             return uniID.replace(/[^a-z0-9]/gi, '') /*remove non-alphanumeric characters */;
         },
     },
-    init              : (isDebugging,iceCandidates,url) => {
-        RippleSDK.serverUrl = url;
-        RippleSDK.isDebugSession = isDebugging;
-        RippleSDK.utils.log('init url ',RippleSDK.utils.convertToWebSocketUrl(RippleSDK.serverUrl));
-        RippleSDK.clientID = RippleSDK.utils.uniqueIDGenerator("client",12)+RippleSDK.utils.uniqueIDGenerator(RippleSDK.timeZone);
-        RippleSDK.utils.log('clientID ', RippleSDK.clientID);
-         RippleSDK.transports.websocket.connect();
-        RippleSDK.app.iceServerArray = !iceCandidates ?RippleSDK.app.iceServerArray:iceCandidates;
-        RippleSDK.app.webRTC.peerConnectionConfig.iceServers = RippleSDK.app.iceServerArray;
-    },
+    init: (config) => {
+    RippleSDK.serverUrl = config.url;
+    RippleSDK.isDebugSession = config.isDebugging;
+    RippleSDK.utils.log('init url ', RippleSDK.utils.convertToWebSocketUrl(RippleSDK.serverUrl));
+    RippleSDK.clientID = RippleSDK.utils.uniqueIDGenerator("client",12)+RippleSDK.utils.uniqueIDGenerator(RippleSDK.timeZone);
+    RippleSDK.utils.log('clientID ', RippleSDK.clientID);
+    RippleSDK.transports.websocket.connect();
+    RippleSDK.app.iceServerArray = !config.iceCandidates ? RippleSDK.app.iceServerArray : config.iceCandidates;
+    RippleSDK.app.webRTC.peerConnectionConfig.iceServers = RippleSDK.app.iceServerArray;
+    RippleSDK.app.mediaUI.renderGroupParentId = config.renderGroupParentId;
+},
     notificationsTypes: {},
 
 };

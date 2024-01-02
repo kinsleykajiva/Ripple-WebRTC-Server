@@ -521,7 +521,7 @@
 
     <section class="section">
       <div class="row">
-        <div class="col-lg-6">
+        <div class="col-lg-6" id="streamsVids">
 
          <div class="card">
               <div class="card-body">
@@ -589,7 +589,24 @@
   <script src="adapter.min.js"></script>
   <script src="rippleApp.js"></script>
 <script>
-    RippleSDK.init(true,null,"http://localhost:8080/");
+    RippleSDK.init({
+    isDebugging: true,
+    iceCandidates: null,
+    url: "http://localhost:8080/",
+    renderGroupParentId: "streamsVids",
+});
+    RippleSDK.app.callbacks.tellClientOnClosed = function(){
+        console.log("closed");
+    }
+    RippleSDK.app.callbacks.tellClientOnConnected = function(){
+        console.log("connected");
+    }
+    RippleSDK.app.callbacks.tellClientOnMessage = function(message){
+        console.log(message);
+    }
+    RippleSDK.app.callbacks.tellClientOnFatalError = function(err){
+        console.error(err);
+    }
 
 
     const video             = document.getElementById('localVideo');
