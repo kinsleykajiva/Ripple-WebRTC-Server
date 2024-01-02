@@ -14,6 +14,186 @@ const RippleSDK = {
         maxRetries: 10,
         remindServerTimeoutInSeconds: 26 ,
         reminderInterval  : null,
+        webRTC:{
+            EVENT_NAMES : {
+                ICE_CANDIDATE: 'icecandidate',
+                ICE_CONNECTION_STATE_CHANGE: 'iceconnectionstatechange',
+                ICE_GATHERING_STATE_CHANGE: 'icegatheringstatechange',
+                NEGOTIATION_NEEDED: 'negotiationneeded',
+                SIGNALING_STATE_CHANGE: 'signalingstatechange',
+                TRACK: 'track',
+                DATA_CHANNEL: 'datachannel',
+                CONNECTION_STATE_CHANGE: 'connectionstatechange',
+                REMOVE_STREAM: 'removestream',
+                ADD_STREAM: 'addstream',
+                ICE_CANDIDATE_ERROR: 'icecandidateerror',
+                IDENTITY_RESULT: 'identityresult',
+                IDP_ASSERTION_ERROR: 'idpassertionerror',
+                IDP_VALIDATION_ERROR: 'idpvalidationerror',
+                PEER_IDENTITY: 'peeridentity',
+                STATS_ENDED: 'statsended',
+            },
+
+            peerConnections:[] /*sample data [{threadRef:1,peerConnection:null}]*/,
+            localStream:null,
+            remoteStream:null,
+            peerConnectionConfig:{
+                iceServers: RippleSDK.app.iceServerArray,
+                iceTransportPolicy: 'all',
+                bundlePolicy: 'balanced',
+                rtcpMuxPolicy: 'require',
+                iceCandidatePoolSize: 10,
+            },
+            peerConnectionOptions:{
+                optional: [
+                    {DtlsSrtpKeyAgreement: true},
+                    {RtpDataChannels: false}
+                ]
+            },
+            peerConnectionConstraints:{
+                optional: [
+                    {DtlsSrtpKeyAgreement: true},
+                    {RtpDataChannels: false}
+                ]
+            },
+            peerConnectionConstraintsForOffer:{
+                offerToReceiveAudio: true,
+                offerToReceiveVideo: true,
+            },
+            peerConnectionConstraintsForAnswer:{
+                offerToReceiveAudio: true,
+                offerToReceiveVideo: true,
+            },
+            peerConnectionConstraintsForDataChannel:{
+                ordered: true,
+                maxRetransmits: 0,
+            },
+            peerConnectionConstraintsForDataChannelForChat:{
+                ordered: true,
+                maxRetransmits: 0,
+            },
+            peerConnectionConstraintsForDataChannelForFile:{
+                ordered: true,
+                maxRetransmits: 0,
+            },
+            peerConnectionConstraintsForDataChannelForScreen:{
+                ordered: true,
+                maxRetransmits: 0,
+            },
+            peerConnectionConstraintsForDataChannelForStream:{
+                ordered: true,
+                maxRetransmits: 0,
+            },
+            peerConnectionConstraintsForDataChannelForStreamForScreen:{
+                ordered: true,
+                maxRetransmits: 0,
+            },
+            peerConnectionConstraintsForDataChannelForStreamForFile:{
+                ordered: true,
+                maxRetransmits: 0,
+            },
+            peerConnectionConstraintsForDataChannelForStreamForChat:{
+                ordered: true,
+                maxRetransmits: 0,
+            },
+            peerConnectionConstraintsForDataChannelForFileForScreen:{
+                ordered: true,
+                maxRetransmits: 0,
+            },
+            peerConnectionConstraintsForDataChannelForFileForChat:{
+                ordered: true,
+                maxRetransmits: 0,
+            },
+            peerConnectionConstraintsForDataChannelForScreenForChat:{
+                ordered: true,
+                maxRetransmits: 0,
+            },
+            peerConnectionConstraintsForDataChannelForStreamForFileForScreen:{
+                ordered: true
+            },
+            createPeerConnection:(threadRef)=>{
+
+                if(!threadRef){
+                    RippleSDK.utils.error('createPeerConnection', 'no threadRef');
+                    return;
+                }
+               if(!RippleSDK.app.features.streaming.threads[threadRef]){
+                        RippleSDK.utils.error('createPeerConnection', `no thread found with ref : ${threadRef}`);
+                        return;
+               }
+                RippleSDK.app.webRTC.peerConnections.forEach(peerConnection=>{
+                    if(peerConnection.threadRef === threadRef){
+                        RippleSDK.utils.error('createPeerConnection', `threadRef already exists : ${threadRef}`);
+                        return;
+                    }
+                    // create a new peerConnection and push it to the array
+                    const peerCon = new RTCPeerConnection(RippleSDK.app.webRTC.peerConnectionConfig);
+                    peerCon.onicecandidate = (ev) => {
+                        if (!ev.candidate || (ev.candidate.candidate && ev.candidate.candidate.indexOf('endOfCandidates') > 0)) {
+                            console.log('End of candidates.');
+                        }
+                        if (ev.candidate) {
+                            const body = {
+                                clientID: RippleSDK.clientID,
+                                requestType: 'iceCandidate',
+                                threadRef: threadRef,
+                                iceCandidate: ev.candidate,
+                            };
+                            RippleSDK.transports.websocket.webSocketSendAction(body);
+                        }
+                    };
+                    peerCon.oniceconnectionstatechange = (event) => {
+                        RippleSDK.utils.log('oniceconnectionstatechange', event);
+                    };
+                    peerCon.onicegatheringstatechange = (event) => {
+                        RippleSDK.utils.log('onicegatheringstatechange', event);
+                    };
+                    peerCon.onnegotiationneeded = (event) => {
+                        RippleSDK.utils.log('onnegotiationneeded', event);
+                    };
+                    peerCon.onsignalingstatechange = (event) => {
+                        RippleSDK.utils.log('onsignalingstatechange', event);
+                    };
+                    peerCon.ontrack = (event) => {
+                        RippleSDK.utils.log('ontrack', event);
+                    };
+                    peerCon.ondatachannel = (event) => {
+                        RippleSDK.utils.log('ondatachannel', event);
+                    };
+                    peerCon.onconnectionstatechange = (event) => {
+                        RippleSDK.utils.log('onconnectionstatechange', event);
+                    };
+                    peerCon.onremovestream = (event) => {
+                        RippleSDK.utils.log('onremovestream', event);
+                    };
+                    peerCon.onaddstream = (event) => {
+                        RippleSDK.utils.log('onaddstream', event);
+                    };
+
+                    peerCon.onicecandidateerror = (event) => {
+                        RippleSDK.utils.log('onicecandidateerror', event);
+                    };
+                    peerCon.onidentityresult = (event) => {
+                        RippleSDK.utils.log('onidentityresult', event);
+                    };
+                    peerCon.onidpassertionerror = (event) => {
+                        RippleSDK.utils.log('onidpassertionerror', event);
+                    };
+                    peerCon.onidpvalidationerror = (event) => {
+                        RippleSDK.utils.log('onidpvalidationerror', event);
+                    };
+                    peerCon.onpeeridentity = (event) => {
+                        RippleSDK.utils.log('onpeeridentity', event);
+                    };
+                    peerCon.onstatsended = (event) => {
+                        RippleSDK.utils.log('onstatsended', event);
+                    };
+                    RippleSDK.app.webRTC.peerConnections.push({threadRef:threadRef,peerConnection:peerCon});
+                })
+
+
+            }
+        },
         startToRemindServerOfMe:()=>{
             RippleSDK.utils.log('startToRemindServerOfMe');
             RippleSDK.app.reminderInterval = setInterval(()=>{
@@ -27,6 +207,61 @@ const RippleSDK = {
             }, RippleSDK.app.remindServerTimeoutInSeconds *1000);
 
 
+        },
+        features:{
+            streaming:{
+                threads:[],
+                functions:{
+                    startBroadCast:(threadRef)=>{
+                        if(RippleSDK.app.features.streaming.threads.length === 0){
+                            RippleSDK.utils.error('startBroadCast', 'no threads found');
+                            return;
+                        }
+                        if(!threadRef){
+                            RippleSDK.utils.error('startBroadCast', 'no threadRef');
+                            return;
+                        }
+                        if(!RippleSDK.app.features.streaming.threads[threadRef]){
+                            RippleSDK.utils.error('startBroadCast', `no thread found with ref : ${threadRef}`);
+                            return;
+                        }
+
+                        RippleSDK.transports.websocket.webSocketSendAction({
+                            clientID: RippleSDK.clientID,
+                            requestType: 'startBroadCast',
+                            threadRef: threadRef,
+                        });
+                    },
+                    requestToResumeTransmission:(threadRef)=>{
+                        if(RippleSDK.app.features.streaming.threads.length === 0){
+                            RippleSDK.utils.error('requestToResumeTransmission', 'no threads found');
+                            return;
+                        }
+                        if(!threadRef){
+                            RippleSDK.utils.error('requestToResumeTransmission', 'no threadRef');
+                            return;
+                        }
+                        if(!RippleSDK.app.features.streaming.threads[threadRef]){
+                            RippleSDK.utils.error('requestToResumeTransmission', `no thread found with ref : ${threadRef}`);
+                            return;
+                        }
+                    },
+                    requestToPauseTransmission:(threadRef)=>{
+                        if(RippleSDK.app.features.streaming.threads.length === 0){
+                            RippleSDK.utils.error('requestToPauseTransmission', 'no threads found');
+                            return;
+                        }
+                        if(!threadRef){
+                            RippleSDK.utils.error('requestToPauseTransmission', 'no threadRef');
+                            return;
+                        }
+                        if(!RippleSDK.app.features.streaming.threads[threadRef]){
+                            RippleSDK.utils.error('requestToPauseTransmission', `no thread found with ref : ${threadRef}`);
+                            return;
+                        }
+                    }
+                }
+            }
         },
         callbacks:{
             onMessage:messageObject=>{
