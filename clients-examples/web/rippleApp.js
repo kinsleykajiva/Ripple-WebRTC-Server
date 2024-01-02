@@ -5,6 +5,8 @@ const RippleSDK = {
     timeZone                    : Intl.DateTimeFormat().resolvedOptions().timeZone,
     clientID                    : '',
     isDebugSession              : false,
+    clientTypesAllowed          : ['Firefox', 'Chrome'],
+    featuresAvailable           : Object.freeze({VIDEO_ROOM: 'VIDEO_ROOM',AUDIO_ROOM: 'AUDIO_ROOM',VIDEO_CALL: 'VIDEO_CALL',G_STREAM:'G_STREAM',G_STREAM_BROADCAST:'G_STREAM_BROADCASTER',G_STREAM_BROADCAST_CONSUMER:'G_STREAM_BROADCAST_CONSUMER'}),
     app               : {
         iceServerArray              : [{urls: 'stun:stun.l.google.com:19302'},{urls: "stun:stun.services.mozilla.com"}],
         isAudioAccessRequired       : false,
@@ -126,17 +128,26 @@ const RippleSDK = {
                 const eventHandlers = {
                     [RippleSDK.app.webRTC.EVENT_NAMES.ICE_CANDIDATE]: (ev) => {
                         if (!ev.candidate || (ev.candidate.candidate && ev.candidate.candidate.indexOf('endOfCandidates') > 0)) {
-                            console.log('End of candidates.');
+                            RippleSDK.utils.log('End of candidates.');
+                        }else{
+                            if (ev.candidate) {
+                                const payload        = {
+                                    clientID     : RippleSDK.clientID,
+                                    requestType  : 'iceCandidate',
+                                    threadRef    : threadRef,
+                                    candidate    : ev.candidate.candidate,
+                                    sdpMid       : ev.candidate.sdpMid,
+                                    sdpMLineIndex: ev.candidate.sdpMLineIndex
+                                };
+                                const body = {
+                                    clientID     : RippleSDK.clientID,
+                                    iceCandidate: payload,
+
+                                };
+                                RippleSDK.transports.websocket.webSocketSendAction(body);
+                            }
                         }
-                        if (ev.candidate) {
-                            const body = {
-                                clientID: RippleSDK.clientID,
-                                requestType: 'iceCandidate',
-                                threadRef: threadRef,
-                                iceCandidate: ev.candidate,
-                            };
-                            RippleSDK.transports.websocket.webSocketSendAction(body);
-                        }
+
                     },
                     [RippleSDK.app.webRTC.EVENT_NAMES.ICE_CONNECTION_STATE_CHANGE]: (ev) => {
                         switch (peerCon.iceConnectionState) {
@@ -315,10 +326,10 @@ const RippleSDK = {
 
             },
             connect: () => {
-                let reconnectAttempts       = 0;
-                const maxReconnectAttempts = 200;
-                const reconnectDelays       = [10, 20, 35, 45, 55]; // delays in seconds
-                RippleSDK.transports.websocket.socket = new WebSocket(RippleSDK.serverUrl);
+                let reconnectAttempts                 = 0;
+                const maxReconnectAttempts            = 200;
+                const reconnectDelays               = [10, 20, 35, 45, 55]; // delays in seconds
+                RippleSDK.transports.websocket.socket           = new WebSocket(RippleSDK.serverUrl);
                 RippleSDK.transports.websocket.socket.onopen = () => {
                     RippleSDK.transports.websocket.isConnected = true;
                     RippleSDK.transports.websocket.socket.send(JSON.stringify({
