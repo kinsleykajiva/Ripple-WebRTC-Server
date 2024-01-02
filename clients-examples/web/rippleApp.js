@@ -115,7 +115,12 @@ const RippleSDK = {
 
                 if(!threadRef){
                     RippleSDK.utils.error('createPeerConnection', 'no threadRef');
-                    return;
+                    return null;
+                }
+
+                if(RippleSDK.app.webRTC.peerConnectionsMap.has(threadRef)){
+                    RippleSDK.utils.warn('createPeerConnection', `peer connection already exists for threadRef : ${threadRef}`);
+                    return RippleSDK.app.webRTC.peerConnectionsMap.get(threadRef);
                 }
                 const peerCon = new RTCPeerConnection(RippleSDK.app.webRTC.peerConnectionConfig);
                 const eventHandlers = {
@@ -172,9 +177,6 @@ const RippleSDK = {
                     [RippleSDK.app.webRTC.EVENT_NAMES.IDP_ASSERTION_ERROR]: (ev) => {
                         RippleSDK.utils.log('idpassertionerror', ev);
                     },
-
-
-
                 };
                 for (const eventName in eventHandlers) {
                     peerCon.addEventListener(eventName, eventHandlers[eventName]);
