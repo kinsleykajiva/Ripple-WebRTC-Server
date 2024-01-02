@@ -34,9 +34,9 @@ const RippleSDK = {
                 STATS_ENDED: 'statsended',
             },
 
-            peerConnections:[] /*sample data [{threadRef:1,peerConnection:null}]*/,
+            peerConnectionsMap:new Map(),
             localStream:null,
-            remoteStream:null,
+            remoteStreamsMap:new Map(),
             peerConnectionConfig:{
                 iceServers: RippleSDK.app.iceServerArray,
                 iceTransportPolicy: 'all',
@@ -117,18 +117,9 @@ const RippleSDK = {
                     RippleSDK.utils.error('createPeerConnection', 'no threadRef');
                     return;
                 }
-               if(!RippleSDK.app.features.streaming.threads[threadRef]){
-                        RippleSDK.utils.error('createPeerConnection', `no thread found with ref : ${threadRef}`);
-                        return;
-               }
-                RippleSDK.app.webRTC.peerConnections.forEach(peerConnection=>{
-                    if(peerConnection.threadRef === threadRef){
-                        RippleSDK.utils.error('createPeerConnection', `threadRef already exists : ${threadRef}`);
-                        return;
-                    }
-                    // create a new peerConnection and push it to the array
-                    const peerCon = new RTCPeerConnection(RippleSDK.app.webRTC.peerConnectionConfig);
-                    peerCon.onicecandidate = (ev) => {
+                const peerCon = new RTCPeerConnection(RippleSDK.app.webRTC.peerConnectionConfig);
+                const eventHandlers = {
+                    [RippleSDK.app.webRTC.EVENT_NAMES.ICE_CANDIDATE]: (ev) => {
                         if (!ev.candidate || (ev.candidate.candidate && ev.candidate.candidate.indexOf('endOfCandidates') > 0)) {
                             console.log('End of candidates.');
                         }
@@ -141,55 +132,56 @@ const RippleSDK = {
                             };
                             RippleSDK.transports.websocket.webSocketSendAction(body);
                         }
-                    };
-                    peerCon.oniceconnectionstatechange = (event) => {
-                        RippleSDK.utils.log('oniceconnectionstatechange', event);
-                    };
-                    peerCon.onicegatheringstatechange = (event) => {
-                        RippleSDK.utils.log('onicegatheringstatechange', event);
-                    };
-                    peerCon.onnegotiationneeded = (event) => {
-                        RippleSDK.utils.log('onnegotiationneeded', event);
-                    };
-                    peerCon.onsignalingstatechange = (event) => {
-                        RippleSDK.utils.log('onsignalingstatechange', event);
-                    };
-                    peerCon.ontrack = (event) => {
-                        RippleSDK.utils.log('ontrack', event);
-                    };
-                    peerCon.ondatachannel = (event) => {
-                        RippleSDK.utils.log('ondatachannel', event);
-                    };
-                    peerCon.onconnectionstatechange = (event) => {
-                        RippleSDK.utils.log('onconnectionstatechange', event);
-                    };
-                    peerCon.onremovestream = (event) => {
-                        RippleSDK.utils.log('onremovestream', event);
-                    };
-                    peerCon.onaddstream = (event) => {
-                        RippleSDK.utils.log('onaddstream', event);
-                    };
+                    },
+                    [RippleSDK.app.webRTC.EVENT_NAMES.ICE_CONNECTION_STATE_CHANGE]: (ev) => {
+                        switch (peerCon.iceConnectionState) {
+                            case 'closed':
+                            case 'failed':
+                            case 'disconnected':
+                                RippleSDK.utils.log('iceConnectionState', peerCon.iceConnectionState);
+                                break;
+                        }
+                    },
+                    [RippleSDK.app.webRTC.EVENT_NAMES.NEGOTIATION_NEEDED]: (ev) => {
+                        RippleSDK.utils.log('negotiationneeded', ev);
+                    },
+                    [RippleSDK.app.webRTC.EVENT_NAMES.SIGNALING_STATE_CHANGE]: (ev) => {
+                        RippleSDK.utils.log('signalingstatechange', ev);
+                    },
+                    [RippleSDK.app.webRTC.EVENT_NAMES.TRACK]: (ev) => {
+                        RippleSDK.utils.log('track', ev);
+                    },
+                    [RippleSDK.app.webRTC.EVENT_NAMES.DATA_CHANNEL]: (ev) => {
+                        RippleSDK.utils.log('datachannel', ev);
+                    },
+                    [RippleSDK.app.webRTC.EVENT_NAMES.CONNECTION_STATE_CHANGE]: (ev) => {
+                        RippleSDK.utils.log('connectionstatechange', ev);
+                    },
+                    [RippleSDK.app.webRTC.EVENT_NAMES.REMOVE_STREAM]: (ev) => {
+                        RippleSDK.utils.log('removestream', ev);
+                    },
+                    [RippleSDK.app.webRTC.EVENT_NAMES.ADD_STREAM]: (ev) => {
+                        RippleSDK.utils.log('addstream', ev);
+                    },
+                    [RippleSDK.app.webRTC.EVENT_NAMES.ICE_CANDIDATE_ERROR]: (ev) => {
+                        RippleSDK.utils.log('icecandidateerror', ev);
+                    },
+                    [RippleSDK.app.webRTC.EVENT_NAMES.IDENTITY_RESULT]: (ev) => {
+                        RippleSDK.utils.log('identityresult', ev);
+                    },
+                    [RippleSDK.app.webRTC.EVENT_NAMES.IDP_ASSERTION_ERROR]: (ev) => {
+                        RippleSDK.utils.log('idpassertionerror', ev);
+                    },
 
-                    peerCon.onicecandidateerror = (event) => {
-                        RippleSDK.utils.log('onicecandidateerror', event);
-                    };
-                    peerCon.onidentityresult = (event) => {
-                        RippleSDK.utils.log('onidentityresult', event);
-                    };
-                    peerCon.onidpassertionerror = (event) => {
-                        RippleSDK.utils.log('onidpassertionerror', event);
-                    };
-                    peerCon.onidpvalidationerror = (event) => {
-                        RippleSDK.utils.log('onidpvalidationerror', event);
-                    };
-                    peerCon.onpeeridentity = (event) => {
-                        RippleSDK.utils.log('onpeeridentity', event);
-                    };
-                    peerCon.onstatsended = (event) => {
-                        RippleSDK.utils.log('onstatsended', event);
-                    };
-                    RippleSDK.app.webRTC.peerConnections.push({threadRef:threadRef,peerConnection:peerCon});
-                })
+
+
+                };
+                for (const eventName in eventHandlers) {
+                    peerCon.addEventListener(eventName, eventHandlers[eventName]);
+                }
+
+                return peerCon;
+                // called like this: RippleSDK.app.webRTC.peerConnectionsMap.set(threadRef,RippleSDK.app.webRTC.createPeerConnection(threadRef));
 
 
             }
