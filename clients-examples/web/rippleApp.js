@@ -40,7 +40,7 @@ const RippleSDK = {
             localStream:null,
             remoteStreamsMap:new Map(),
             peerConnectionConfig:{
-                iceServers: RippleSDK.app.iceServerArray,
+                iceServers: [],
                 iceTransportPolicy: 'all',
                 bundlePolicy: 'balanced',
                 rtcpMuxPolicy: 'require',
@@ -134,17 +134,14 @@ const RippleSDK = {
                                 const payload        = {
                                     clientID     : RippleSDK.clientID,
                                     requestType  : 'iceCandidate',
+                                    transaction: RippleSDK.utils.uniqueIDGenerator("transaction",12),
                                     threadRef    : threadRef,
                                     candidate    : ev.candidate.candidate,
                                     sdpMid       : ev.candidate.sdpMid,
                                     sdpMLineIndex: ev.candidate.sdpMLineIndex
                                 };
-                                const body = {
-                                    clientID     : RippleSDK.clientID,
-                                    iceCandidate: payload,
-
-                                };
-                                RippleSDK.transports.websocket.webSocketSendAction(body);
+                                RippleSDK.utils.log('iceCandidate', payload);
+                                RippleSDK.transports.websocket.webSocketSendAction(payload);
                             }
                         }
 
@@ -459,15 +456,25 @@ const RippleSDK = {
                 const index = parseInt(dateTimeString.charAt(i), 36);
                 uniID = uniID.substr(0, index) + dateTimeString.charAt(i) + uniID.substr(index + 1);
             }
-            return uniID;
+            return uniID.replace(/[^a-z0-9]/gi, '') /*remove non-alphanumeric characters */;
         },
     },
-    init              : {},
+    init              : (isDebugging,iceCandidates) => {
+        RippleSDK.isDebugSession = isDebugging;
+        RippleSDK.clientID = RippleSDK.utils.uniqueIDGenerator("client",12)+RippleSDK.utils.uniqueIDGenerator(RippleSDK.timeZone);
+        RippleSDK.utils.log('init', RippleSDK.clientID);
+        // RippleSDK.transports.websocket.connect();
+        RippleSDK.app.iceServerArray = !iceCandidates ?RippleSDK.app.iceServerArray:iceCandidates;
+        RippleSDK.app.webRTC.peerConnectionConfig.iceServers = RippleSDK.app.iceServerArray;
+    },
     notificationsTypes: {},
 
 };
 
-
+RippleSDK.init(true)
+RippleSDK.utils.log('tt   ',RippleSDK.clientID);
+RippleSDK.utils.log('ID',RippleSDK.utils.uniqueIDGenerator(RippleSDK.timeZone,12));
+RippleSDK.utils.log('I4D',RippleSDK.utils.uniqueIDGenerator("client",12)+RippleSDK.utils.uniqueIDGenerator(RippleSDK.timeZone));
 // RippleSDK.log('RippleSDK loaded');
 RippleSDK.utils.log('This is a custom log message');
 
