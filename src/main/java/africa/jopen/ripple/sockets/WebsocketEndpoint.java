@@ -2,6 +2,7 @@ package africa.jopen.ripple.sockets;
 
 
 import africa.jopen.ripple.models.Client;
+import africa.jopen.ripple.models.MediaFile;
 import africa.jopen.ripple.utils.JsonUtils;
 import io.helidon.websocket.WsListener;
 import io.helidon.websocket.WsSession;
@@ -34,12 +35,26 @@ public class WebsocketEndpoint implements WsListener {
 			}
 			Client client = null;
 			if (jsonObject.has("clientID")) {
+				client = clientsList.stream()
+						.peek(client1 -> log.info("peek-client: " + client1.getClientID()))
+						.filter(client1 -> client1.getClientID().equals(jsonObject.getString("clientID")))
+						.findFirst().orElse(null);
 				switch (jsonObject.getString("requestType")) {
+					case "newThread":
+						if (Objects.isNull(client)) {
+							log.info("Client not found");
+							break;
+						}
+						client.setDebugSession(isDebugSession);
+						int thread = 0;
+						JSONObject reqstData = jsonObject.getJSONObject("data");
+						if (jsonObject.getString("feature").equals("G_STREAM_BROADCAST")) {
+							thread = client.createAccessGStreamerPlugIn(new MediaFile(reqstData.getString("file"), 0));
+							
+						}
+						client.replyToNewThreadRequest(transaction, thread);
+						break;
 					case "remember":
-						client = clientsList.stream()
-								.peek(client1 -> log.info("peek-client: " + client1.getClientID()))
-								.filter(client1 -> client1.getClientID().equals(jsonObject.getString("clientID")))
-								.findFirst().orElse(null);
 						log.info("client: " + client);
 						if (Objects.nonNull(client)) {
 							client.setDebugSession(isDebugSession);
@@ -51,7 +66,7 @@ public class WebsocketEndpoint implements WsListener {
 					case "register":
 						boolean isRegistered = clientsList.stream()
 								.anyMatch(client1 -> client1.getClientID().equals(jsonObject.getString("clientID")));
-						if(isRegistered){
+						if (isRegistered) {
 							log.info("Client already registered");
 							session.send(
 									new JSONObject()

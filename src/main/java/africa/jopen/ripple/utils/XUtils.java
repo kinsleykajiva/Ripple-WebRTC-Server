@@ -1,5 +1,6 @@
 package africa.jopen.ripple.utils;
 
+import africa.jopen.ripple.models.MainConfigModel;
 import org.json.JSONObject;
 
 import java.util.UUID;
@@ -7,6 +8,8 @@ import java.util.logging.Logger;
 
 public class XUtils {
 	private static final Logger LOGGER = Logger.getLogger(XUtils.class.getName());
+	public static String          BASE_APP_LOCATION_PATH;
+	public static MainConfigModel MAIN_CONFIG_MODEL;
 	
 	static {
 		LoggerConfig.setupLogger(LOGGER);

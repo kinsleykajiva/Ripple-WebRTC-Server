@@ -199,6 +199,15 @@ const RippleSDK = {
 
             }
         },
+        requestNewThread:(feature,data)=>{
+            RippleSDK.transports.websocket.webSocketSendAction({
+                clientID: RippleSDK.clientID,
+                requestType: 'newThread',
+                transaction: RippleSDK.utils.uniqueIDGenerator("transaction",12),
+                feature ,
+                data,
+            });
+        },
         startToRemindServerOfMe:()=>{
             RippleSDK.utils.log('startToRemindServerOfMe');
             RippleSDK.app.reminderInterval = setInterval(()=>{
@@ -318,9 +327,11 @@ const RippleSDK = {
                         }
 
                         RippleSDK.transports.websocket.webSocketSendAction({
-                            clientID: RippleSDK.clientID,
+                            clientID   : RippleSDK.clientID,
+                            feature    : RippleSDK.featuresAvailable.G_STREAM_BROADCAST,
                             requestType: 'startBroadCast',
-                            threadRef: threadRef,
+                            transaction: RippleSDK.utils.uniqueIDGenerator("transaction", 12),
+                            threadRef  : threadRef,
                         });
                     },
                     requestToResumeTransmission:(threadRef)=>{

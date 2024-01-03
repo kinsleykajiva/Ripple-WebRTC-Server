@@ -1,0 +1,44 @@
+{
+  "appName": "Ripple-server",
+  "isDebugMode": false,
+  "serverPort": 6060,
+  "serverSSLPort": 7070,
+  "serverName": "Server-A",
+  "storagePath": {
+    "media"  : "",
+    "recordings"  : ""
+  },
+  "serverVersion": "0.1.5",
+  "serverTimeZone": "Africa/Johannesburg",
+  "adminMonitor": {
+    "username": "",
+    "password": ""
+  },
+  "basicAuth": {
+    "username": "",
+    "password": ""
+  },
+  "session": {
+    "rememberTimeOutInSeconds": 26
+  },
+  "nat": {
+    "turn": {
+      "url": "",
+      "username": "",
+      "password": ""
+    },
+    "stuns": [
+      "stun:stun.l.google.com:19302",
+      "stun:stun.services.mozilla.com"
+    ]
+  },
+  "logs": {
+    "prefix": "",
+    "folderPath": "",
+    "show": []
+  },
+  "certificates": {
+    "keyFilePath": "",
+    "certFilePath": ""
+  }
+}

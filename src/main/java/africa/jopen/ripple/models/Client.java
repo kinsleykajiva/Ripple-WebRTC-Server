@@ -34,10 +34,11 @@ public class Client implements CommonAbout {
 		isDebugSession = debugSession;
 	}
 	
-	public void createAccessGStreamerPlugIn(MediaFile mediaFile) {
+	public int createAccessGStreamerPlugIn(MediaFile mediaFile) {
 		var position        = webRTCStreamMap.size() + 1;
 		var gStreamerPlugIn = new WebRTCGStreamerPlugIn(this, position, mediaFile);
 		webRTCStreamMap.put(position, gStreamerPlugIn);
+		return position;
 	}
 	
 	public MutableMap<Integer, WebRTCGStreamerPlugIn> getWebRTCStreamMap() {
@@ -105,6 +106,23 @@ public class Client implements CommonAbout {
 			log.info(response.toString());
 		}
 	}
+	public void replyToNewThreadRequest(final String transaction,final int position) {
+		onUpdateLastTimeStamp(System.currentTimeMillis());
+		var response = new JSONObject();
+		response.put("clientID", clientID);
+		response.put("success", true);
+		response.put("eventType", "newThread");
+		response.put("transaction", transaction);
+		response.put("position", position);
+		response.put("accessAuth", "GENERAL");
+		response.put("lastSeen", lastTimeStamp);
+		wsSession.send(response.toString(), true);
+		if(isDebugSession) {
+			log.info(response.toString());
+		}
+	}
+	
+	
 	public void replyToInvalidRequest(JSONObject jsonObject) {
 		onUpdateLastTimeStamp(System.currentTimeMillis());
 		var response = new JSONObject();
