@@ -3,6 +3,13 @@ package africa.jopen.ripple.utils;
 import africa.jopen.ripple.models.MainConfigModel;
 import org.json.JSONObject;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.util.Base64;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -17,7 +24,46 @@ public class XUtils {
 	
 	private XUtils() {
 	}
+	public static void copyConfigFilesTemplates(Path sourceFolder, Path destinationFolder) throws IOException {
+		if (!Files.exists(destinationFolder)) {
+			Files.createDirectories(destinationFolder);
+		}
+		
+		try (DirectoryStream<Path> stream = Files.newDirectoryStream(sourceFolder)) {
+			for (Path file: stream) {
+				Path destFile = Paths.get(destinationFolder.toString(), file.getFileName().toString());
+				Files.copy(file, destFile, StandardCopyOption.REPLACE_EXISTING);
+			}
+		}
+	}
 	
+	public static void generateJwtKeys(Path privateKeyPath, Path publicKeyPath) throws Exception {
+		KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+		kpg.initialize(2048);
+		KeyPair kp = kpg.generateKeyPair();
+		
+		if (Files.notExists(privateKeyPath.getParent())) {
+			Files.createDirectories(privateKeyPath.getParent());
+		}
+		
+		try (BufferedWriter writer = Files.newBufferedWriter(privateKeyPath,
+				StandardCharsets.UTF_8)) {
+			writer.write("-----BEGIN PRIVATE KEY-----");
+			writer.write(System.lineSeparator());
+			writer.write(Base64.getMimeEncoder().encodeToString(kp.getPrivate().getEncoded()));
+			writer.write(System.lineSeparator());
+			writer.write("-----END PRIVATE KEY-----");
+		}
+		
+		try (BufferedWriter writer = Files.newBufferedWriter(publicKeyPath,
+				StandardCharsets.UTF_8)) {
+			writer.write("-----BEGIN PUBLIC KEY-----");
+			writer.write(System.lineSeparator());
+			writer.write(Base64.getMimeEncoder().encodeToString(kp.getPublic().getEncoded()));
+			writer.write(System.lineSeparator());
+			writer.write("-----END PUBLIC KEY-----");
+		}
+	}
 	public static String IdGenerator() {
 		UUID uuid = UUID.randomUUID();
 		// Remove dashes from UUID and concatenate with time string

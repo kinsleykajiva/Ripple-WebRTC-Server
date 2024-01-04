@@ -4,4 +4,6 @@ server:
 
 app:
     greeting: "Hello"
+    config:
+      folderName: ".app-config"
 
