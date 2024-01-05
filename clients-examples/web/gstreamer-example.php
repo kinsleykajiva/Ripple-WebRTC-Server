@@ -509,17 +509,30 @@
   <main id="main" class="main">
 
     <div class="pagetitle">
-      <h1>Blank Page</h1>
+      <h1>G stream broadcast example demo <button class="btn btn-primary btn-sm" onclick="startProcess()">Start</button></h1>
       <nav>
         <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="index.html">Home</a></li>
-          <li class="breadcrumb-item">Pages</li>
-          <li class="breadcrumb-item active">Blank</li>
+          <li class="breadcrumb-item"></li>
+          <!--<li class="breadcrumb-item">Pages</li>
+          <li class="breadcrumb-item active">Blank</li>-->
         </ol>
       </nav>
     </div><!-- End Page Title -->
 
     <section class="section">
+      <div class="row">
+          <div class="col-lg-12">
+
+              <div class="card">
+                  <div class="card-body">
+                      <h5 class="card-title">G Streaming Broadcast</h5>
+                      <p>This is aan example of how to receive streams via WebRTC.This demo show how to receive streams , so this client can get mutiple streams
+                          .Each stream is handled as a thread on the client .</p>
+                  </div>
+              </div>
+
+          </div>
+      </div>
       <div class="row">
         <div class="col-lg-6" id="streamsVids">
 
@@ -540,18 +553,6 @@
                 </div>
               </div>
         </div>
-
-        </div>
-
-        <div class="col-lg-6">
-
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Example Card</h5>
-              <p>This is an examle page with no contrnt. You can use it as a starter for your custom pages.</p>
-            </div>
-          </div>
-
         </div>
       </div>
     </section>
@@ -607,6 +608,41 @@
     RippleSDK.app.callbacks.tellClientOnFatalError = function(err){
         console.error(err);
     }
+    const streamsVids             = document.getElementById('streamsVids');
+    const mediaStreamFiles=[
+        "Shakespeare.mp4",
+        "HeartAndSoulRiddimInstrumental.mp4",
+        "MellowSleazyTmanXpressKwelinyeKeynote.mp4"
+    ];
+    let chosenElements = new Set();
+
+    function pickRandomElement() {
+        if (chosenElements.size === mediaStreamFiles.length) {
+            chosenElements = new Set();
+        }
+
+        let randomIndex = Math.floor(Math.random() * mediaStreamFiles.length);
+        let chosenElement = mediaStreamFiles[randomIndex];
+
+        while (chosenElements.has(chosenElement)) {
+            randomIndex = (randomIndex + 1) % mediaStreamFiles.length;
+            chosenElement = mediaStreamFiles[randomIndex];
+        }
+
+        chosenElements.add(chosenElement);
+        return chosenElement;
+    }
+
+    function startProcess(){
+        streamsVids.innerHTML = "";
+        const fileMedia = pickRandomElement();
+        console.log("selected element is "+fileMedia);
+        RippleSDK.app.requestNewThread(RippleSDK.featuresAvailable.G_STREAM_BROADCAST,{
+            file:fileMedia,
+        });
+
+    }
+
 
 
     const video             = document.getElementById('localVideo');

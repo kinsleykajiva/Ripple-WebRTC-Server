@@ -4,6 +4,7 @@ package africa.jopen.ripple.sockets;
 import africa.jopen.ripple.models.Client;
 import africa.jopen.ripple.models.MediaFile;
 import africa.jopen.ripple.utils.JsonUtils;
+import africa.jopen.ripple.utils.XUtils;
 import io.helidon.websocket.WsListener;
 import io.helidon.websocket.WsSession;
 import org.apache.log4j.Logger;
@@ -11,6 +12,7 @@ import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.Objects;
 
 public class WebsocketEndpoint implements WsListener {
@@ -40,6 +42,14 @@ public class WebsocketEndpoint implements WsListener {
 						.filter(client1 -> client1.getClientID().equals(jsonObject.getString("clientID")))
 						.findFirst().orElse(null);
 				switch (jsonObject.getString("requestType")) {
+					case "startBroadCast":
+						if (Objects.isNull(client)) {
+							log.info("Client not found");
+							break;
+						}
+						var plugin =client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
+						plugin.startCall();
+						break;
 					case "newThread":
 						if (Objects.isNull(client)) {
 							log.info("Client not found");
@@ -49,7 +59,16 @@ public class WebsocketEndpoint implements WsListener {
 						int thread = 0;
 						JSONObject reqstData = jsonObject.getJSONObject("data");
 						if (jsonObject.getString("feature").equals("G_STREAM_BROADCAST")) {
-							thread = client.createAccessGStreamerPlugIn(new MediaFile(reqstData.getString("file"), 0));
+							var filePath  = XUtils.MAIN_CONFIG_MODEL.storagePath().media()+reqstData.getString("file");
+							if(!new File(filePath).exists()){
+								log.info("File not found: "+filePath);
+								client.replyToNewThreadInvalidRequest(transaction,-1);
+								break;
+								
+							}
+							thread = client.createAccessGStreamerPlugIn(
+									new MediaFile(filePath
+									, 0));
 							
 						}
 						client.replyToNewThreadRequest(transaction, thread);

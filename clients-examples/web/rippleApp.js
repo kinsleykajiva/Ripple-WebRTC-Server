@@ -38,10 +38,104 @@ const RippleSDK = {
                 PEER_IDENTITY: 'peeridentity',
                 STATS_ENDED: 'statsended',
             },
+            addIceCandidatePeerConnection:(threadRef,dataObject)=>{
+                if(!threadRef){
+                    RippleSDK.utils.error('addIceCandidatePeerConnection', 'no threadRef');
+                    return;
+                }
+                if(!dataObject){
+                    RippleSDK.utils.error('addIceCandidatePeerConnection', 'no dataObject');
+                    return;
+                }
+                if(!RippleSDK.app.webRTC.peerConnectionsMap.has(threadRef)){
+                    RippleSDK.utils.error('addIceCandidatePeerConnection', `no peer connection found for threadRef : ${threadRef}`);
+                    return;
+                }
+                const candidate = new RTCIceCandidate(dataObject);
+                const peerConnection = RippleSDK.app.webRTC.peerConnectionsMap.get(threadRef);
+                peerConnection.addIceCandidate(candidate).then(() => {
+                    RippleSDK.utils.log('addIceCandidatePeerConnection', 'addIceCandidate success');
+                }).catch((err) => {
+                    RippleSDK.utils.error('addIceCandidatePeerConnection', err);
+                });
+            },
+            createAnswer:async (threadRef)=>{
+                if(!threadRef){
+                    RippleSDK.utils.error('createAnswer', 'no threadRef');
+                    return;
+                }
+                if(!RippleSDK.app.webRTC.peerConnectionsMap.has(threadRef)){
+                    RippleSDK.utils.error('createAnswer', `no peer connection found for threadRef : ${threadRef}`);
+                    return;
+                }
+                const peerConnection = RippleSDK.app.webRTC.peerConnectionsMap.get(threadRef);
+                await peerConnection.setRemoteDescription({
+                    sdp:RippleSDK.app.webRTC.remoteOfferStringSDPMap.get(threadRef),
+                    type:'offer'
+                });
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                //! Review section when testing
+                const body = {
+                    clientID: RippleSDK.clientID,
+                    requestType: 'answer',
+                    transaction: RippleSDK.utils.uniqueIDGenerator("transaction",12),
+                    threadRef: threadRef,
+                    answer: answer.sdp
+                };
+                RippleSDK.transports.websocket.webSocketSendAction(body);
+                RippleSDK.utils.log('createAnswer', 'answer sent to server',body);
+            },
+            consumeAnswer:async (threadRef,sdp)=>{
+                if(!threadRef){
+                    RippleSDK.utils.error('consumeAnswer', 'no threadRef');
+                    return;
+                }
+                if(!sdp){
+                    RippleSDK.utils.error('consumeAnswer', 'no sdp');
+                    return;
+                }
+                if(!RippleSDK.app.webRTC.peerConnectionsMap.has(threadRef)){
+                    RippleSDK.utils.error('consumeAnswer', `no peer connection found for threadRef : ${threadRef}`);
+                    return;
+                }
+                const peerConnection = RippleSDK.app.webRTC.peerConnectionsMap.get(threadRef);
+                await peerConnection.setRemoteDescription({
+                    sdp,
+                    type:'answer'
+                });
+                RippleSDK.utils.log('consumeAnswer', 'answer consumed');
 
+            },
+            createOffer:async (threadRef)=>{
+                if(!threadRef){
+                    RippleSDK.utils.error('createOffer', 'no threadRef');
+                    return;
+                }
+                if(!RippleSDK.app.webRTC.peerConnectionsMap.has(threadRef)){
+                    RippleSDK.utils.error('createOffer', `no peer connection found for threadRef : ${threadRef}`);
+                    return;
+                }
+                const peerConnection = RippleSDK.app.webRTC.peerConnectionsMap.get(threadRef);
+                await peerConnection.createOffer({offerToReceiveVideo: true, offerToReceiveAudio: true})
+                    .then(async _sdp=>{
+                        await peerConnection.setLocalDescription(_sdp);
+                        const body = {
+                            clientID: RippleSDK.clientID,
+                            requestType: 'offer',
+                            transaction: RippleSDK.utils.uniqueIDGenerator("transaction",12),
+                            threadRef: threadRef,
+                            offer: _sdp.sdp
+                        };
+                        RippleSDK.transports.websocket.webSocketSendAction(body);
+                        RippleSDK.utils.log('createOffer', 'offer sent to server',body);
+                    });
+
+            },
             peerConnectionsMap:new Map(),
             localStream:null,
             remoteStreamsMap:new Map(),
+            remoteOfferStringSDPMap:new Map(),
             peerConnectionConfig:{
                 iceServers: [],
                 iceTransportPolicy: 'all',
@@ -377,9 +471,28 @@ const RippleSDK = {
                     messageObject = JSON.parse(messageObject);
                 }
                 const eventType = messageObject.eventType;
-                if(eventType === "register"){
-                    RippleSDK.utils.log('onMessage', 'register');
-                    RippleSDK.app.startToRemindServerOfMe();
+                const success = messageObject.success;
+                const plugin = messageObject.plugin;
+                if(success && eventType && plugin.eventType){
+                    if(plugin.eventType === 'iceCandidates'){
+                        if(messageObject.plugin.feature === 'G_STREAM'){
+                            RippleSDK.utils.log('onMessage', 'Remote ICE ---  iceCandidates Server Response ');
+                        }
+                    }
+                }
+                if(success && eventType){
+                    switch(eventType) {
+                        case "newThread":
+                            RippleSDK.app.features.streaming.threads.push(messageObject.position);
+                            RippleSDK.app.features.streaming.functions.startBroadCast(messageObject.position);
+                            break;
+                        case "register":
+                            RippleSDK.app.startToRemindServerOfMe();
+                            break;
+                        default:
+                            // code for default case
+                            break;
+                    }
                 }
 
             },

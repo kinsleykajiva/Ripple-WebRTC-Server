@@ -38,8 +38,10 @@ public class Client implements CommonAbout {
 		var position        = webRTCStreamMap.size() + 1;
 		var gStreamerPlugIn = new WebRTCGStreamerPlugIn(this, position, mediaFile);
 		webRTCStreamMap.put(position, gStreamerPlugIn);
+		
 		return position;
 	}
+	
 	
 	public MutableMap<Integer, WebRTCGStreamerPlugIn> getWebRTCStreamMap() {
 		return webRTCStreamMap;
@@ -83,10 +85,11 @@ public class Client implements CommonAbout {
 		var response = new JSONObject();
 		response.put("clientID", clientID);
 		response.put("success", true);
-		response.put("handleId", objectPosition);
+		response.put("position", objectPosition);
+		response.put("plugin", pluginData);
 		response.put("accessAuth", "GENERAL");
 		response.put("lastSeen", lastTimeStamp);
-		wsSession.send(pluginData.toString(), true);
+		wsSession.send(response.toString(), true);
 		if(isDebugSession) {
 			log.info(pluginData.toString());
 		}
@@ -99,6 +102,22 @@ public class Client implements CommonAbout {
 		response.put("success", true);
 		response.put("eventType", "remember");
 		response.put("transaction", transaction);
+		response.put("accessAuth", "GENERAL");
+		response.put("lastSeen", lastTimeStamp);
+		wsSession.send(response.toString(), true);
+		if(isDebugSession) {
+			log.info(response.toString());
+		}
+	}
+	public void replyToNewThreadInvalidRequest(final String transaction,final int position) {
+		onUpdateLastTimeStamp(System.currentTimeMillis());
+		var response = new JSONObject();
+		response.put("clientID", clientID);
+		response.put("success", false);
+		response.put("message", "Invalid request");
+		response.put("eventType", "newThread");
+		response.put("transaction", transaction);
+		response.put("position", position);
 		response.put("accessAuth", "GENERAL");
 		response.put("lastSeen", lastTimeStamp);
 		wsSession.send(response.toString(), true);

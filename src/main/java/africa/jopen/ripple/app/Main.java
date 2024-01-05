@@ -59,29 +59,18 @@ public class Main {
         final String configName = config.get("app.config.folderName").asString().orElse("config");
         XUtils.BASE_APP_LOCATION_PATH = Paths.get("").toAbsolutePath().toString();
         
-        MessageQueueService messageQueueService = new MessageQueueService();
-        WebServer server = WebServer.builder()
-                .config(config.get("server"))
-                .routing(Main::routing)
-                .addRouting(WsRouting.builder()
-                        .endpoint("/websocket/client", new WebsocketEndpoint())
-                        
-                )
-                .build()
-                .start();
         
-        log.info("WEB server is up! http://localhost:" + server.port() );
         log.info( "App running in folder path " + XUtils.BASE_APP_LOCATION_PATH);
-        log.info( "App running in config folder path " + XUtils.BASE_APP_LOCATION_PATH +"/" + configName);
+        log.info( "App running in config folder path " + XUtils.BASE_APP_LOCATION_PATH +File.separator + configName);
         
         File file;
         try {
             
-            file = new File(XUtils.BASE_APP_LOCATION_PATH + "/" + configName);
+            file = new File(XUtils.BASE_APP_LOCATION_PATH + File.separator + configName);
             if (!file.exists()) {
                 log.log(Level.ERROR, "Configs not found");
                 
-                Path sourceFolder = Paths.get(XUtils.BASE_APP_LOCATION_PATH + "/" + configName);
+                Path sourceFolder = Paths.get(XUtils.BASE_APP_LOCATION_PATH + File.separator + configName);
                 if (!Files.exists(sourceFolder)) {
                     Files.createDirectories(sourceFolder);
                 }
@@ -98,11 +87,11 @@ public class Main {
             
             
             Path sourceFolder = Paths.get("src/main/resources/configs/");
-            Path destinationFolder = Paths.get(XUtils.BASE_APP_LOCATION_PATH +"/" + configName);
+            Path destinationFolder = Paths.get(XUtils.BASE_APP_LOCATION_PATH +File.separator+ configName);
             
             copyConfigFilesTemplates(sourceFolder, destinationFolder);
             
-            file = new File(XUtils.BASE_APP_LOCATION_PATH + "/"  + configName + "/" + "ripple.json");
+            file = new File(XUtils.BASE_APP_LOCATION_PATH + File.separator  + configName + File.separator + "ripple.json");
             if (!file.exists()) {
                 log.log(Level.ERROR, "ripple .json not found");
                 log.log(Level.ERROR, "Exiting System");
@@ -120,12 +109,12 @@ public class Main {
             final String privateKey = "privateKey.pem";
             final String publicKey = "publicKey.pem";
             
-            if(!new File(XUtils.BASE_APP_LOCATION_PATH +"/" +configName +"/" + "keys").exists()) {
-                new File(XUtils.BASE_APP_LOCATION_PATH + "/"  + configName + "/"  + "keys").mkdir();
+            if(!new File(XUtils.BASE_APP_LOCATION_PATH +File.separator +configName +File.separator + "keys").exists()) {
+                new File(XUtils.BASE_APP_LOCATION_PATH + File.separator  + configName + File.separator  + "keys").mkdir();
             }
             
-            Path privateKeyPath = new File(XUtils.BASE_APP_LOCATION_PATH + "/"  +configName +"/"  + "keys"+"/" +privateKey).toPath();
-            Path publicKeyPath =  new File(XUtils.BASE_APP_LOCATION_PATH  + "/"  + configName +"/"  + "keys"+"/" +publicKey).toPath();
+            Path privateKeyPath = new File(XUtils.BASE_APP_LOCATION_PATH + File.separator  +configName +File.separator  + "keys"+File.pathSeparator +privateKey).toPath();
+            Path publicKeyPath =  new File(XUtils.BASE_APP_LOCATION_PATH  + File.separator  + configName +File.separator  + "keys"+File.pathSeparator +publicKey).toPath();
             
             if (Files.notExists(privateKeyPath)) {
                 try {
@@ -150,7 +139,7 @@ public class Main {
             
             // restart the server
             // ToDo review how this is not better.
-            server.stop();
+            //server.stop();
         }
         /*System.setProperty("quarkus.application.name", XUtils.MAIN_CONFIG_MODEL.serverName());
         
@@ -158,6 +147,23 @@ public class Main {
         System.setProperty("quarkus.application.version", XUtils.MAIN_CONFIG_MODEL.serverVersion());*/
         System.setProperty("server.port", String.valueOf(XUtils.MAIN_CONFIG_MODEL.serverPort()));
         log.info("Server started in " + XUtils.BASE_APP_LOCATION_PATH);
+        log.info("Server  Config Model " + XUtils.MAIN_CONFIG_MODEL);
+       
+        config.get("server").asNode().ifPresent(node -> node.get("port").asInt().ifPresent(port -> System.setProperty("server.port", String.valueOf(XUtils.MAIN_CONFIG_MODEL.serverPort()))));
+        
+        MessageQueueService messageQueueService = new MessageQueueService();
+        WebServer server = WebServer.builder()
+                .config(config.get("server"))
+                .routing(Main::routing)
+                .addRouting(WsRouting.builder()
+                        .endpoint("/websocket/client", new WebsocketEndpoint())
+                
+                )
+                
+                .build()
+                .start();
+        
+        log.info("WEB server is up! http://localhost:" + server.port() );
     }
 
 

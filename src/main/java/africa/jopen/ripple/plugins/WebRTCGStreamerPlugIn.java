@@ -51,43 +51,10 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 		this.mediaFile =mediaFile;
 		this.thisObjectPositionAddress = thisObjectPositionAddress;
 		pipe = (Pipeline) Gst.parseLaunch(pipeLineMaker(mediaFile.path()));
-		webRTCBin = (WebRTCBin) pipe.getElementByName("webrtcbin");
-		setupPipeLogging(pipe);
-		WebRTCBin.ON_NEGOTIATION_NEEDED onNegotiationNeeded = elem -> webRTCBin.createOffer(onOfferCreated);
-		webRTCBin.connect(onNegotiationNeeded);
-		WebRTCBin.ON_ICE_CANDIDATE onIceCandidate = (sdpMLineIndex, candidate) -> {
-			var    ice  = new JSONObject().put("candidate", candidate).put("sdpMLineIndex", sdpMLineIndex);
-			String json = new JSONObject().put("ice", ice).toString();
-			log.info("ON_ICE_CANDIDATE: ");
-			Map<String, Object> candidateMap = new HashMap<>();
-			candidateMap.put("sdpMLineIndex", sdpMLineIndex);
-			candidateMap.put("candidate", candidate);
-			
-			JSONObject response = new JSONObject();
-			response.put("iceCandidates", candidateMap);
-			response.put("featureInUse", FeatureTypes.G_STREAM.toString());
-			response.put(Events.EVENT_TYPE, Events.ICE_CANDIDATES_EVENT);
-			notifyClient(response, this.thisObjectPositionAddress);
-			
-			
-		};
-		webRTCBin.connect(onIceCandidate);
-		Element.PAD_ADDED onIncomingStream = (element, pad) -> {
-			log.info("Receiving stream! Element : " + element.getName() + " Pad : " + pad.getName());
-			if (pad.getDirection() != PadDirection.SRC) {
-				return;
-			}
-			DecodeBin decodeBin = new DecodeBin("decodebin_" + pad.getName());
-			decodeBin.connect(onDecodedStream);
-			pipe.add(decodeBin);
-			decodeBin.syncStateWithParent();
-			pad.link(decodeBin.getStaticPad("sink"));
-		};
-		webRTCBin.connect(onIncomingStream);
-		log.info("initiating call");
-		//Todo remove some of the code here is useless
+		
 		
 	}
+	
 	
 	private void setupPipeLogging(Pipeline pipe) {
 		
@@ -155,7 +122,7 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 		JSONObject response = new JSONObject();
 		response.put("clientSDP", sdpp);
 		response.put("sdp", json);
-		response.put("featureInUse", FeatureTypes.G_STREAM.toString());
+		response.put("feature", FeatureTypes.G_STREAM.toString());
 		response.put(Events.EVENT_TYPE, Events.WEBRTC_EVENT);
 		notifyClient(response, this.thisObjectPositionAddress);
 		
@@ -253,13 +220,54 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 	}
 	
 	public void startCall() {
-		if (!isPaused) {
-			if (!pipe.isPlaying()) {
-				log.info("initiating streams");
-				pipe.play();
-				startClock();
+		webRTCBin = (WebRTCBin) pipe.getElementByName("webrtcbin");
+		setupPipeLogging(pipe);
+		WebRTCBin.ON_NEGOTIATION_NEEDED onNegotiationNeeded = elem -> webRTCBin.createOffer(onOfferCreated);
+		webRTCBin.connect(onNegotiationNeeded);
+		WebRTCBin.ON_ICE_CANDIDATE onIceCandidate = (sdpMLineIndex, candidate) -> {
+			var    ice  = new JSONObject().put("candidate", candidate).put("sdpMLineIndex", sdpMLineIndex);
+			String json = new JSONObject().put("ice", ice).toString();
+			log.info("ON_ICE_CANDIDATE: ");
+			Map<String, Object> candidateMap = new HashMap<>();
+			candidateMap.put("sdpMLineIndex", sdpMLineIndex);
+			candidateMap.put("candidate", candidate);
+			
+			JSONObject response = new JSONObject();
+			response.put("iceCandidates", candidateMap);
+			response.put("feature", FeatureTypes.G_STREAM.toString());
+			response.put(Events.EVENT_TYPE, Events.ICE_CANDIDATES_EVENT);
+			notifyClient(response, this.thisObjectPositionAddress);
+			
+			
+		};
+		webRTCBin.connect(onIceCandidate);
+		Element.PAD_ADDED onIncomingStream = (element, pad) -> {
+			log.info("Receiving stream! Element : " + element.getName() + " Pad : " + pad.getName());
+			if (pad.getDirection() != PadDirection.SRC) {
+				return;
 			}
-		}
+			DecodeBin decodeBin = new DecodeBin("decodebin_" + pad.getName());
+			decodeBin.connect(onDecodedStream);
+			pipe.add(decodeBin);
+			decodeBin.syncStateWithParent();
+			pad.link(decodeBin.getStaticPad("sink"));
+		};
+		webRTCBin.connect(onIncomingStream);
+		log.info("initiating call");
+		//Todo remove some of the code here is useless
+		
+		new Timer().schedule(new TimerTask() {
+		    @Override
+		    public void run() {
+		        if (!isPaused) {
+		            if (!pipe.isPlaying()) {
+		                log.info("initiating streams");
+		                pipe.play();
+		                startClock();
+		            }
+		        }
+		    }
+		}, 1000 * 4); // delay in milliseconds
 	}
 	
 	public void pauseTransmission() {

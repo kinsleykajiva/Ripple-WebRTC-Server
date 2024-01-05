@@ -25,17 +25,19 @@ public class XUtils {
 	private XUtils() {
 	}
 	public static void copyConfigFilesTemplates(Path sourceFolder, Path destinationFolder) throws IOException {
-		if (!Files.exists(destinationFolder)) {
-			Files.createDirectories(destinationFolder);
-		}
-		
-		try (DirectoryStream<Path> stream = Files.newDirectoryStream(sourceFolder)) {
-			for (Path file: stream) {
-				Path destFile = Paths.get(destinationFolder.toString(), file.getFileName().toString());
-				Files.copy(file, destFile, StandardCopyOption.REPLACE_EXISTING);
-			}
-		}
-	}
+    if (!Files.exists(destinationFolder)) {
+        Files.createDirectories(destinationFolder);
+    }
+
+    try (DirectoryStream<Path> stream = Files.newDirectoryStream(sourceFolder)) {
+        for (Path file: stream) {
+            Path destFile = Paths.get(destinationFolder.toString(), file.getFileName().toString());
+            if (!Files.exists(destFile)) {
+                Files.copy(file, destFile);
+            }
+        }
+    }
+}
 	
 	public static void generateJwtKeys(Path privateKeyPath, Path publicKeyPath) throws Exception {
 		KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
