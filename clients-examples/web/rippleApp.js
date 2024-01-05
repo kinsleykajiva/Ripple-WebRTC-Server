@@ -407,18 +407,23 @@ const RippleSDK = {
 
                     },
                     startBroadCast:(threadRef)=>{
-                        if(RippleSDK.app.features.streaming.threads.length === 0){
-                            RippleSDK.utils.error('startBroadCast', 'no threads found');
-                            return;
-                        }
-                        if(!threadRef){
+                        console.log('startBroadCast',threadRef ,RippleSDK.app.features.streaming.threads);
+                        /*if(!threadRef){
                             RippleSDK.utils.error('startBroadCast', 'no threadRef');
                             return;
-                        }
-                        if(!RippleSDK.app.features.streaming.threads[threadRef]){
+                        }*/
+                       // RippleSDK.app.features.streaming.threads.push(threadRef);
+                        console.log('2startBroadCast',threadRef ,RippleSDK.app.features.streaming.threads);
+                       /* if(RippleSDK.app.features.streaming.threads.length === 0){
+                            RippleSDK.utils.error('startBroadCast', 'no threads found');
+                            return;
+                        }*/
+
+
+                        /*if(!RippleSDK.app.features.streaming.threads[threadRef]){
                             RippleSDK.utils.error('startBroadCast', `no thread found with ref : ${threadRef}`);
                             return;
-                        }
+                        }*/
 
                         RippleSDK.transports.websocket.webSocketSendAction({
                             clientID   : RippleSDK.clientID,
@@ -473,8 +478,9 @@ const RippleSDK = {
                 const eventType = messageObject.eventType;
                 const success = messageObject.success;
                 const plugin = messageObject.plugin;
-                if(success && eventType && plugin.eventType){
-                    if(plugin.eventType === 'iceCandidates'){
+                let pluginEventType = plugin ? plugin.eventType : null;
+                if(success && eventType && pluginEventType){
+                    if(pluginEventType === 'iceCandidates'){
                         if(messageObject.plugin.feature === 'G_STREAM'){
                             RippleSDK.utils.log('onMessage', 'Remote ICE ---  iceCandidates Server Response ');
                         }
