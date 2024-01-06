@@ -550,7 +550,18 @@ const RippleSDK = {
                         await RippleSDK.app.webRTC.createAnswer(messageObject.position);
 
                     }
+
+
                     if (pluginEventType === 'pauseGstream') {
+                        const localVideo = document.getElementById(`localVideo_${messageObject.position}`);
+                        const playPauseButton = document.getElementById(`playPauseButton_${messageObject.position}`);
+                        if (playPauseButton) {
+                            playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
+                            localVideo.pause();
+                        }
+
+                    }
+                    if (pluginEventType === 'endedGstream') {
                         const localVideo = document.getElementById(`localVideo_${messageObject.position}`);
                         const playPauseButton = document.getElementById(`playPauseButton_${messageObject.position}`);
                         if (playPauseButton) {

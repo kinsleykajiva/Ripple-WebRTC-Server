@@ -10,6 +10,7 @@ public interface Events {
 	String SDP_ANSWER_EVENT                 = "answer";
 	String ICE_CANDIDATES_EVENT             = "iceCandidates";
 	String RESUME_G_STREAM_EVENT             = "resumeGstream";
+	String END_OF_STREAM_G_STREAM_EVENT             = "endedGstream";
 	String PAUSE_G_STREAM_EVENT             = "pauseGstream";
 	String REMEMBER_EVENT                   = "remember";
 	String ERROR_EVENT                      = "error";

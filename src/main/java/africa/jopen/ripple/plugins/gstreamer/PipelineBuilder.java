@@ -1,7 +1,7 @@
 package africa.jopen.ripple.plugins.gstreamer;
 
 public class PipelineBuilder {
-	private StringBuilder pipeline;
+	private final StringBuilder pipeline;
 	
 	public PipelineBuilder() {
 		this.pipeline = new StringBuilder();

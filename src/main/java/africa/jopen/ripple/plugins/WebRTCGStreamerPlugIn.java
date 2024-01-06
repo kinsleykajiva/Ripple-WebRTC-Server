@@ -76,6 +76,16 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 				log.info("Pipe state changed from " + old + " to " + current);
 			}
 		});
+		bus.connect((Bus.EOS) source -> {
+			log.info("Reached end of stream : " + source.toString());
+			endCall();
+			
+			
+			JSONObject response = new JSONObject();
+			response.put("feature", FeatureTypes.G_STREAM.toString());
+			response.put(Events.EVENT_TYPE, Events.END_OF_STREAM_G_STREAM_EVENT);
+			notifyClient(response, this.thisObjectPositionAddress);
+		});
 		
 		bus.connect((Bus.MESSAGE) (element, message) -> {
 			//Todo not really working needs to be updated to work as much , no idea to fix this yet. #startClock() is in use at the mean time
@@ -168,6 +178,7 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 	
 	
 	private String pipeLineMaker(String path) {
+		//! ToDo needs review for other file system paths
 		path = path.replaceAll("\\\\", "\\\\\\\\");
 		
 		return new PipelineBuilder()
