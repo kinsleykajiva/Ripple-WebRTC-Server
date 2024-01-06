@@ -509,7 +509,7 @@
   <main id="main" class="main">
 
     <div class="pagetitle">
-      <h1>G stream broadcast example demo <button class="btn btn-primary btn-sm" id="startProcessBTN" onclick="startProcess()"><i class="fas fa-video"></i>  Start A Stream</button></h1>
+      <h1>G stream broadcast example demo <button class="btn btn-primary btn-sm" id="startProcessBTN" onclick="startProcess()"><i class="fas fa-file-video"></i>  Start A Stream</button></h1>
       <nav>
         <ol class="breadcrumb">
           <li class="breadcrumb-item"></li>
@@ -533,8 +533,8 @@
 
           </div>
       </div>
-      <div class="row">
-        <div class="col-lg-6" id="streamsVids">
+      <div class="row" id="streamsVids">
+        <div class="col-lg-6" >
 
          <div class="card">
               <div class="card-body">
@@ -644,7 +644,10 @@
     }
 
     function startProcess(){
-        streamsVids.innerHTML = "";
+        if(RippleSDK.app.features.streaming.threads.length === 0){
+            streamsVids.innerHTML = "";
+        }
+
         const fileMedia = pickRandomElement();
         console.log("selected element is "+fileMedia);
         RippleSDK.app.requestNewThread(RippleSDK.featuresAvailable.G_STREAM_BROADCAST,{

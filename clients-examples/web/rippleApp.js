@@ -368,7 +368,7 @@ const RippleSDK = {
                             return;
                         }
 
-                        const ui = ` 
+                        const ui = ` <div class="card">
                                               <div class="card-body">
                                                 <h5 class="card-title">Video Stream : <span id="subvideoheader_${threadRef}"></span></h5>
                                                 <video id="localVideo_${threadRef}" class="video-stream" autoplay playsinline></video>
@@ -384,12 +384,13 @@ const RippleSDK = {
                                                   <!-- Controls go here -->
                                                 </div>
                                               </div>
+                                              </div>
                                                 `;
                         // append the threadRef to the groupParentElement
                         const newElement = document.createElement('div');
                         newElement.setAttribute('id', `streamThread_${threadRef}`);
                         // set class as card
-                        newElement.classList.add('card');
+                        newElement.classList.add('col-lg-6');
 
                         newElement.innerHTML = ui;
                         groupParentElement.appendChild(newElement);
@@ -447,7 +448,7 @@ const RippleSDK = {
                         if(RippleSDK.app.features.streaming.threads.length > 0){
                             const addNewStreamButton = document.getElementById('startProcessBTN');
                             if(addNewStreamButton){
-                                addNewStreamButton.innerHTML = '<i class="fas fa-video"></i> Add New Stream';
+                                addNewStreamButton.innerHTML = '<i class="fas fa-file-video"></i> Add New Stream';
                             }
                         }
 
