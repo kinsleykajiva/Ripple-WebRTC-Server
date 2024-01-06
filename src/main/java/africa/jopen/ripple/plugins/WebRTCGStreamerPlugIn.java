@@ -20,15 +20,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class WebRTCGStreamerPlugIn extends PluginAbs {
 	static Logger log = Logger.getLogger(WebRTCGStreamerPlugIn.class.getName());
 	ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
-	private              Pipeline            pipe;
-	private              WebRTCBin           webRTCBin;
-	private              boolean             isPaused           = false;
-
-	private static final int                 SECONDS_PER_MINUTE = 60;
+	private Pipeline  pipe;
+	private WebRTCBin webRTCBin;
+	private boolean   isPaused = false;
+	
+	private static final int SECONDS_PER_MINUTE = 60;
 	
 	private int minutes = 0, seconds = 0;
 	private String transaction = "";
@@ -37,7 +41,7 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 	private final CommonAbout commonAbout;
 	private       Integer     thisObjectPositionAddress;
 	private final RTCModel    rtcModel      = new RTCModel();
-	private final MediaFile mediaFile;
+	private final MediaFile   mediaFile;
 	
 	public String getTransaction() {
 		return transaction;
@@ -50,7 +54,7 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 	public WebRTCGStreamerPlugIn(CommonAbout commonAbout, final Integer thisObjectPositionAddress, MediaFile mediaFile) {
 		setTransaction("0");
 		this.commonAbout = commonAbout;
-		this.mediaFile =mediaFile;
+		this.mediaFile = mediaFile;
 		this.thisObjectPositionAddress = thisObjectPositionAddress;
 		pipe = (Pipeline) Gst.parseLaunch(pipeLineMaker(mediaFile.path()));
 		
@@ -113,6 +117,14 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 					// Print the progress value to the console.
 					System.out.println("Progress: " + progress);
 				}
+			}
+			
+			if (message.getType() == MessageType.ELEMENT && "progress".equals(message.getStructure().getName())) {
+				int position = message.getStructure().getInteger("position");
+				int duration = message.getStructure().getInteger("duration");
+				
+				String progress = String.format("%d:%02d/%d:%02d", position / 60, position % 60, duration / 60, duration % 60);
+				System.out.println("Pxrogress: " + progress);
 			}
 		});
 		
@@ -191,17 +203,61 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 	
 	public void startClock() {
 		
-		//final var    maxCountSeconds = clientObject.get().getgStreamMediaResource().getDuration();
-		final long[] countSeconds    = {0};
-		Timer        timer           = new Timer();
+		final boolean[]          isCompleted     = {true};
+		
+		Thread.startVirtualThread(() -> {
+			while (isCompleted[0]) {
+				long duration = pipe.queryDuration(TimeUnit.SECONDS);
+				long position = pipe.queryPosition(TimeUnit.SECONDS);
+				int progress = (int) ((position / (double) duration) * 100);
+				
+				long minutesMax = duration / 60;
+				long secondsMax = duration % 60;
+				
+				String formattedTime = String.format("%02d:%02d", position / 60, position % 60);
+				String maxFormattedTime = String.format("%02d:%02d", minutesMax, secondsMax);
+				isCompleted[0] =  progress != 100;
+				JSONObject response = new JSONObject();
+				response.put("isCompleted", isCompleted[0]);
+				response.put("progressInPercentage", progress);
+				response.put("progressInSeconds", position);
+				response.put("maxProgressInSeconds", duration);
+				response.put("maxFormattedTime", maxFormattedTime);
+				response.put("progressformattedTime", formattedTime);
+				response.put("feature", FeatureTypes.G_STREAM.toString());
+				response.put(Events.EVENT_TYPE, Events.PROGRESS_G_STREAM_EVENT);
+				
+				notifyClient(response, this.thisObjectPositionAddress);
+				
+				try {
+					TimeUnit.MILLISECONDS.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
+	}
+	
+	public void startClockxxx() {
+		
+		final var    duration     = pipe.queryDuration(TimeUnit.SECONDS);
+		final long[] countSeconds = {0};
+		Timer        timer        = new Timer();
 		timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
-				if (countSeconds[0] == mediaFile.maxDuration()) {
+				
+				long position = pipe.queryPosition(TimeUnit.SECONDS); // Get the current position of the media file
+				System.out.println("xxxx " + position);
+				int progress = (int) ((position / (double) duration) * 100); // Calculate the progress as a percentage
+				if (countSeconds[0] == duration) {
+					
 					timer.cancel();
 					countSeconds[0] = 0;
 					return;
 				}
+				
 				if (!isPaused) {
 					seconds++;
 					countSeconds[0]++;
@@ -211,16 +267,31 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 						minutes++;
 					}
 					
-					String formattedTime = String.format("%02d:%02d", minutes, seconds);
+					long   minutesMax       = duration / 60;
+					long   secondsMax       = duration % 60;
+					String formattedTime    = String.format("%02d:%02d", minutes, seconds);
+					String maxFormattedTime = String.format("%02d:%02d", minutesMax, secondsMax);
 					System.out.println(formattedTime);
+					System.out.println("Progress: " + progress + "%");
 					
 					if (minutes == 1 && seconds == 1) {
 						System.out.println("01:01");
 					}
 					// Todo emmit this to the client
+					JSONObject response = new JSONObject();
+					response.put("progressInPercentage", progress);
+					response.put("progressInSeconds", position);
+					response.put("maxProgressInSeconds", duration);
+					response.put("maxFormattedTime", maxFormattedTime);
+					response.put("progressformattedTime", formattedTime);
+					response.put("feature", FeatureTypes.G_STREAM.toString());
+					response.put(Events.EVENT_TYPE, Events.PROGRESS_G_STREAM_EVENT);
+					
+					// Send the progress to the client
+					notifyClient(response, thisObjectPositionAddress);
 				}
 			}
-		}, 0, 1_000); // Update every second
+		}, 1_000 * 3, 1_000); // Update every second
 	}
 	
 	
@@ -231,6 +302,7 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 			adjustVolume();
 		}
 	}
+	
 	public void handleSdp(String sdpStr) {
 		try {
 			log.info("Answer SDP:\n");
@@ -249,14 +321,15 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 	
 	public void handleIceSdp(String candidate, int sdpMLineIndex) {
 		try {
-			log.info("Adding remote client ICE candidate : " );
+			log.info("Adding remote client ICE candidate : ");
 			webRTCBin.addIceCandidate(sdpMLineIndex, candidate);
 		} catch (Exception exception) {
 			exception.printStackTrace();
 			//logger.atSevere().withCause(exception).log(exception.getLocalizedMessage());
-			log. info(exception.getLocalizedMessage());
+			log.info(exception.getLocalizedMessage());
 		}
 	}
+	
 	public void startCall() {
 		webRTCBin = (WebRTCBin) pipe.getElementByName("webrtcbin");
 		setupPipeLogging(pipe);
@@ -295,17 +368,17 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 		//Todo remove some of the code here is useless
 		
 		new Timer().schedule(new TimerTask() {
-		    @Override
-		    public void run() {
-		        if (!isPaused) {
-		            if (!pipe.isPlaying()) {
-		                log.info("initiating streams");
-		                pipe.play();
-		                startClock();
-		            }
-		        }
-		    }
-		}, 1000 * 4); // delay in milliseconds
+			@Override
+			public void run() {
+				if (!isPaused) {
+					if (!pipe.isPlaying()) {
+						log.info("initiating streams");
+						pipe.play();
+						startClock();
+					}
+				}
+			}
+		}, 1000 * 2); // delay in milliseconds
 	}
 	
 	public void pauseTransmission() {

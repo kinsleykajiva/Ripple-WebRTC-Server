@@ -35,6 +35,27 @@
 .video-controls i {
   font-size: 1.5em;
 }
+
+        .progressBar {
+            width: 100%;
+            background-color: #e0e0e0; /* Material Design light grey for the background */
+        }
+
+        .progressBar::-webkit-progress-bar {
+            background-color: #e0e0e0; /* Material Design light grey for the background in Webkit browsers */
+        }
+
+        .progressBar::-webkit-progress-value {
+            background-color: #3f51b5; /* Material Design indigo for the progress bar in Webkit browsers */
+        }
+
+        .progressBar::-moz-progress-bar {
+            background-color: #3f51b5; /* Material Design indigo for the progress bar in Firefox */
+        }
+
+
+
+
     </style>
 </head>
 
@@ -81,6 +102,7 @@
               <div class="card-body">
                 <h5 class="card-title">Video Stream <span id="subheadier"></span></h5>
                 <video id="localVideo" class="video-stream" autoplay playsinline muted></video>
+                  <progress id="progressBar" class="progressBar" value="0" max="100" style="width: 100%"></progress>
                 <div class="video-controls">
                   <!-- Controls go here -->
                     <div class="video-controls">
@@ -89,6 +111,7 @@
                       <button id="fastForwardButton"><i class="fas fa-forward"></i></button>
                       <input type="range" id="volumeControl" min="0" max="1" step="0.1">
                       <button style="margin-left: 10%" id="fullscreenButton"><i class="fas fa-expand"></i></button>
+                        <span style="margin-left: 20%" id="progressTimerCounter">00:00</span>
                     </div>
                   <!-- Controls go here -->
                 </div>
@@ -154,16 +177,51 @@
         if(eventMessage){
             const subvideoheader = document.getElementById("subvideoheader_"+eventMessage.threadRef);
             if(subvideoheader){
-                subvideoheader.innerHTML = eventMessage.showProgress ? 'Buffering' : 'Playing';
+                subvideoheader.innerText = eventMessage.showProgress ? 'Buffering' : 'Playing';
             }
         }
     }
+    RippleSDK.app.callbacks.tellClientOnStreamUIUpdates = function(eventMessage){
+        console.log(eventMessage);
+        if(eventMessage && eventMessage.threadRef){
+            if(eventMessage.data.progressInPercentage){
+                animateProgress("progressBar_"+eventMessage.threadRef, eventMessage.data.progressInPercentage);
+                const progressTimerCounter = document.getElementById("progressTimerCounter_"+eventMessage.threadRef);
+                if(progressTimerCounter){
+                    progressTimerCounter.innerText = eventMessage.data.progressformattedTime + ":" + eventMessage.data.maxFormattedTime;
+                }
+                const subvideoheader = document.getElementById("subvideoheader_"+eventMessage.threadRef);
+                if(subvideoheader){
+                    subvideoheader.innerText = eventMessage.data.isCompleted ? 'Finished Playing' : 'Playing';
+                }
+            }
+
+        }
+    }
+    function animateProgress(elemId, targetValue) {
+        let progressBar = document.getElementById(elemId);
+        // Calculate the speed of the animation based on the difference between the target value and the current value
+        let speed = (targetValue - progressBar.value) / 100;
+
+        function frame() {
+            if (progressBar.value < targetValue) {
+                progressBar.value += speed; // Increase the progress bar value
+                requestAnimationFrame(frame); // Call the next frame
+            } else {
+                progressBar.value = targetValue; // Ensure the progress bar value does not exceed the target value
+            }
+        }
+
+        requestAnimationFrame(frame); // Start the animation
+    }
+
 
     const streamsVids             = document.getElementById('streamsVids');
     const mediaStreamFiles=[
         "Shakespeare.mp4",
         "HeartAndSoulRiddimInstrumental.mp4",
-        "MellowSleazyTmanXpressKwelinyeKeynote.mp4"
+        "MellowSleazyTmanXpressKwelinyeKeynote.mp4",
+        "TheMessageRiddimMixDonCorleon.mp4"
     ];
     let chosenElements = new Set();
 

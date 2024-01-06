@@ -372,6 +372,7 @@ const RippleSDK = {
                                               <div class="card-body">
                                                 <h5 class="card-title">Video Stream : <span id="subvideoheader_${threadRef}"></span></h5>
                                                 <video id="localVideo_${threadRef}" class="video-stream" autoplay playsinline></video>
+                                                <progress id="progressBar_${threadRef}" class="progressBar" value="0" max="100" style="width: 100%"></progress>
                                                 <div class="video-controls">
                                                   <!-- Controls go here -->
                                                     <div class="video-controls">
@@ -380,6 +381,7 @@ const RippleSDK = {
                                                       <button id="fastForwardButton_${threadRef}"><i class="fas fa-forward"></i></button>
                                                       <input type="range" id="volumeControl_${threadRef}" min="0" max="1" step="0.1">
                                                       <button style="margin-left: 10%" id="fullscreenButton_${threadRef}"><i class="fas fa-expand"></i></button>
+                                                    <span style="margin-left: 20%" id="progressTimerCounter_${threadRef}">00:00</span>
                                                     </div>
                                                   <!-- Controls go here -->
                                                 </div>
@@ -561,7 +563,17 @@ const RippleSDK = {
                         }
 
                     }
+                    if (pluginEventType === 'progressGstream') {
+// tellClientOnStreamUIUpdates
+                        RippleSDK.app.callbacks.tellClientOnStreamUIUpdates({
+                            showProgress: true,
+                            data: plugin,
+                            threadRef: messageObject.position,
+                        });
+
+                    }
                     if (pluginEventType === 'endedGstream') {
+                      //  alert('stream ended');
                         const localVideo = document.getElementById(`localVideo_${messageObject.position}`);
                         const playPauseButton = document.getElementById(`playPauseButton_${messageObject.position}`);
                         if (playPauseButton) {
@@ -609,6 +621,7 @@ const RippleSDK = {
 
             },
             tellClientOnWebRtcEvents:eventMessage=>{},
+            tellClientOnStreamUIUpdates:eventMessage=>{},
             tellClientOnConnected:null,
             onConnected:()=>{
                 RippleSDK.utils.log('onConnected');
