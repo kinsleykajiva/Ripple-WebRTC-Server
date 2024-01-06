@@ -192,7 +192,7 @@
                 }
                 const subvideoheader = document.getElementById("subvideoheader_"+eventMessage.threadRef);
                 if(subvideoheader){
-                    subvideoheader.innerText = eventMessage.data.isCompleted ? 'Finished Playing' : 'Playing';
+                   // subvideoheader.innerText = eventMessage.data.isCompleted ? 'Finished Playing' : 'Playing';
                 }
             }
 
