@@ -121,21 +121,21 @@ const RippleSDK = {
                     .then(async _sdp=>{
                         await peerConnection.setLocalDescription(_sdp);
                         const body = {
-                            clientID: RippleSDK.clientID,
+                            clientID   : RippleSDK.clientID,
                             requestType: 'offer',
-                            transaction: RippleSDK.utils.uniqueIDGenerator("transaction",12),
-                            threadRef: threadRef,
-                            offer: _sdp.sdp
+                            transaction: RippleSDK.utils.uniqueIDGenerator("transaction", 12),
+                            threadRef  : threadRef,
+                            offer      : _sdp.sdp
                         };
                         RippleSDK.transports.websocket.webSocketSendAction(body);
                         RippleSDK.utils.log('createOffer', 'offer sent to server',body);
                     });
 
             },
-            peerConnectionsMap:new Map(),
-            localStream:null,
-            remoteStreamsMap:new Map(),
-            remoteOfferStringSDPMap:new Map(),
+            peerConnectionsMap     : new Map(),
+            localStream            : null,
+            remoteStreamsMap       : new Map(),
+            remoteOfferStringSDPMap: new Map(),
             peerConnectionConfig:{
                 iceServers: [],
                 iceTransportPolicy: 'all',
@@ -329,10 +329,10 @@ const RippleSDK = {
                             RippleSDK.utils.error('renderThreadUI', 'no threadRef');
                             return;
                         }
-                        if (!RippleSDK.app.features.streaming.threads[threadRef]) {
+                        /*if (!RippleSDK.app.features.streaming.threads[threadRef]) {
                             RippleSDK.utils.error('renderThreadUI', `no thread found with ref : ${threadRef}`);
                             return;
-                        }
+                        }*/
                         const groupParentElement = document.getElementById(RippleSDK.app.mediaUI.renderGroupParentId);
                         if(!groupParentElement){
                             RippleSDK.utils.error('renderThreadUI', `no groupParentElement found with id : ${RippleSDK.app.mediaUI.renderGroupParentId}`);
@@ -432,6 +432,10 @@ const RippleSDK = {
                             transaction: RippleSDK.utils.uniqueIDGenerator("transaction", 12),
                             threadRef  : threadRef,
                         });
+                        //
+                        //RippleSDK.app.webRTC.createPeerConnection(threadRef);
+                        RippleSDK.app.webRTC.peerConnectionsMap.set(threadRef,RippleSDK.app.webRTC.createPeerConnection(threadRef));
+
                     },
                     requestToResumeTransmission:(threadRef)=>{
                         if(RippleSDK.app.features.streaming.threads.length === 0){
@@ -465,32 +469,45 @@ const RippleSDK = {
             }
         },
         callbacks:{
-            onMessage:messageObject=>{
+            onMessage:async messageObject => {
                 RippleSDK.utils.log('onMessage', messageObject);
-                if(!messageObject){
+                if (!messageObject) {
                     RippleSDK.utils.log('onMessage', 'no messageObject');
                     return;
                 }
                 // test if the message is a string or an object
-                if(typeof messageObject === 'string'){
+                if (typeof messageObject === 'string') {
                     messageObject = JSON.parse(messageObject);
                 }
                 const eventType = messageObject.eventType;
                 const success = messageObject.success;
                 const plugin = messageObject.plugin;
                 let pluginEventType = plugin ? plugin.eventType : null;
-                if(success && eventType && pluginEventType){
-                    if(pluginEventType === 'iceCandidates'){
-                        if(messageObject.plugin.feature === 'G_STREAM'){
+                if (success && pluginEventType) {
+                    //console.log("r Happy yey ,  finally got our offer from the remote sever " ,  plugin.clientSDP);
+                    if (pluginEventType === 'webrtc') {
+                        // console.log(" 1 Happy yey ,  finally got our offer from the remote sever ");
+                        RippleSDK.app.webRTC.remoteOfferStringSDPMap.set(messageObject.position, plugin.clientSDP);
+
+                        await RippleSDK.app.webRTC.createAnswer(messageObject.position);
+                        // console.log(" Happy yey ,  finally got our offer from the remote sever ");
+
+                    }
+                    if (pluginEventType === 'iceCandidates') {
+                        if (messageObject.plugin.feature === 'G_STREAM') {
                             RippleSDK.utils.log('onMessage', 'Remote ICE ---  iceCandidates Server Response ');
+                            // addIceCandidatePeerConnection
+                            RippleSDK.app.webRTC.addIceCandidatePeerConnection(messageObject.position, plugin.iceCandidates);
                         }
                     }
                 }
-                if(success && eventType){
-                    switch(eventType) {
+                if (success && eventType) {
+                    switch (eventType) {
                         case "newThread":
                             RippleSDK.app.features.streaming.threads.push(messageObject.position);
                             RippleSDK.app.features.streaming.functions.startBroadCast(messageObject.position);
+                            // renderThreadUI
+                            RippleSDK.app.features.streaming.functions.renderThreadUI(messageObject.position);
                             break;
                         case "register":
                             RippleSDK.app.startToRemindServerOfMe();

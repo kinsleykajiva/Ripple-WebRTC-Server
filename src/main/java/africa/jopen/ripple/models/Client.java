@@ -38,7 +38,6 @@ public class Client implements CommonAbout {
 		var position        = webRTCStreamMap.size() + 1;
 		var gStreamerPlugIn = new WebRTCGStreamerPlugIn(this, position, mediaFile);
 		webRTCStreamMap.put(position, gStreamerPlugIn);
-		
 		return position;
 	}
 	
