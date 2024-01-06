@@ -12,6 +12,8 @@ import org.freedesktop.gstreamer.*;
 import org.freedesktop.gstreamer.elements.DecodeBin;
 import org.freedesktop.gstreamer.message.MessageType;
 import org.freedesktop.gstreamer.webrtc.WebRTCBin;
+import org.freedesktop.gstreamer.webrtc.WebRTCSDPType;
+import org.freedesktop.gstreamer.webrtc.WebRTCSessionDescription;
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -218,7 +220,32 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 			adjustVolume();
 		}
 	}
+	public void handleSdp(String sdpStr) {
+		try {
+			log.info("Answer SDP:\n");
+			SDPMessage sdpMessage = new SDPMessage();
+			sdpMessage.parseBuffer(sdpStr);
+			WebRTCSessionDescription description = new WebRTCSessionDescription(WebRTCSDPType.ANSWER, sdpMessage);
+			webRTCBin.setRemoteDescription(description);
+			//Todo remove some of the code here is useless
+			
+		} catch (Exception exception) {
+			exception.printStackTrace();
+			//logger.atSevere().withCause(exception).log(exception.getLocalizedMessage());
+			log.info(exception.getLocalizedMessage());
+		}
+	}
 	
+	public void handleIceSdp(String candidate, int sdpMLineIndex) {
+		try {
+			log.info("Adding remote client ICE candidate : " );
+			webRTCBin.addIceCandidate(sdpMLineIndex, candidate);
+		} catch (Exception exception) {
+			exception.printStackTrace();
+			//logger.atSevere().withCause(exception).log(exception.getLocalizedMessage());
+			log. info(exception.getLocalizedMessage());
+		}
+	}
 	public void startCall() {
 		webRTCBin = (WebRTCBin) pipe.getElementByName("webrtcbin");
 		setupPipeLogging(pipe);

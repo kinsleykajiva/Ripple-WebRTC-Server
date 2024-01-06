@@ -260,6 +260,17 @@ const RippleSDK = {
                     },
                     [RippleSDK.app.webRTC.EVENT_NAMES.TRACK]: (ev) => {
                         RippleSDK.utils.log('track', ev);
+                        if (ev.streams && ev.streams[0]) {
+                            RippleSDK.utils.log('track', 'Received remote stream');
+                            const remoteVideo = document.getElementById(`localVideo_${threadRef}`);
+                            if(remoteVideo){
+                                remoteVideo.srcObject = ev.streams[0];
+                            }else{
+                                RippleSDK.utils.error('track', 'no remoteVideo');
+                            }
+                        } else {
+                            RippleSDK.utils.log('track', 'no remote stream');
+                        }
                     },
                     [RippleSDK.app.webRTC.EVENT_NAMES.DATA_CHANNEL]: (ev) => {
                         RippleSDK.utils.log('datachannel', ev);
@@ -406,18 +417,18 @@ const RippleSDK = {
                         })
 
                     },
-                    startBroadCast:(threadRef)=>{
-                        console.log('startBroadCast',threadRef ,RippleSDK.app.features.streaming.threads);
+                    startBroadCast:async (threadRef) => {
+                        console.log('startBroadCast', threadRef, RippleSDK.app.features.streaming.threads);
                         /*if(!threadRef){
                             RippleSDK.utils.error('startBroadCast', 'no threadRef');
                             return;
                         }*/
-                       // RippleSDK.app.features.streaming.threads.push(threadRef);
-                        console.log('2startBroadCast',threadRef ,RippleSDK.app.features.streaming.threads);
-                       /* if(RippleSDK.app.features.streaming.threads.length === 0){
-                            RippleSDK.utils.error('startBroadCast', 'no threads found');
-                            return;
-                        }*/
+                        // RippleSDK.app.features.streaming.threads.push(threadRef);
+                        console.log('2startBroadCast', threadRef, RippleSDK.app.features.streaming.threads);
+                        /* if(RippleSDK.app.features.streaming.threads.length === 0){
+                             RippleSDK.utils.error('startBroadCast', 'no threads found');
+                             return;
+                         }*/
 
 
                         /*if(!RippleSDK.app.features.streaming.threads[threadRef]){
@@ -426,15 +437,16 @@ const RippleSDK = {
                         }*/
 
                         RippleSDK.transports.websocket.webSocketSendAction({
-                            clientID   : RippleSDK.clientID,
-                            feature    : RippleSDK.featuresAvailable.G_STREAM_BROADCAST,
+                            clientID: RippleSDK.clientID,
+                            feature: RippleSDK.featuresAvailable.G_STREAM_BROADCAST,
                             requestType: 'startBroadCast',
                             transaction: RippleSDK.utils.uniqueIDGenerator("transaction", 12),
-                            threadRef  : threadRef,
+                            threadRef: threadRef,
                         });
                         //
-                        //RippleSDK.app.webRTC.createPeerConnection(threadRef);
-                        RippleSDK.app.webRTC.peerConnectionsMap.set(threadRef,RippleSDK.app.webRTC.createPeerConnection(threadRef));
+
+                        RippleSDK.app.webRTC.peerConnectionsMap.set(threadRef, RippleSDK.app.webRTC.createPeerConnection(threadRef));
+                        await RippleSDK.app.webRTC.createOffer(threadRef);
 
                     },
                     requestToResumeTransmission:(threadRef)=>{
@@ -495,7 +507,7 @@ const RippleSDK = {
                     }
                     if (pluginEventType === 'iceCandidates') {
                         if (messageObject.plugin.feature === 'G_STREAM') {
-                            RippleSDK.utils.log('onMessage', 'Remote ICE ---  iceCandidates Server Response ');
+                           // RippleSDK.utils.log('onMessage', 'Remote ICE ---  iceCandidates Server Response ');
                             // addIceCandidatePeerConnection
                             RippleSDK.app.webRTC.addIceCandidatePeerConnection(messageObject.position, plugin.iceCandidates);
                         }

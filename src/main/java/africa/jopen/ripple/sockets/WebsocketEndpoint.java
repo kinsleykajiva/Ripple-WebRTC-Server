@@ -3,6 +3,7 @@ package africa.jopen.ripple.sockets;
 
 import africa.jopen.ripple.models.Client;
 import africa.jopen.ripple.models.MediaFile;
+import africa.jopen.ripple.plugins.WebRTCGStreamerPlugIn;
 import africa.jopen.ripple.utils.JsonUtils;
 import africa.jopen.ripple.utils.XUtils;
 import io.helidon.websocket.WsListener;
@@ -36,19 +37,46 @@ public class WebsocketEndpoint implements WsListener {
 				if (jsonObject.has("isDebugSession")) {
 					isDebugSession = jsonObject.getBoolean("isDebugSession");
 				}
-				Client client = null;
+				Client                client = null;
+				WebRTCGStreamerPlugIn plugin;
 				if (jsonObject.has("clientID")) {
 					client = clientsList.stream()
 							.peek(client1 -> log.info("peek-client: " + client1.getClientID()))
 							.filter(client1 -> client1.getClientID().equals(jsonObject.getString("clientID")))
 							.findFirst().orElse(null);
 					switch (jsonObject.getString("requestType")) {
+						case "offer":
+							if (Objects.isNull(client)) {
+								log.info("Client not found");
+								break;
+							}
+							break;
+						case "iceCandidate":
+							
+							if (Objects.isNull(client)) {
+								log.info("Client not found");
+								break;
+							}
+							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
+							plugin.handleIceSdp(jsonObject.getString("candidate"), jsonObject.getInt("sdpMLineIndex"));
+							
+							break;
+						
+						
+						case "answer":
+							if (Objects.isNull(client)) {
+								log.info("Client not found");
+								break;
+							}
+							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
+							plugin.handleSdp(jsonObject.getString("answer"));
+							break;
 						case "startBroadCast":
 							if (Objects.isNull(client)) {
 								log.info("Client not found");
 								break;
 							}
-							var plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
+							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
 							plugin.startCall();
 							break;
 						case "newThread":
