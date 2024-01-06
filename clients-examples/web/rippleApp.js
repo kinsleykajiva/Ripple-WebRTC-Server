@@ -55,6 +55,11 @@ const RippleSDK = {
                 const peerConnection = RippleSDK.app.webRTC.peerConnectionsMap.get(threadRef);
                 peerConnection.addIceCandidate(candidate).then(() => {
                     RippleSDK.utils.log('addIceCandidatePeerConnection', 'addIceCandidate success');
+                    // nofy the ui thats its odne it can play
+                    RippleSDK.app.callbacks.tellClientOnWebRtcEvents({
+                        showProgress: false,
+                        threadRef,
+                    });
                 }).catch((err) => {
                     RippleSDK.utils.error('addIceCandidatePeerConnection', err);
                 });
@@ -68,6 +73,10 @@ const RippleSDK = {
                     RippleSDK.utils.error('createAnswer', `no peer connection found for threadRef : ${threadRef}`);
                     return;
                 }
+                RippleSDK.app.callbacks.tellClientOnWebRtcEvents({
+                    showProgress: true,
+                    threadRef,
+                });
                 const peerConnection = RippleSDK.app.webRTC.peerConnectionsMap.get(threadRef);
                 await peerConnection.setRemoteDescription({
                     sdp:RippleSDK.app.webRTC.remoteOfferStringSDPMap.get(threadRef),
@@ -99,6 +108,10 @@ const RippleSDK = {
                     RippleSDK.utils.error('consumeAnswer', `no peer connection found for threadRef : ${threadRef}`);
                     return;
                 }
+                RippleSDK.app.callbacks.tellClientOnWebRtcEvents({
+                    showProgress: true,
+                    threadRef,
+                });
                 const peerConnection = RippleSDK.app.webRTC.peerConnectionsMap.get(threadRef);
                 await peerConnection.setRemoteDescription({
                     sdp,
@@ -116,6 +129,10 @@ const RippleSDK = {
                     RippleSDK.utils.error('createOffer', `no peer connection found for threadRef : ${threadRef}`);
                     return;
                 }
+                RippleSDK.app.callbacks.tellClientOnWebRtcEvents({
+                    showProgress: true,
+                    threadRef,
+                });
                 const peerConnection = RippleSDK.app.webRTC.peerConnectionsMap.get(threadRef);
                 await peerConnection.createOffer({offerToReceiveVideo: true, offerToReceiveAudio: true})
                     .then(async _sdp=>{
@@ -221,6 +238,10 @@ const RippleSDK = {
                     RippleSDK.utils.warn('createPeerConnection', `peer connection already exists for threadRef : ${threadRef}`);
                     return RippleSDK.app.webRTC.peerConnectionsMap.get(threadRef);
                 }
+                RippleSDK.app.callbacks.tellClientOnWebRtcEvents({
+                    showProgress: true,
+                    threadRef,
+                });
                 const peerCon = new RTCPeerConnection(RippleSDK.app.webRTC.peerConnectionConfig);
                 const eventHandlers = {
                     [RippleSDK.app.webRTC.EVENT_NAMES.ICE_CANDIDATE]: (ev) => {
@@ -340,10 +361,7 @@ const RippleSDK = {
                             RippleSDK.utils.error('renderThreadUI', 'no threadRef');
                             return;
                         }
-                        /*if (!RippleSDK.app.features.streaming.threads[threadRef]) {
-                            RippleSDK.utils.error('renderThreadUI', `no thread found with ref : ${threadRef}`);
-                            return;
-                        }*/
+
                         const groupParentElement = document.getElementById(RippleSDK.app.mediaUI.renderGroupParentId);
                         if(!groupParentElement){
                             RippleSDK.utils.error('renderThreadUI', `no groupParentElement found with id : ${RippleSDK.app.mediaUI.renderGroupParentId}`);
@@ -352,8 +370,8 @@ const RippleSDK = {
 
                         const ui = ` 
                                               <div class="card-body">
-                                                <h5 class="card-title">Video Stream</h5>
-                                                <video id="localVideo_${threadRef}" class="video-stream" autoplay playsinline muted></video>
+                                                <h5 class="card-title">Video Stream : <span id="subvideoheader_${threadRef}"></span></h5>
+                                                <video id="localVideo_${threadRef}" class="video-stream" autoplay playsinline></video>
                                                 <div class="video-controls">
                                                   <!-- Controls go here -->
                                                     <div class="video-controls">
@@ -385,12 +403,22 @@ const RippleSDK = {
 
                         playPauseButton.addEventListener('click', () => {
                             if (localVideo.paused) {
-                                localVideo.play();
+                                //localVideo.play();
+                                RippleSDK.app.features.streaming.functions.requestToResumeTransmission(threadRef);
                                 playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
                             } else {
-                                localVideo.pause();
+                                //localVideo.pause();
+                                RippleSDK.app.features.streaming.functions.requestToPauseTransmission(threadRef);
                                 playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
                             }
+                        });
+
+                        localVideo.addEventListener('play', () => {
+                            playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
+                        });
+
+                        localVideo.addEventListener('pause', () => {
+                            playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
                         });
 
                         fastRewindButton.addEventListener('click', () => {
@@ -414,7 +442,14 @@ const RippleSDK = {
                             } else if (localVideo.webkitRequestFullscreen) {
                                 localVideo.webkitRequestFullscreen(); // Chrome and Safari
                             }
-                        })
+                        });
+                        // update the button to ad new streams
+                        if(RippleSDK.app.features.streaming.threads.length > 0){
+                            const addNewStreamButton = document.getElementById('startProcessBTN');
+                            if(addNewStreamButton){
+                                addNewStreamButton.innerHTML = '<i class="fas fa-video"></i> Add New Stream';
+                            }
+                        }
 
                     },
                     startBroadCast:async (threadRef) => {
@@ -431,10 +466,6 @@ const RippleSDK = {
                          }*/
 
 
-                        /*if(!RippleSDK.app.features.streaming.threads[threadRef]){
-                            RippleSDK.utils.error('startBroadCast', `no thread found with ref : ${threadRef}`);
-                            return;
-                        }*/
 
                         RippleSDK.transports.websocket.webSocketSendAction({
                             clientID: RippleSDK.clientID,
@@ -458,10 +489,17 @@ const RippleSDK = {
                             RippleSDK.utils.error('requestToResumeTransmission', 'no threadRef');
                             return;
                         }
-                        if(!RippleSDK.app.features.streaming.threads[threadRef]){
+                        if(!RippleSDK.app.features.streaming.threads.includes(threadRef)){
                             RippleSDK.utils.error('requestToResumeTransmission', `no thread found with ref : ${threadRef}`);
                             return;
                         }
+                        RippleSDK.transports.websocket.webSocketSendAction({
+                            clientID:  RippleSDK.clientID,
+                            requestType : 'resume',
+                            transaction: RippleSDK.utils.uniqueIDGenerator("transaction",12),
+                            threadRef: threadRef,
+
+                        })
                     },
                     requestToPauseTransmission:(threadRef)=>{
                         if(RippleSDK.app.features.streaming.threads.length === 0){
@@ -472,10 +510,19 @@ const RippleSDK = {
                             RippleSDK.utils.error('requestToPauseTransmission', 'no threadRef');
                             return;
                         }
-                        if(!RippleSDK.app.features.streaming.threads[threadRef]){
+                        if(!RippleSDK.app.features.streaming.threads.includes(threadRef)){
                             RippleSDK.utils.error('requestToPauseTransmission', `no thread found with ref : ${threadRef}`);
                             return;
                         }
+
+                        RippleSDK.transports.websocket.webSocketSendAction({
+                            clientID:  RippleSDK.clientID,
+                            requestType : 'pause',
+                            transaction: RippleSDK.utils.uniqueIDGenerator("transaction",12),
+                            threadRef: threadRef,
+
+                        })
+
                     }
                 }
             }
@@ -496,18 +543,36 @@ const RippleSDK = {
                 const plugin = messageObject.plugin;
                 let pluginEventType = plugin ? plugin.eventType : null;
                 if (success && pluginEventType) {
-                    //console.log("r Happy yey ,  finally got our offer from the remote sever " ,  plugin.clientSDP);
                     if (pluginEventType === 'webrtc') {
-                        // console.log(" 1 Happy yey ,  finally got our offer from the remote sever ");
                         RippleSDK.app.webRTC.remoteOfferStringSDPMap.set(messageObject.position, plugin.clientSDP);
 
                         await RippleSDK.app.webRTC.createAnswer(messageObject.position);
-                        // console.log(" Happy yey ,  finally got our offer from the remote sever ");
 
                     }
+                    if (pluginEventType === 'pauseGstream') {
+                        const localVideo = document.getElementById(`localVideo_${messageObject.position}`);
+                        const playPauseButton = document.getElementById(`playPauseButton_${messageObject.position}`);
+                        if (playPauseButton) {
+                            playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
+                            localVideo.pause();
+                        }
+
+                    }
+
+                    if (pluginEventType === 'resumeGstream') {
+                        const localVideo = document.getElementById(`localVideo_${messageObject.position}`);
+
+                        const playPauseButton = document.getElementById(`playPauseButton_${messageObject.position}`);
+                        if (playPauseButton) {
+                            playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
+                            localVideo.play();
+
+                        }
+                    }
+
                     if (pluginEventType === 'iceCandidates') {
                         if (messageObject.plugin.feature === 'G_STREAM') {
-                           // RippleSDK.utils.log('onMessage', 'Remote ICE ---  iceCandidates Server Response ');
+                            // RippleSDK.utils.log('onMessage', 'Remote ICE ---  iceCandidates Server Response ');
                             // addIceCandidatePeerConnection
                             RippleSDK.app.webRTC.addIceCandidatePeerConnection(messageObject.position, plugin.iceCandidates);
                         }
@@ -531,6 +596,7 @@ const RippleSDK = {
                 }
 
             },
+            tellClientOnWebRtcEvents:eventMessage=>{},
             tellClientOnConnected:null,
             onConnected:()=>{
                 RippleSDK.utils.log('onConnected');
@@ -737,7 +803,12 @@ const RippleSDK = {
             return uniID.replace(/[^a-z0-9]/gi, '') /*remove non-alphanumeric characters */;
         },
     },
-    init: (config) => {
+    init: (config={
+        url: '',
+        isDebugging: false,
+        iceCandidates: null,
+        renderGroupParentId:""
+    }) => {
     RippleSDK.serverUrl = config.url;
     RippleSDK.isDebugSession = config.isDebugging;
     RippleSDK.utils.log('init url ', RippleSDK.utils.convertToWebSocketUrl(RippleSDK.serverUrl));

@@ -509,7 +509,7 @@
   <main id="main" class="main">
 
     <div class="pagetitle">
-      <h1>G stream broadcast example demo <button class="btn btn-primary btn-sm" onclick="startProcess()">Start</button></h1>
+      <h1>G stream broadcast example demo <button class="btn btn-primary btn-sm" id="startProcessBTN" onclick="startProcess()"><i class="fas fa-video"></i>  Start A Stream</button></h1>
       <nav>
         <ol class="breadcrumb">
           <li class="breadcrumb-item"></li>
@@ -538,7 +538,7 @@
 
          <div class="card">
               <div class="card-body">
-                <h5 class="card-title">Video Stream</h5>
+                <h5 class="card-title">Video Stream <span id="subheadier"></span></h5>
                 <video id="localVideo" class="video-stream" autoplay playsinline muted></video>
                 <div class="video-controls">
                   <!-- Controls go here -->
@@ -608,6 +608,16 @@
     RippleSDK.app.callbacks.tellClientOnFatalError = function(err){
         console.error(err);
     }
+    RippleSDK.app.callbacks.tellClientOnWebRtcEvents = function(eventMessage){
+        console.log(eventMessage);
+        if(eventMessage){
+            const subvideoheader = document.getElementById("subvideoheader_"+eventMessage.threadRef);
+            if(subvideoheader){
+                subvideoheader.innerHTML = eventMessage.showProgress ? 'Buffering' : 'Playing';
+            }
+        }
+    }
+
     const streamsVids             = document.getElementById('streamsVids');
     const mediaStreamFiles=[
         "Shakespeare.mp4",

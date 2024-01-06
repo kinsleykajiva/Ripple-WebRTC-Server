@@ -51,6 +51,24 @@ public class WebsocketEndpoint implements WsListener {
 								break;
 							}
 							break;
+						case "pause":
+							if (Objects.isNull(client)) {
+								log.info("Client not found");
+								break;
+							}
+							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
+							plugin.setTransaction(transaction);
+							plugin.pauseTransmission();
+							break;
+						case "resume":
+							if (Objects.isNull(client)) {
+								log.info("Client not found");
+								break;
+							}
+							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
+							plugin.setTransaction(transaction);
+							plugin.resumeTransmission();
+							break;
 						case "iceCandidate":
 							
 							if (Objects.isNull(client)) {
@@ -58,6 +76,7 @@ public class WebsocketEndpoint implements WsListener {
 								break;
 							}
 							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
+							plugin.setTransaction(transaction);
 							plugin.handleIceSdp(jsonObject.getString("candidate"), jsonObject.getInt("sdpMLineIndex"));
 							
 							break;
@@ -69,6 +88,7 @@ public class WebsocketEndpoint implements WsListener {
 								break;
 							}
 							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
+							plugin.setTransaction(transaction);
 							plugin.handleSdp(jsonObject.getString("answer"));
 							break;
 						case "startBroadCast":
@@ -77,6 +97,7 @@ public class WebsocketEndpoint implements WsListener {
 								break;
 							}
 							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
+							plugin.setTransaction(transaction);
 							plugin.startCall();
 							break;
 						case "newThread":

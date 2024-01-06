@@ -9,6 +9,8 @@ public interface Events {
 	String WEBRTC_EVENT                     = "webrtc";
 	String SDP_ANSWER_EVENT                 = "answer";
 	String ICE_CANDIDATES_EVENT             = "iceCandidates";
+	String RESUME_G_STREAM_EVENT             = "resumeGstream";
+	String PAUSE_G_STREAM_EVENT             = "pauseGstream";
 	String REMEMBER_EVENT                   = "remember";
 	String ERROR_EVENT                      = "error";
 	String SYSTEM_FATAL_ERROR_EVENT         = "fatalError";

@@ -301,6 +301,11 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 		if (!isPaused) {
 			isPaused = true;
 			pipe.setState(State.PAUSED);
+			JSONObject response = new JSONObject();
+			response.put("transaction", getTransaction());
+			response.put("feature", FeatureTypes.G_STREAM.toString());
+			response.put(Events.EVENT_TYPE, Events.PAUSE_G_STREAM_EVENT);
+			notifyClient(response, this.thisObjectPositionAddress);
 		}
 	}
 	
@@ -308,6 +313,12 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 		if (isPaused) {
 			isPaused = false;
 			pipe.play();
+			
+			JSONObject response = new JSONObject();
+			response.put("transaction", getTransaction());
+			response.put("feature", FeatureTypes.G_STREAM.toString());
+			response.put(Events.EVENT_TYPE, Events.RESUME_G_STREAM_EVENT);
+			notifyClient(response, this.thisObjectPositionAddress);
 		}
 	}
 	
