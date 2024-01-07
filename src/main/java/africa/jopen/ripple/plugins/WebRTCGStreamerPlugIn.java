@@ -60,14 +60,24 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 		
 	}
 	
-	
+	/**
+	 * This method is responsible for setting up logging for the GStreamer pipeline.
+	 * It connects several event handlers to the pipeline's bus to handle different types of events.
+	 *
+	 * @param pipe The GStreamer pipeline for which to set up logging.
+	 *
+	 * The method performs the following operations:
+	 * 1. Retrieves the bus from the pipeline.
+	 * 2. Connects a handler to the bus for the Bus.ERROR event. This event is triggered when an error occurs in the pipeline.
+	 *    The handler logs the source of the error, the error code, and the error message, and then ends the call.
+	 * 3. Connects a handler to the bus for the Bus.STATE_CHANGED event. This event is triggered when the state of the pipeline changes.
+	 *    The handler logs the old and new states of the pipeline.
+	 * 4. Connects a handler to the bus for the Bus.EOS (End of Stream) event. This event is triggered when the pipeline has finished processing all data.
+	 *    The handler logs that the end of the stream has been reached, ends the call, and sends a notification to the client indicating that the end of the stream event has occurred.
+	 */
 	private void setupPipeLogging(Pipeline pipe) {
 		
 		Bus bus = pipe.getBus();
-		bus.connect((Bus.EOS) source -> {
-			log.info("Reached end of stream : " + source.toString());
-			endCall();
-		});
 		
 		bus.connect((Bus.ERROR) (source, code, message) -> {
 			log.info("Error from source : " + source + ", with code : " + code + ", and message : " + message);
@@ -80,51 +90,14 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 			}
 		});
 		bus.connect((Bus.EOS) source -> {
+			//! ToDo this is not working
 			log.info("Reached end of stream : " + source.toString());
 			endCall();
-			
 			
 			JSONObject response = new JSONObject();
 			response.put("feature", FeatureTypes.G_STREAM.toString());
 			response.put(Events.EVENT_TYPE, Events.END_OF_STREAM_G_STREAM_EVENT);
 			notifyClient(response, this.thisObjectPositionAddress);
-		});
-		
-		bus.connect((Bus.MESSAGE) (element, message) -> {
-			//Todo not really working needs to be updated to work as much , no idea to fix this yet. #startClock() is in use at the mean time
-			
-			if (message.getType() == MessageType.ELEMENT) {
-				Structure structure = message.getStructure();
-				
-				// Check if the structure is named "progress".
-				if ("progress".equals(structure.getName())) {
-					// Get the "position" and "duration" values from the structure.
-					int position = structure.getInteger("position");
-					int duration = structure.getInteger("duration");
-					
-					// Calculate the current position in minutes and seconds.
-					int currentPositionMinutes = position / 60;
-					int currentPositionSeconds = position % 60;
-					
-					// Calculate the total duration in minutes and seconds.
-					int totalDurationMinutes = duration / 60;
-					int totalDurationSeconds = duration % 60;
-					
-					// Format the progress value as a string.
-					String progress = String.format("%d:%02d/%d:%02d", currentPositionMinutes, currentPositionSeconds, totalDurationMinutes, totalDurationSeconds);
-					
-					// Print the progress value to the console.
-					System.out.println("Progress: " + progress);
-				}
-			}
-			
-			if (message.getType() == MessageType.ELEMENT && "progress".equals(message.getStructure().getName())) {
-				int position = message.getStructure().getInteger("position");
-				int duration = message.getStructure().getInteger("duration");
-				
-				String progress = String.format("%d:%02d/%d:%02d", position / 60, position % 60, duration / 60, duration % 60);
-				System.out.println("Pxrogress: " + progress);
-			}
 		});
 		
 	}
@@ -138,8 +111,6 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 				.put("sdp", sdpp));
 		String json = sdp.toString();
 		log.info("Sending answer:\n");
-		//Todo remove some of the code here is useless
-		
 		rtcModel.setOffer(sdpp);
 		
 		JSONObject response = new JSONObject();
@@ -148,7 +119,6 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 		response.put("feature", FeatureTypes.G_STREAM.toString());
 		response.put(Events.EVENT_TYPE, Events.WEBRTC_EVENT);
 		notifyClient(response, this.thisObjectPositionAddress);
-		
 		
 	};
 	
@@ -236,61 +206,6 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 			}
 		});
 		
-	}
-	
-	public void startClockxxx() {
-		
-		final var    duration     = pipe.queryDuration(TimeUnit.SECONDS);
-		final long[] countSeconds = {0};
-		Timer        timer        = new Timer();
-		timer.scheduleAtFixedRate(new TimerTask() {
-			@Override
-			public void run() {
-				
-				long position = pipe.queryPosition(TimeUnit.SECONDS); // Get the current position of the media file
-				System.out.println("xxxx " + position);
-				int progress = (int) ((position / (double) duration) * 100); // Calculate the progress as a percentage
-				if (countSeconds[0] == duration) {
-					
-					timer.cancel();
-					countSeconds[0] = 0;
-					return;
-				}
-				
-				if (!isPaused) {
-					seconds++;
-					countSeconds[0]++;
-					
-					if (seconds == SECONDS_PER_MINUTE) {
-						seconds = 0;
-						minutes++;
-					}
-					
-					long   minutesMax       = duration / 60;
-					long   secondsMax       = duration % 60;
-					String formattedTime    = String.format("%02d:%02d", minutes, seconds);
-					String maxFormattedTime = String.format("%02d:%02d", minutesMax, secondsMax);
-					System.out.println(formattedTime);
-					System.out.println("Progress: " + progress + "%");
-					
-					if (minutes == 1 && seconds == 1) {
-						System.out.println("01:01");
-					}
-					// Todo emmit this to the client
-					JSONObject response = new JSONObject();
-					response.put("progressInPercentage", progress);
-					response.put("progressInSeconds", position);
-					response.put("maxProgressInSeconds", duration);
-					response.put("maxFormattedTime", maxFormattedTime);
-					response.put("progressformattedTime", formattedTime);
-					response.put("feature", FeatureTypes.G_STREAM.toString());
-					response.put(Events.EVENT_TYPE, Events.PROGRESS_G_STREAM_EVENT);
-					
-					// Send the progress to the client
-					notifyClient(response, thisObjectPositionAddress);
-				}
-			}
-		}, 1_000 * 3, 1_000); // Update every second
 	}
 	
 	

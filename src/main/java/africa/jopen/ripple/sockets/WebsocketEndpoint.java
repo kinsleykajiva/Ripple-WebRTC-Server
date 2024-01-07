@@ -22,11 +22,17 @@ public class WebsocketEndpoint implements WsListener {
 	//	private final MessageQueue messageQueue = MessageQueue.instance();
 	private final MutableList<Client> clientsList = Lists.mutable.empty();
 	
+	private Client getClientById(String clientID) {
+		return clientsList.detect(client -> client.getClientID().equals(clientID));
+	}
+	
 	@Override
 	public void onMessage(WsSession session, String text, boolean last) {
 		log.info("Received message: " + text);
 		var transaction    = "";
 		var isDebugSession = false;
+		
+		
 		try {
 			
 			if (JsonUtils.isJson(text)) {
@@ -40,10 +46,8 @@ public class WebsocketEndpoint implements WsListener {
 				Client                client = null;
 				WebRTCGStreamerPlugIn plugin;
 				if (jsonObject.has("clientID")) {
-					client = clientsList.stream()
-							.peek(client1 -> log.info("peek-client: " + client1.getClientID()))
-							.filter(client1 -> client1.getClientID().equals(jsonObject.getString("clientID")))
-							.findFirst().orElse(null);
+					client = getClientById(jsonObject.getString("clientID"));
+					
 					switch (jsonObject.getString("requestType")) {
 						case "offer":
 							if (Objects.isNull(client)) {
@@ -160,7 +164,14 @@ public class WebsocketEndpoint implements WsListener {
 							boolean isRegistered = clientsList.stream()
 									.anyMatch(client1 -> client1.getClientID().equals(jsonObject.getString("clientID")));
 							if (isRegistered) {
-								log.info("Client already registered");
+								log.info("Client already registered,maybe this client is reconnecting so let's update the session");
+								client = getClientById(jsonObject.getString("clientID"));
+								// check if the socket was closed
+								if (client.getWsSession() == null) {
+									log.info("Client socket was closed,let's update the session");
+									client.setWsSession(session);
+								}
+								
 								session.send(
 										new JSONObject()
 												.put("success", true)
@@ -237,6 +248,7 @@ public class WebsocketEndpoint implements WsListener {
 	public void onClose(WsSession session, int status, String reason) {
 		log.info("Session closed: " + session);
 		log.info("Session reason: " + reason);
+		clientsList.detect(client -> client.getWsSession().equals(session)).setWsSession(null);
 		WsListener.super.onClose(session, status, reason);
 	}
 	
@@ -248,6 +260,7 @@ public class WebsocketEndpoint implements WsListener {
 	
 	@Override
 	public void onOpen(WsSession session) {
+		
 		log.info("Session opened: " + session);
 		WsListener.super.onOpen(session);
 	}

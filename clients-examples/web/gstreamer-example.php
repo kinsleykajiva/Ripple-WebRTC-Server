@@ -19,7 +19,8 @@
 }
         .video-stream {
             width: 100%;
-            height: auto;
+            /*height: auto;*/
+            max-height: 520px;
         }
 .video-controls button {
   background: none;
@@ -111,7 +112,7 @@
                       <button id="fastForwardButton"><i class="fas fa-forward"></i></button>
                       <input type="range" id="volumeControl" min="0" max="1" step="0.1">
                       <button style="margin-left: 10%" id="fullscreenButton"><i class="fas fa-expand"></i></button>
-                        <span style="margin-left: 20%" id="progressTimerCounter">00:00</span>
+                        <span style="margin-left: 20%" id="progressTimerCounter">00:00/00:00</span>
                     </div>
                   <!-- Controls go here -->
                 </div>
@@ -188,7 +189,7 @@
                 animateProgress("progressBar_"+eventMessage.threadRef, eventMessage.data.progressInPercentage);
                 const progressTimerCounter = document.getElementById("progressTimerCounter_"+eventMessage.threadRef);
                 if(progressTimerCounter){
-                    progressTimerCounter.innerText = eventMessage.data.progressformattedTime + ":" + eventMessage.data.maxFormattedTime;
+                    progressTimerCounter.innerText = eventMessage.data.progressformattedTime + "/" + eventMessage.data.maxFormattedTime;
                 }
                 const subvideoheader = document.getElementById("subvideoheader_"+eventMessage.threadRef);
                 if(subvideoheader){

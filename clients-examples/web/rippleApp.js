@@ -407,11 +407,11 @@ const RippleSDK = {
                         RippleSDK.app.features.streaming.volumeControlValueMap.set(threadRef, volumeControl.value);
                         playPauseButton.addEventListener('click', () => {
                             if (localVideo.paused) {
-                                //localVideo.play();
+                                localVideo.play();
                                 RippleSDK.app.features.streaming.functions.requestToResumeTransmission(threadRef);
                                 playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
                             } else {
-                                //localVideo.pause();
+                                localVideo.pause();
                                 RippleSDK.app.features.streaming.functions.requestToPauseTransmission(threadRef);
                                 playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
                             }
@@ -420,6 +420,8 @@ const RippleSDK = {
                         localVideo.addEventListener('play', () => {
                             playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
                         });
+
+                       // playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';// to set by default
 
                         localVideo.addEventListener('pause', () => {
                             playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
