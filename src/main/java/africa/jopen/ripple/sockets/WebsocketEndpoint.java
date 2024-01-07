@@ -15,12 +15,35 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class WebsocketEndpoint implements WsListener {
 	
-	static        Logger              log         = Logger.getLogger(WebsocketEndpoint.class.getName());
+	static        Logger                   log         = Logger.getLogger(WebsocketEndpoint.class.getName());
 	//	private final MessageQueue messageQueue = MessageQueue.instance();
-	private final MutableList<Client> clientsList = Lists.mutable.empty();
+	private final MutableList<Client>      clientsList = Lists.mutable.empty();
+	private final ScheduledExecutorService scheduler   = Executors.newScheduledThreadPool(1);
+	
+	public void startOrphansCron() {
+		final Runnable task = () -> {
+			try {
+				//clientsList.detect(client-> client.isClientOrphan())
+				clientsList.removeIf(Client::isClientOrphan);
+			} catch (Exception e) {
+				// Handle exception
+				e.printStackTrace();
+			}
+		};
+		
+		long period = XUtils.MAIN_CONFIG_MODEL.session().rememberTimeOutInSeconds() == 0 ? 120 : XUtils.MAIN_CONFIG_MODEL.session().rememberTimeOutInSeconds();
+		scheduler.scheduleAtFixedRate(task, 60, period, TimeUnit.SECONDS);
+	}
+	
+	public MutableList<Client> getClientsList() {
+		return clientsList;
+	}
 	
 	private Client getClientById(String clientID) {
 		return clientsList.detect(client -> client.getClientID().equals(clientID));

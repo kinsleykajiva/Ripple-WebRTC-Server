@@ -95,10 +95,26 @@ public class Client implements CommonAbout {
 		lastTimeStamp = newTime;
 	}
 	
+	/**
+	 * Checks if the client is considered an orphan.
+	 * A client is considered an orphan if the last timestamp when the client was active is older than a certain timeout.
+	 * The timeout is either 2 minutes or a value set in the configuration.
+	 *
+	 * @return true if the client is an orphan, false otherwise.
+	 */
+	public boolean isClientOrphan(){
+		// test if lastTimeStamp is older than 2 mins or whats set in the config
+		if(XUtils.MAIN_CONFIG_MODEL.session().rememberTimeOutInSeconds() == 0){
+			return (System.currentTimeMillis() - lastTimeStamp) > 120 * 1_000L;
+		}
+		return (System.currentTimeMillis() - lastTimeStamp) > XUtils.MAIN_CONFIG_MODEL.session().rememberTimeOutInSeconds() * 1_000L;
+	}
+	
 	@Override
 	public void onUpdateLastTimeStamp(final long timeStamp) {
 		updateLastTimeStamp(timeStamp);
 	}
+	
 	
 	@Override
 	public void sendMessage(final JSONObject pluginData, final Integer objectPosition) {

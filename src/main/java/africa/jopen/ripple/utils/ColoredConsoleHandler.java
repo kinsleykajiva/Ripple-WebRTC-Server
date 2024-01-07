@@ -16,6 +16,9 @@ public class ColoredConsoleHandler extends ConsoleHandler {
     public static final String ANSI_PURPLE = "\u001B[35m";
     public static final String ANSI_CYAN = "\u001B[36m";
     public static final String ANSI_WHITE = "\u001B[37m";
+    
+    
+    
 
     @Override
     public synchronized void publish(LogRecord record) {
@@ -25,7 +28,8 @@ public class ColoredConsoleHandler extends ConsoleHandler {
             } else if (record.getLevel() == Level.WARNING) {
                 System.out.println(ANSI_YELLOW + getFormatter().format(record) + ANSI_RESET);
             } else if (record.getLevel() == Level.INFO) {
-                System.out.println(ANSI_GREEN + getFormatter().format(record) + ANSI_RESET);
+//                System.out.println(ANSI_GREEN + getFormatter().format(record) + ANSI_RESET);
+                System.out.println(ANSI_PURPLE + getFormatter().format(record) + ANSI_RESET);
             } else {
                 System.out.println(ANSI_WHITE + getFormatter().format(record) + ANSI_RESET);
             }

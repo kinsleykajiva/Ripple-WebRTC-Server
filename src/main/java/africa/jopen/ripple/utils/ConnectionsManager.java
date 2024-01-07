@@ -10,6 +10,8 @@ import org.freedesktop.gstreamer.Version;
 import java.util.Optional;
 import java.util.logging.Logger;
 
+import static africa.jopen.ripple.utils.BannerTxT.BANNER_TEXT;
+
 public class ConnectionsManager {
 	private static final Logger LOGGER = Logger.getLogger(ConnectionsManager.class.getName());
 	
@@ -20,9 +22,11 @@ public class ConnectionsManager {
 	private static final MutableList<Client> CLIENTS = Lists.mutable.empty();
 	
 	private ConnectionsManager() {
-		LOGGER.info("started now ConnectionsManager");
 		GStreamerUtils.configurePaths();
 		Gst.init(Version.of(1, 16));
+	}
+	public void setBANNER(){
+		LOGGER.info(BANNER_TEXT);
 	}
 	
 	private static class Holder {
