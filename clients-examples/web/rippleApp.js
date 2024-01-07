@@ -21,22 +21,22 @@ const RippleSDK = {
         },
         webRTC:{
             EVENT_NAMES : {
-                ICE_CANDIDATE: 'icecandidate',
+                ICE_CANDIDATE              : 'icecandidate',
                 ICE_CONNECTION_STATE_CHANGE: 'iceconnectionstatechange',
-                ICE_GATHERING_STATE_CHANGE: 'icegatheringstatechange',
-                NEGOTIATION_NEEDED: 'negotiationneeded',
-                SIGNALING_STATE_CHANGE: 'signalingstatechange',
-                TRACK: 'track',
-                DATA_CHANNEL: 'datachannel',
-                CONNECTION_STATE_CHANGE: 'connectionstatechange',
-                REMOVE_STREAM: 'removestream',
-                ADD_STREAM: 'addstream',
-                ICE_CANDIDATE_ERROR: 'icecandidateerror',
-                IDENTITY_RESULT: 'identityresult',
-                IDP_ASSERTION_ERROR: 'idpassertionerror',
-                IDP_VALIDATION_ERROR: 'idpvalidationerror',
-                PEER_IDENTITY: 'peeridentity',
-                STATS_ENDED: 'statsended',
+                ICE_GATHERING_STATE_CHANGE : 'icegatheringstatechange',
+                NEGOTIATION_NEEDED         : 'negotiationneeded',
+                SIGNALING_STATE_CHANGE     : 'signalingstatechange',
+                TRACK                      : 'track',
+                DATA_CHANNEL               : 'datachannel',
+                CONNECTION_STATE_CHANGE    : 'connectionstatechange',
+                REMOVE_STREAM              : 'removestream',
+                ADD_STREAM                 : 'addstream',
+                ICE_CANDIDATE_ERROR        : 'icecandidateerror',
+                IDENTITY_RESULT            : 'identityresult',
+                IDP_ASSERTION_ERROR        : 'idpassertionerror',
+                IDP_VALIDATION_ERROR       : 'idpvalidationerror',
+                PEER_IDENTITY              : 'peeridentity',
+                STATS_ENDED                : 'statsended',
             },
             addIceCandidatePeerConnection:(threadRef,dataObject)=>{
                 if(!threadRef){
@@ -86,11 +86,11 @@ const RippleSDK = {
                 await peerConnection.setLocalDescription(answer);
                 //! Review section when testing
                 const body = {
-                    clientID: RippleSDK.clientID,
+                    clientID   : RippleSDK.clientID,
                     requestType: 'answer',
-                    transaction: RippleSDK.utils.uniqueIDGenerator("transaction",12),
-                    threadRef: threadRef,
-                    answer: answer.sdp
+                    transaction: RippleSDK.utils.uniqueIDGenerator("transaction", 12),
+                    threadRef  : threadRef,
+                    answer     : answer.sdp
                 };
                 RippleSDK.transports.websocket.webSocketSendAction(body);
                 RippleSDK.utils.log('createAnswer', 'answer sent to server',body);
@@ -328,10 +328,10 @@ const RippleSDK = {
         },
         requestNewThread:(feature,data)=>{
             RippleSDK.transports.websocket.webSocketSendAction({
-                clientID: RippleSDK.clientID,
+                clientID   : RippleSDK.clientID,
                 requestType: 'newThread',
-                transaction: RippleSDK.utils.uniqueIDGenerator("transaction",12),
-                feature ,
+                transaction: RippleSDK.utils.uniqueIDGenerator("transaction", 12),
+                feature,
                 data,
             });
         },
@@ -339,7 +339,7 @@ const RippleSDK = {
             RippleSDK.utils.log('startToRemindServerOfMe');
             RippleSDK.app.reminderInterval = setInterval(()=>{
                 const body =  {
-                    clientID: RippleSDK.clientID,
+                    clientID   : RippleSDK.clientID,
                     requestType: 'remember',
 
                 };
@@ -600,10 +600,10 @@ const RippleSDK = {
                 if (typeof messageObject === 'string') {
                     messageObject = JSON.parse(messageObject);
                 }
-                const eventType = messageObject.eventType;
-                const success   = messageObject.success;
-                const plugin    = messageObject.plugin;
-                let pluginEventType = plugin ? plugin.eventType : null;
+                const eventType     = messageObject.eventType;
+                const success       = messageObject.success;
+                const plugin        = messageObject.plugin;
+                let pluginEventType = plugin ? plugin.eventType: null;
                 if (success && pluginEventType) {
                     if (pluginEventType === 'webrtc') {
                         RippleSDK.app.webRTC.remoteOfferStringSDPMap.set(messageObject.position, plugin.clientSDP);
@@ -632,8 +632,8 @@ const RippleSDK = {
 
                     }
                     if (pluginEventType === 'endedGstream') {
-                      //  alert('stream ended');
-                        const localVideo = document.getElementById(`localVideo_${messageObject.position}`);
+
+                        const localVideo      = document.getElementById(`localVideo_${messageObject.position}`);
                         const playPauseButton = document.getElementById(`playPauseButton_${messageObject.position}`);
                         if (playPauseButton) {
                             playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
@@ -876,7 +876,7 @@ const RippleSDK = {
         replaceAll: (f, r) => this.split(f).join(r),
         uniqueIDGenerator: (seed = '', maxSize = 22) => {
             const alphabet       = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            const date            = new Date();
+            const date             = new Date();
             const timeString     = `${date.getHours()}${date.getMinutes()}${date.getSeconds()}`.padStart(6, '0');
             const dateTimeString = `${seed}${timeString}${Math.random().toString(36).substr(2, 4)}`.slice(0, 12);
             let uniID            = '';
