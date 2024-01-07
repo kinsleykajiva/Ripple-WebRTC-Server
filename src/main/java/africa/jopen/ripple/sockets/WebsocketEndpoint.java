@@ -227,20 +227,6 @@ public class WebsocketEndpoint implements WsListener {
 							
 							break;
 					}
-				/*String clientID = jsonObject.getString("clientID");
-					if (jsonObject.getString("feature").equals(G_STREAM)) {
-						var    client = clientsList.detect(client1 -> client1.getClientID().equals(clientID));
-						String file   = jsonObject.getString("file");
-						if (client.getWebRTCStreamMap().isEmpty()) {
-							log.info("Client has no stream");
-							client.createAccessGStreamerPlugIn(new MediaFile(file, 0));
-						}
-						if (Objects.nonNull(client)) {
-							client.sendMessage(jsonObject, jsonObject.getInt("handleId"));
-						}
-						
-					}*/
-					
 					
 				} else {
 					log.info("Received message has no clientID");

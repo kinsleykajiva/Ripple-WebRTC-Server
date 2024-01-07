@@ -24,7 +24,7 @@ public class ColoredConsoleHandler extends ConsoleHandler {
     public synchronized void publish(LogRecord record) {
         if (!getFormatter().format(record).isEmpty()) {
             if (record.getLevel() == Level.SEVERE) {
-                System.out.println(ANSI_RED + getFormatter().format(record) + ANSI_RESET);
+                System.out.println(ANSI_GREEN + getFormatter().format(record) + ANSI_RESET);
             } else if (record.getLevel() == Level.WARNING) {
                 System.out.println(ANSI_YELLOW + getFormatter().format(record) + ANSI_RESET);
             } else if (record.getLevel() == Level.INFO) {

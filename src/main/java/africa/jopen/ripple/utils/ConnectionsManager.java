@@ -27,6 +27,11 @@ public class ConnectionsManager {
 	}
 	public void setBANNER(){
 		LOGGER.info(BANNER_TEXT);
+		LOGGER.warning("FEATURES " );
+		LOGGER.severe("       *WebRTC " );
+		LOGGER.severe("       *GStreamer with version " + Gst.getVersionString() );
+		LOGGER.severe("       *Java version " + System.getProperty("java.version") );
+		
 	}
 	
 	private static class Holder {
