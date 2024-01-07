@@ -58,7 +58,6 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 		this.thisObjectPositionAddress = thisObjectPositionAddress;
 		pipe = (Pipeline) Gst.parseLaunch(pipeLineMaker(mediaFile.path()));
 		
-		
 	}
 	
 	
@@ -378,7 +377,7 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 					}
 				}
 			}
-		}, 1000 * 2); // delay in milliseconds
+		}, 100 * 2); // delay in milliseconds, this is to allow the objects to be inited
 	}
 	
 	public void pauseTransmission() {
@@ -418,6 +417,10 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 			currentVolume -= 0.1f;
 			adjustVolume();
 		}
+		
+	}
+	private double currentVolumeInPercentage(){
+		return currentVolume * 100;
 	}
 	
 	// Helper method to adjust the volume dynamically.
@@ -426,7 +429,15 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 		Element volumeElement = pipe.getElementByName("audioamplify");
 		if (volumeElement != null) {
 			volumeElement.set("amplification", currentVolume);
+			
 		}
+		JSONObject response = new JSONObject();
+		response.put("transaction", getTransaction());
+		response.put("currentVolume", currentVolume);
+		response.put("currentVolumeInPercentage", currentVolumeInPercentage());
+		response.put("feature", FeatureTypes.G_STREAM.toString());
+		response.put(Events.EVENT_TYPE, Events.VOLUME_ADJUSTED_G_STREAM_EVENT);
+		notifyClient(response, this.thisObjectPositionAddress);
 	}
 	
 	@Override

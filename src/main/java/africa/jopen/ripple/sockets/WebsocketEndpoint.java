@@ -51,6 +51,27 @@ public class WebsocketEndpoint implements WsListener {
 								break;
 							}
 							break;
+						case "decreaseVolume":
+							if (Objects.isNull(client)) {
+								log.info("Client not found");
+								break;
+							}
+							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
+							plugin.setTransaction(transaction);
+							plugin.decreaseVolume();
+							break;
+						
+						case "increaseVolume":
+							if (Objects.isNull(client)) {
+								log.info("Client not found");
+								break;
+							}
+							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
+							plugin.setTransaction(transaction);
+							plugin.increaseVolume();
+							break;
+						
+						
 						case "pause":
 							if (Objects.isNull(client)) {
 								log.info("Client not found");

@@ -151,13 +151,14 @@ const RippleSDK = {
             },
             peerConnectionsMap     : new Map(),
             localStream            : null,
+            volumeControlValueMap  : new Map(),
             remoteStreamsMap       : new Map(),
             remoteOfferStringSDPMap: new Map(),
             peerConnectionConfig:{
-                iceServers: [],
-                iceTransportPolicy: 'all',
-                bundlePolicy: 'balanced',
-                rtcpMuxPolicy: 'require',
+                iceServers          : [],
+                iceTransportPolicy  : 'all',
+                bundlePolicy        : 'balanced',
+                rtcpMuxPolicy       : 'require',
                 iceCandidatePoolSize: 10,
             },
             peerConnectionOptions:{
@@ -181,47 +182,47 @@ const RippleSDK = {
                 offerToReceiveVideo: true,
             },
             peerConnectionConstraintsForDataChannel:{
-                ordered: true,
+                ordered       : true,
                 maxRetransmits: 0,
             },
             peerConnectionConstraintsForDataChannelForChat:{
-                ordered: true,
+                ordered       : true,
                 maxRetransmits: 0,
             },
             peerConnectionConstraintsForDataChannelForFile:{
-                ordered: true,
+                ordered       : true,
                 maxRetransmits: 0,
             },
             peerConnectionConstraintsForDataChannelForScreen:{
-                ordered: true,
+                ordered       : true,
                 maxRetransmits: 0,
             },
             peerConnectionConstraintsForDataChannelForStream:{
-                ordered: true,
+                ordered       : true,
                 maxRetransmits: 0,
             },
             peerConnectionConstraintsForDataChannelForStreamForScreen:{
-                ordered: true,
+                ordered       : true,
                 maxRetransmits: 0,
             },
             peerConnectionConstraintsForDataChannelForStreamForFile:{
-                ordered: true,
+                ordered       : true,
                 maxRetransmits: 0,
             },
             peerConnectionConstraintsForDataChannelForStreamForChat:{
-                ordered: true,
+                ordered       : true,
                 maxRetransmits: 0,
             },
             peerConnectionConstraintsForDataChannelForFileForScreen:{
-                ordered: true,
+                ordered       : true,
                 maxRetransmits: 0,
             },
             peerConnectionConstraintsForDataChannelForFileForChat:{
-                ordered: true,
+                ordered       : true,
                 maxRetransmits: 0,
             },
             peerConnectionConstraintsForDataChannelForScreenForChat:{
-                ordered: true,
+                ordered       : true,
                 maxRetransmits: 0,
             },
             peerConnectionConstraintsForDataChannelForStreamForFileForScreen:{
@@ -252,7 +253,7 @@ const RippleSDK = {
                                 const payload        = {
                                     clientID     : RippleSDK.clientID,
                                     requestType  : 'iceCandidate',
-                                    transaction: RippleSDK.utils.uniqueIDGenerator("transaction",12),
+                                    transaction  : RippleSDK.utils.uniqueIDGenerator("transaction",12),
                                     threadRef    : threadRef,
                                     candidate    : ev.candidate.candidate,
                                     sdpMid       : ev.candidate.sdpMid,
@@ -379,7 +380,7 @@ const RippleSDK = {
                                                       <button id="playPauseButton_${threadRef}"><i class="fas fa-play"></i></button>
                                                       <button id="fastRewindButton_${threadRef}"><i class="fas fa-backward"></i></button>
                                                       <button id="fastForwardButton_${threadRef}"><i class="fas fa-forward"></i></button>
-                                                      <input type="range" id="volumeControl_${threadRef}" min="0" max="1" step="0.1">
+                                                      <input type="range" id="volumeControl_${threadRef}" min="0" value="1" max="1" step="0.1">
                                                       <button style="margin-left: 10%" id="fullscreenButton_${threadRef}"><i class="fas fa-expand"></i></button>
                                                     <span style="margin-left: 20%" id="progressTimerCounter_${threadRef}">00:00</span>
                                                     </div>
@@ -397,13 +398,13 @@ const RippleSDK = {
                         newElement.innerHTML = ui;
                         groupParentElement.appendChild(newElement);
                         // add event listeners
-                        const playPauseButton = document.getElementById(`playPauseButton_${threadRef}`);
-                        const fastRewindButton = document.getElementById(`fastRewindButton_${threadRef}`);
+                        const playPauseButton   = document.getElementById(`playPauseButton_${threadRef}`);
+                        const fastRewindButton  = document.getElementById(`fastRewindButton_${threadRef}`);
                         const fastForwardButton = document.getElementById(`fastForwardButton_${threadRef}`);
-                        const volumeControl = document.getElementById(`volumeControl_${threadRef}`);
-                        const fullscreenButton = document.getElementById(`fullscreenButton_${threadRef}`);
-                        const localVideo = document.getElementById(`localVideo_${threadRef}`);
-
+                        const volumeControl     = document.getElementById(`volumeControl_${threadRef}`);
+                        const fullscreenButton  = document.getElementById(`fullscreenButton_${threadRef}`);
+                        const localVideo        = document.getElementById(`localVideo_${threadRef}`);
+                        RippleSDK.app.features.streaming.volumeControlValueMap.set(threadRef, volumeControl.value);
                         playPauseButton.addEventListener('click', () => {
                             if (localVideo.paused) {
                                 //localVideo.play();
@@ -433,7 +434,15 @@ const RippleSDK = {
                         });
 
                         volumeControl.addEventListener('input', () => {
-                            localVideo.volume = volumeControl.value;
+                            //localVideo.volume = volumeControl.value;
+                            // if the new value is above the last values so that we can tell if this is an increase or not
+                            if(volumeControl.value > RippleSDK.app.features.streaming.volumeControlValueMap[threadRef]){
+                                RippleSDK.app.features.streaming.functions.requestToIncreaseVolumeOfTransmission(threadRef);
+                            }
+                            // if the new value is below the last values so that we can tell if this is an increase or not
+                            if(volumeControl.value < RippleSDK.app.features.streaming.volumeControlValueMap[threadRef]){
+                                RippleSDK.app.features.streaming.functions.requestToDecreaseVolumeOfTransmission(threadRef);
+                            }
 
                         });
 
@@ -471,11 +480,11 @@ const RippleSDK = {
 
 
                         RippleSDK.transports.websocket.webSocketSendAction({
-                            clientID: RippleSDK.clientID,
-                            feature: RippleSDK.featuresAvailable.G_STREAM_BROADCAST,
+                            clientID   : RippleSDK.clientID,
+                            feature    : RippleSDK.featuresAvailable.G_STREAM_BROADCAST,
                             requestType: 'startBroadCast',
                             transaction: RippleSDK.utils.uniqueIDGenerator("transaction", 12),
-                            threadRef: threadRef,
+                            threadRef  : threadRef,
                         });
                         //
 
@@ -497,10 +506,11 @@ const RippleSDK = {
                             return;
                         }
                         RippleSDK.transports.websocket.webSocketSendAction({
-                            clientID:  RippleSDK.clientID,
-                            requestType : 'resume',
-                            transaction: RippleSDK.utils.uniqueIDGenerator("transaction",12),
-                            threadRef: threadRef,
+                            clientID   : RippleSDK.clientID,
+                            feature    : RippleSDK.featuresAvailable.G_STREAM_BROADCAST,
+                            requestType: 'resume',
+                            transaction: RippleSDK.utils.uniqueIDGenerator("transaction", 12),
+                            threadRef  : threadRef,
 
                         })
                     },
@@ -519,14 +529,61 @@ const RippleSDK = {
                         }
 
                         RippleSDK.transports.websocket.webSocketSendAction({
-                            clientID:  RippleSDK.clientID,
-                            requestType : 'pause',
-                            transaction: RippleSDK.utils.uniqueIDGenerator("transaction",12),
-                            threadRef: threadRef,
+                            clientID   : RippleSDK.clientID,
+                            requestType: 'pause',
+                            feature    : RippleSDK.featuresAvailable.G_STREAM_BROADCAST,
+                            transaction: RippleSDK.utils.uniqueIDGenerator("transaction", 12),
+                            threadRef  : threadRef,
 
                         })
 
-                    }
+                    },
+                    requestToDecreaseVolumeOfTransmission:(threadRef)=>{
+                        if(RippleSDK.app.features.streaming.threads.length === 0){
+                            RippleSDK.utils.error('requestToDecreaseVolumnOfTransmission', 'no threads found');
+                            return;
+                        }
+                        if(!threadRef){
+                            RippleSDK.utils.error('requestToDecreaseVolumnOfTransmission', 'no threadRef');
+                            return;
+                        }
+                        if(!RippleSDK.app.features.streaming.threads.includes(threadRef)){
+                            RippleSDK.utils.error('requestToDecreaseVolumnOfTransmission', `no thread found with ref : ${threadRef}`);
+                            return;
+                        }
+
+                        RippleSDK.transports.websocket.webSocketSendAction({
+                            clientID   : RippleSDK.clientID,
+                            requestType: 'decreaseVolume',
+                            feature    : RippleSDK.featuresAvailable.G_STREAM_BROADCAST,
+                            transaction: RippleSDK.utils.uniqueIDGenerator("transaction", 12),
+                            threadRef  : threadRef,
+
+                        })
+                    },
+                    requestToIncreaseVolumeOfTransmission:(threadRef)=>{
+                        if(RippleSDK.app.features.streaming.threads.length === 0){
+                            RippleSDK.utils.error('requestToIncreaseVolumeOfTransmission', 'no threads found');
+                            return;
+                        }
+                        if(!threadRef){
+                            RippleSDK.utils.error('requestToIncreaseVolumeOfTransmission', 'no threadRef');
+                            return;
+                        }
+                        if(!RippleSDK.app.features.streaming.threads.includes(threadRef)){
+                            RippleSDK.utils.error('requestToIncreaseVolumeOfTransmission', `no thread found with ref : ${threadRef}`);
+                            return;
+                        }
+
+                        RippleSDK.transports.websocket.webSocketSendAction({
+                            clientID   : RippleSDK.clientID,
+                            requestType: 'increaseVolume',
+                            feature    : RippleSDK.featuresAvailable.G_STREAM_BROADCAST,
+                            transaction: RippleSDK.utils.uniqueIDGenerator("transaction", 12),
+                            threadRef  : threadRef,
+
+                        })
+                    },
                 }
             }
         },
@@ -542,8 +599,8 @@ const RippleSDK = {
                     messageObject = JSON.parse(messageObject);
                 }
                 const eventType = messageObject.eventType;
-                const success = messageObject.success;
-                const plugin = messageObject.plugin;
+                const success   = messageObject.success;
+                const plugin    = messageObject.plugin;
                 let pluginEventType = plugin ? plugin.eventType : null;
                 if (success && pluginEventType) {
                     if (pluginEventType === 'webrtc') {
@@ -564,7 +621,7 @@ const RippleSDK = {
 
                     }
                     if (pluginEventType === 'progressGstream') {
-// tellClientOnStreamUIUpdates
+
                         RippleSDK.app.callbacks.tellClientOnStreamUIUpdates({
                             showProgress: true,
                             data: plugin,
@@ -583,6 +640,9 @@ const RippleSDK = {
 
                     }
 
+                    if (pluginEventType === 'volumeAdjustedGstream') {
+                        RippleSDK.utils.log('onMessage', 'volumeAdjustedGstream' , plugin.currentVolume);
+                    }
                     if (pluginEventType === 'resumeGstream') {
                         const localVideo = document.getElementById(`localVideo_${messageObject.position}`);
 
@@ -834,15 +894,16 @@ const RippleSDK = {
         iceCandidates: null,
         renderGroupParentId:""
     }) => {
-    RippleSDK.serverUrl = config.url;
+    RippleSDK.serverUrl      = config.url;
     RippleSDK.isDebugSession = config.isDebugging;
+    RippleSDK.clientID       = RippleSDK.utils.uniqueIDGenerator("client", 12)+RippleSDK.utils.uniqueIDGenerator(RippleSDK.timeZone);
+
     RippleSDK.utils.log('init url ', RippleSDK.utils.convertToWebSocketUrl(RippleSDK.serverUrl));
-    RippleSDK.clientID = RippleSDK.utils.uniqueIDGenerator("client",12)+RippleSDK.utils.uniqueIDGenerator(RippleSDK.timeZone);
     RippleSDK.utils.log('clientID ', RippleSDK.clientID);
     RippleSDK.transports.websocket.connect();
-    RippleSDK.app.iceServerArray = !config.iceCandidates ? RippleSDK.app.iceServerArray : config.iceCandidates;
+    RippleSDK.app.iceServerArray                         = !config.iceCandidates ? RippleSDK.app.iceServerArray: config.iceCandidates;
     RippleSDK.app.webRTC.peerConnectionConfig.iceServers = RippleSDK.app.iceServerArray;
-    RippleSDK.app.mediaUI.renderGroupParentId = config.renderGroupParentId;
+    RippleSDK.app.mediaUI.renderGroupParentId            = config.renderGroupParentId;
 },
     notificationsTypes: {},
 
