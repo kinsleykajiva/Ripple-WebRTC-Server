@@ -11,7 +11,7 @@
     </parent>
     <groupId>africa.jopen</groupId>
     <artifactId>ripple-webrtc</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1.7</version>
 
     <properties>
         <mainClass>africa.jopen.ripple.app.Main</mainClass>
