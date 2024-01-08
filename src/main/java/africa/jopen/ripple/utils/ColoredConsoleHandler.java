@@ -3,36 +3,38 @@ package africa.jopen.ripple.utils;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
+import java.util.stream.IntStream;
 
 public class ColoredConsoleHandler extends ConsoleHandler {
-
+    
     // ANSI escape code
     public static final String ANSI_RESET = "\u001B[0m";
-    public static final String ANSI_BLACK = "\u001B[30m";
-    public static final String ANSI_RED = "\u001B[31m";
-    public static final String ANSI_GREEN = "\u001B[32m";
-    public static final String ANSI_YELLOW = "\u001B[33m";
-    public static final String ANSI_BLUE = "\u001B[34m";
-    public static final String ANSI_PURPLE = "\u001B[35m";
-    public static final String ANSI_CYAN = "\u001B[36m";
-    public static final String ANSI_WHITE = "\u001B[37m";
     
-    
-    
-
     @Override
     public synchronized void publish(LogRecord record) {
-        if (!getFormatter().format(record).isEmpty()) {
-            if (record.getLevel() == Level.SEVERE) {
-                System.out.println(ANSI_GREEN + getFormatter().format(record) + ANSI_RESET);
-            } else if (record.getLevel() == Level.WARNING) {
-                System.out.println(ANSI_YELLOW + getFormatter().format(record) + ANSI_RESET);
-            } else if (record.getLevel() == Level.INFO) {
-//                System.out.println(ANSI_GREEN + getFormatter().format(record) + ANSI_RESET);
-                System.out.println(ANSI_PURPLE + getFormatter().format(record) + ANSI_RESET);
-            } else {
-                System.out.println(ANSI_WHITE + getFormatter().format(record) + ANSI_RESET);
-            }
+        String message = getFormatter().formatMessage(record);
+        if (!message.isEmpty()) {
+            StringBuilder coloredMessage = new StringBuilder();
+            int messageLength = message.length();
+	        
+	        IntStream.range(0, messageLength).forEach(i -> {
+		        double partRatio         = (double) i / messageLength;
+		        String interpolatedColor = interpolateColor(46, 131, 83, 162, 211, 71, partRatio);
+		        coloredMessage.append(interpolatedColor).append(message.charAt(i));
+	        });
+            
+            coloredMessage.append(ANSI_RESET);
+            System.out.println(coloredMessage);
         }
+    }
+    
+    // Interpolate between two RGB colors based on a ratio
+    private String interpolateColor(final int startRed, final int startGreen, final int startBlue,
+                                    final int endRed, final int endGreen, final int endBlue,final  double ratio) {
+        int interpolatedRed = (int) (startRed + ratio * (endRed - startRed));
+        int interpolatedGreen = (int) (startGreen + ratio * (endGreen - startGreen));
+        int interpolatedBlue = (int) (startBlue + ratio * (endBlue - startBlue));
+        
+        return String.format("\u001B[38;2;%d;%d;%dm", interpolatedRed, interpolatedGreen, interpolatedBlue);
     }
 }
