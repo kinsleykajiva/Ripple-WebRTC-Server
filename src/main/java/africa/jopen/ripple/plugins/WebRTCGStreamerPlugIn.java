@@ -10,7 +10,6 @@ import africa.jopen.ripple.utils.ConnectionsManager;
 import org.apache.log4j.Logger;
 import org.freedesktop.gstreamer.*;
 import org.freedesktop.gstreamer.elements.DecodeBin;
-import org.freedesktop.gstreamer.message.MessageType;
 import org.freedesktop.gstreamer.webrtc.WebRTCBin;
 import org.freedesktop.gstreamer.webrtc.WebRTCSDPType;
 import org.freedesktop.gstreamer.webrtc.WebRTCSessionDescription;
@@ -21,28 +20,21 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class WebRTCGStreamerPlugIn extends PluginAbs {
 	static Logger log = Logger.getLogger(WebRTCGStreamerPlugIn.class.getName());
-	ConnectionsManager connectionsManager = ConnectionsManager.getInstance();
 	private Pipeline  pipe;
 	private WebRTCBin webRTCBin;
 	private boolean   isPaused = false;
 	
-	private static final int SECONDS_PER_MINUTE = 60;
-	
-	private int minutes = 0, seconds = 0;
+
 	private String transaction = "";
 	
 	private       float       currentVolume = 1.0f; // Initial volume level
 	private final CommonAbout commonAbout;
 	private       Integer     thisObjectPositionAddress;
 	private final RTCModel    rtcModel      = new RTCModel();
-	private final MediaFile   mediaFile;
 	
 	public String getTransaction() {
 		return transaction;
@@ -55,7 +47,6 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 	public WebRTCGStreamerPlugIn(CommonAbout commonAbout, final Integer thisObjectPositionAddress, MediaFile mediaFile) {
 		setTransaction("0");
 		this.commonAbout = commonAbout;
-		this.mediaFile = mediaFile;
 		this.thisObjectPositionAddress = thisObjectPositionAddress;
 		pipe = (Pipeline) Gst.parseLaunch(pipeLineMaker(mediaFile.path()));
 		
@@ -66,7 +57,7 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 	 * It connects several event handlers to the pipeline's bus to handle different types of events.
 	 *
 	 * @param pipe The GStreamer pipeline for which to set up logging.
-	 *
+	 * <br>
 	 * The method performs the following operations:
 	 * 1. Retrieves the bus from the pipeline.
 	 * 2. Connects a handler to the bus for the Bus.ERROR event. This event is triggered when an error occurs in the pipeline.
@@ -174,7 +165,7 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 	public void startClock() {
 		
 		final boolean[]          isCompleted     = {true};
-		
+		JSONObject response = new JSONObject();
 		Thread.startVirtualThread(() -> {
 			while (isCompleted[0]) {
 				long duration = pipe.queryDuration(TimeUnit.SECONDS);
@@ -187,7 +178,7 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 				String formattedTime = String.format("%02d:%02d", position / 60, position % 60);
 				String maxFormattedTime = String.format("%02d:%02d", minutesMax, secondsMax);
 				isCompleted[0] =  progress != 100;
-				JSONObject response = new JSONObject();
+				
 				response.put("isCompleted", isCompleted[0]);
 				response.put("progressInPercentage", progress);
 				response.put("progressInSeconds", position);
@@ -202,7 +193,7 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 				try {
 					TimeUnit.MILLISECONDS.sleep(1000);
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					log.error(e.getMessage(), e);
 				}
 			}
 		});
