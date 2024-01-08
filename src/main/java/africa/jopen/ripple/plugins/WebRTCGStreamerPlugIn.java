@@ -16,6 +16,7 @@ import org.freedesktop.gstreamer.webrtc.WebRTCSDPType;
 import org.freedesktop.gstreamer.webrtc.WebRTCSessionDescription;
 import org.json.JSONObject;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -357,7 +358,8 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 	
 	@Override
 	public void updateClientLastTimeStamp() {
-		commonAbout.onUpdateLastTimeStamp(System.currentTimeMillis());
+		Instant now = Instant.now();
+		commonAbout.onUpdateLastTimeStamp(now.toEpochMilli());
 	}
 	
 	@Override

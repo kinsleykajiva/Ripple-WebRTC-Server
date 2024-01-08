@@ -12,14 +12,16 @@ import org.eclipse.collections.api.map.MutableMap;
 import org.json.JSONObject;
 
 import java.io.UncheckedIOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Iterator;
 
 public class Client implements CommonAbout {
-	private       String              clientID;
+	private final String              clientID;
 	private final MutableList<String> transactions   = Lists.mutable.empty();
 	private       long                lastTimeStamp  = System.currentTimeMillis();
-	private       boolean             isDebugSession = false;
-	private       Logger              log            = Logger.getLogger(Client.class.getName());
+	private       boolean isDebugSession = false;
+	private final Logger  log            = Logger.getLogger(Client.class.getName());
 	
 	private final MutableMap<Integer, WebRTCGStreamerPlugIn> webRTCStreamMap = Maps.mutable.empty();
 	
@@ -91,7 +93,10 @@ public class Client implements CommonAbout {
 		return wsSession;
 	}
 	
-	public void updateLastTimeStamp(long newTime) {
+	public synchronized void updateLastTimeStamp(long newTime) {
+		if (newTime < lastTimeStamp) {
+			throw new IllegalArgumentException("newTime cannot be less than lastTimeStamp");
+		}
 		lastTimeStamp = newTime;
 	}
 	
@@ -102,12 +107,14 @@ public class Client implements CommonAbout {
 	 *
 	 * @return true if the client is an orphan, false otherwise.
 	 */
-	public boolean isClientOrphan(){
-		// test if lastTimeStamp is older than 2 mins or whats set in the config
-		if(XUtils.MAIN_CONFIG_MODEL.session().rememberTimeOutInSeconds() == 0){
-			return (System.currentTimeMillis() - lastTimeStamp) > 120 * 1_000L;
+	public boolean isClientOrphan() {
+		Instant  lastActiveTime          = Instant.ofEpochMilli(lastTimeStamp);
+		Duration durationSinceLastActive = Duration.between(lastActiveTime, Instant.now());
+		
+		if (XUtils.MAIN_CONFIG_MODEL.session().rememberTimeOutInSeconds() == 0) {
+			return durationSinceLastActive.getSeconds() > 120;
 		}
-		return (System.currentTimeMillis() - lastTimeStamp) > XUtils.MAIN_CONFIG_MODEL.session().rememberTimeOutInSeconds() * 1_000L;
+		return durationSinceLastActive.getSeconds() > XUtils.MAIN_CONFIG_MODEL.session().rememberTimeOutInSeconds();
 	}
 	
 	@Override
@@ -180,7 +187,8 @@ public class Client implements CommonAbout {
 	}
 	
 	public void replyToRemembering(String transaction) {
-		onUpdateLastTimeStamp(System.currentTimeMillis());
+		Instant now = Instant.now();
+		onUpdateLastTimeStamp(now.toEpochMilli());
 		var response = new JSONObject();
 		response.put("clientID", clientID);
 		response.put("success", true);
@@ -195,7 +203,8 @@ public class Client implements CommonAbout {
 	}
 	
 	public void replyToNewThreadInvalidRequest(final String transaction, final int position) {
-		onUpdateLastTimeStamp(System.currentTimeMillis());
+		Instant now = Instant.now();
+		onUpdateLastTimeStamp(now.toEpochMilli());
 		var response = new JSONObject();
 		response.put("clientID", clientID);
 		response.put("success", false);
@@ -212,7 +221,8 @@ public class Client implements CommonAbout {
 	}
 	
 	public void replyToNewThreadRequest(final String transaction, final int position) {
-		onUpdateLastTimeStamp(System.currentTimeMillis());
+		Instant now = Instant.now();
+		onUpdateLastTimeStamp(now.toEpochMilli());
 		var response = new JSONObject();
 		response.put("clientID", clientID);
 		response.put("success", true);
@@ -229,7 +239,8 @@ public class Client implements CommonAbout {
 	
 	
 	public void replyToInvalidRequest(JSONObject jsonObject) {
-		onUpdateLastTimeStamp(System.currentTimeMillis());
+		Instant now = Instant.now();
+		onUpdateLastTimeStamp(now.toEpochMilli());
 		var response = new JSONObject();
 		response.put("clientID", clientID);
 		if (!jsonObject.has("transaction")) {
