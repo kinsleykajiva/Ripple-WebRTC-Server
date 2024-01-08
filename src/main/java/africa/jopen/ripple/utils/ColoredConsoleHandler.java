@@ -11,7 +11,7 @@ public class ColoredConsoleHandler extends ConsoleHandler {
     public static final String ANSI_RESET = "\u001B[0m";
     
     @Override
-    public synchronized void publish(LogRecord record) {
+    public void publish(LogRecord record) {
         String message = getFormatter().formatMessage(record);
         if (!message.isEmpty()) {
             StringBuilder coloredMessage = new StringBuilder();

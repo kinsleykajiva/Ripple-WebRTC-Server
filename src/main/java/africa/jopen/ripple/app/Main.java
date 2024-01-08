@@ -141,13 +141,9 @@ public class Main {
 			//server.stop();
 		}
         
-        /*System.setProperty("quarkus.application.name", XUtils.MAIN_CONFIG_MODEL.serverName());
-        
-        System.setProperty("quarkus.http.ssl-port", String.valueOf(XUtils.MAIN_CONFIG_MODEL.serverSSLPort()));
-        System.setProperty("quarkus.application.version", XUtils.MAIN_CONFIG_MODEL.serverVersion());*/
+  
 		System.setProperty("server.port", String.valueOf(XUtils.MAIN_CONFIG_MODEL.serverPort()));
-		log.info("Server started in " + XUtils.BASE_APP_LOCATION_PATH);
-		log.info("Server  Config Model " + XUtils.MAIN_CONFIG_MODEL);
+		
 		
 		config.get("server").asNode().ifPresent(node -> node.get("port").asInt().ifPresent(port -> System.setProperty("server.port", String.valueOf(XUtils.MAIN_CONFIG_MODEL.serverPort()))));
 		
@@ -164,6 +160,8 @@ public class Main {
 		websocketEndpoint.startOrphansCron();
 		
 		log.info("WEB server is up! http://localhost:" + server.port());
+		
+//		connectionsManager.setLogMessage("WEB server is up! http://localhost:");
 	}
 	
 	

@@ -25,12 +25,19 @@ public class ConnectionsManager {
 		GStreamerUtils.configurePaths();
 		Gst.init(Version.of(1, 16));
 	}
+	public void setLogMessage(String message){
+//		System.out.println("\n");
+		LOGGER.info("message" );
+//		System.out.println("\n");
+	}
 	public void setBANNER(){
+		System.out.println("\n");
 		LOGGER.info(BANNER_TEXT);
 		LOGGER.warning("FEATURES " );
 		LOGGER.severe("       *WebRTC " );
 		LOGGER.severe("       *GStreamer with version " + Gst.getVersionString() );
 		LOGGER.severe("       *Java version " + System.getProperty("java.version") );
+		System.out.println("\n");
 		
 	}
 	
