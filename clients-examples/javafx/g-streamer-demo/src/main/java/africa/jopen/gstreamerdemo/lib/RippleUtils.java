@@ -22,6 +22,10 @@ public class RippleUtils {
 		return uuid.toString().replaceAll("-", "") + System.nanoTime();
 	}
 	
+	protected static String nonAlphaNumeric(String str) {
+		return str.replaceAll("[^a-zA-Z0-9]", "");
+	}
+	
 	public static String convertToWebSocketUrl(String url) {
 		if (url == null || url.isEmpty()) return "";
 		if (url.startsWith("http://")) return url.replace("http://", "ws://");
@@ -81,7 +85,7 @@ public class RippleUtils {
 	protected static String uniqueIDGenerator(String seed, int maxSize) {
 		LocalTime time           = LocalTime.now();
 		String    timeString     = String.format("%02d%02d%02d", time.getHour(), time.getMinute(), time.getSecond());
-		String dateTimeString = seed + timeString + RANDOM.nextInt(10000);
+		String    dateTimeString = seed + timeString + RANDOM.nextInt(10000);
 		if (dateTimeString.length() > 12) {
 			dateTimeString = dateTimeString.substring(0, 12);
 		}
@@ -92,7 +96,9 @@ public class RippleUtils {
 		
 		for (int i = 0; i < dateTimeString.length(); i++) {
 			int index = Character.digit(dateTimeString.charAt(i), 36);
-			uniID.replace(index, index + 1, String.valueOf(dateTimeString.charAt(i)));
+			if (index < uniID.length()) {
+				uniID.replace(index, index + 1, String.valueOf(dateTimeString.charAt(i)));
+			}
 		}
 		
 		return uniID.toString().replaceAll("[^a-z0-9]", "");

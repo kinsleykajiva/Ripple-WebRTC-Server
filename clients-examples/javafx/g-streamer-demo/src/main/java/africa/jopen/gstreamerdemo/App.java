@@ -20,7 +20,8 @@ public class App extends Application {
             stage.setTitle("GStreamer Demo");
             stage.setScene(scene);
             stage.show();
-            log.info("Hello!");
+            
+            
         } catch (IOException e) {
             e.printStackTrace();
             log.log(Level.SEVERE, "Error creating scene", e);
