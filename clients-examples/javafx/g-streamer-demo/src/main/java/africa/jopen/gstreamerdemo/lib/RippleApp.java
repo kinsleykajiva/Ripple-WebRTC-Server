@@ -47,7 +47,7 @@ public class RippleApp {
 		isConnected = true;
 		// cancell the scheduled reconnect
 		executorService.shutdown();
-		rootPluginCallBacks.onSocketConnected();
+		rootPluginCallBacks.onClientConnected();
 	}
 	
 	public void sendMessage(JSONObject message) {
@@ -96,12 +96,12 @@ public class RippleApp {
 	public void onClose(String webSocketClosed) {
 		log.info(webSocketClosed);
 		scheduleReconnect();
-		rootPluginCallBacks.onSocketClosed();
+		rootPluginCallBacks.onClientClosed();
 	}
 	
 	public void onError(Throwable e) {
 		log.log(Level.SEVERE, "Socket session Error", e);
-		rootPluginCallBacks.onSocketError(e);
+		rootPluginCallBacks.onClientError(e);
 	}
 	
 	

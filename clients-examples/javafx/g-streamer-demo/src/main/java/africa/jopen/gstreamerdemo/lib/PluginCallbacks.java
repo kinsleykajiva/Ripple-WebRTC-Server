@@ -3,10 +3,10 @@ package africa.jopen.gstreamerdemo.lib;
 public class PluginCallbacks {
 	
 	public interface RootPluginCallBacks{
-		void onSocketClosed();
-		void onSocketConnected();
-		void onSocketError(Throwable t);
-		void onSocketMessage(String message);
+		void onClientClosed();
+		void onClientConnected();
+		void onClientError(Throwable t);
+		void onClientMessage(String message);
 		void webRTCEvents(String message);
 	}
 	public interface GstreamerPluginCallBack extends RootPluginCallBacks{

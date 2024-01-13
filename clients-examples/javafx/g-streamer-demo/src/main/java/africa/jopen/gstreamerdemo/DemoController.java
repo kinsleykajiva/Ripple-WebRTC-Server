@@ -51,7 +51,7 @@ public class DemoController implements Initializable, PluginCallbacks.GstreamerP
 	}
 	
 	@Override
-	public void onSocketClosed() {
+	public void onClientClosed() {
 		Platform.runLater(() -> {
 			btnStartStreaming.setDisable(true);
 			txtConnectionStatus.setText("Disconnected");
@@ -63,7 +63,7 @@ public class DemoController implements Initializable, PluginCallbacks.GstreamerP
 	}
 	
 	@Override
-	public void onSocketConnected() {
+	public void onClientConnected() {
 		Platform.runLater(() -> {
 			btnStartStreaming.setDisable(false);
 			txtConnectionStatus.setText("Connected");
@@ -73,7 +73,7 @@ public class DemoController implements Initializable, PluginCallbacks.GstreamerP
 	}
 	
 	@Override
-	public void onSocketError(Throwable t) {
+	public void onClientError(Throwable t) {
 		Platform.runLater(() -> {
 			btnStartStreaming.setDisable(true);
 			txtConnectionStatus.setStyle("-fx-text-fill: red;");
@@ -81,7 +81,7 @@ public class DemoController implements Initializable, PluginCallbacks.GstreamerP
 	}
 	
 	@Override
-	public void onSocketMessage(String message) {
+	public void onClientMessage(String message) {
 	
 	}
 	
