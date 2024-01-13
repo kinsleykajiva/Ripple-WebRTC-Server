@@ -27,25 +27,45 @@ public class DemoController implements Initializable , PluginCallbacks.Gstreamer
     
     @FXML
     private Button btnStartStreaming;
+    @FXML
+    private Label txtConnectionStatus;
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         rippleApp = new RippleApp("http://localhost:8080/",this);
+        txtConnectionStatus.setText("Disconnected");
+        btnStartStreaming.setOnMouseClicked(event -> {
+            rippleApp.connect();
+        
+        });
+        
+        /*rippleApp.runAfterDelay(()->{
+            rippleApp.connect();
+        },2);*/
     }
     
     @Override
     public void onSocketClosed() {
-    
+        btnStartStreaming.setDisable(true);
+        txtConnectionStatus.setText("Disconnected");
+        txtConnectionStatus.setStyle("-fx-text-fill: red;");
+        // change text color to red
+        
+        
+        
     }
     
     @Override
     public void onSocketConnected() {
-    
+        btnStartStreaming.setDisable(false);
+        txtConnectionStatus.setText("Connected");
+        txtConnectionStatus.setStyle("-fx-text-fill: green;");
     }
     
     @Override
     public void onSocketError(Throwable t) {
-    
+        btnStartStreaming.setDisable(true);
+        txtConnectionStatus.setStyle("-fx-text-fill: red;");
     }
     
     @Override

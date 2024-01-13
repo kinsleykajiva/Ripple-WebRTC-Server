@@ -19,8 +19,8 @@ public class RippleApp {
 	public final String                              serverUrl;
 	public final String                              clientID;
 	private      WebSocket                           webSocket;
-	private      PluginCallbacks.RootPluginCallBacks rootPluginCallBacks;
-	private      ScheduledExecutorService            executorService = Executors.newSingleThreadScheduledExecutor();
+	private    final    PluginCallbacks.RootPluginCallBacks rootPluginCallBacks;
+	private final ScheduledExecutorService            executorService = Executors.newSingleThreadScheduledExecutor();
 	
 	public RippleApp(String serverUrl, PluginCallbacks.RootPluginCallBacks rootPluginCallBacks) {
 		serverUrl = RippleUtils.convertToWebSocketUrl(serverUrl);
@@ -47,6 +47,7 @@ public class RippleApp {
 		isConnected = true;
 		// cancell the scheduled reconnect
 		executorService.shutdown();
+		rootPluginCallBacks.onSocketConnected();
 	}
 	
 	public void sendMessage(JSONObject message) {
@@ -78,16 +79,29 @@ public class RippleApp {
 	
 	private void scheduleReconnect() {
 		log.info("Scheduling reconnect");
-		executorService.schedule(this::connect, 10, TimeUnit.SECONDS);
+		runAfterDelay(() -> {
+			if (isConnected) {
+				log.info("Already connected");
+				return;
+			}
+			log.info("Reconnecting");
+			connect();
+		}, 10);
+	}
+	
+	public void runAfterDelay(Runnable task, long delay) {
+		executorService.schedule(task, delay, TimeUnit.SECONDS);
 	}
 	
 	public void onClose(String webSocketClosed) {
 		log.info(webSocketClosed);
 		scheduleReconnect();
+		rootPluginCallBacks.onSocketClosed();
 	}
 	
 	public void onError(Throwable e) {
 		log.log(Level.SEVERE, "Socket session Error", e);
+		rootPluginCallBacks.onSocketError(e);
 	}
 	
 	

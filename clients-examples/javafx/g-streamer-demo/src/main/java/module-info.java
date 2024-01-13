@@ -8,7 +8,8 @@ module africa.jopen.gstreamerdemo {
     requires okhttp3;
     requires org.json;
     requires webrtc.java;
-
+//    requires static kotlin.stdlib;
+    requires kotlin.stdlib;
     opens africa.jopen.gstreamerdemo to javafx.fxml;
     exports africa.jopen.gstreamerdemo;
 }

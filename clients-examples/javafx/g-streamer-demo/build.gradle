@@ -24,9 +24,17 @@ tasks.withType(JavaCompile) {
   options.encoding = 'UTF-8'
 }
 
+/*jar {
+  manifest {
+    attributes 'Main-Class': 'africa.jopen.gstreamerdemo.App'
+  }
+  from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+
+}*/
+
 application {
   mainModule = 'africa.jopen.gstreamerdemo'
-  mainClass = 'africa.jopen.gstreamerdemo.HelloApplication'
+  mainClass = 'africa.jopen.gstreamerdemo.App'
 }
 
 javafx {
@@ -44,7 +52,12 @@ dependencies {
   implementation('org.controlsfx:controlsfx:11.1.2')
   implementation('org.kordamp.bootstrapfx:bootstrapfx-core:0.4.0')
   implementation 'org.json:json:20231013'
-  implementation 'com.squareup.okhttp3:okhttp:4.9.3'
+//  implementation 'com.squareup.okhttp3:okhttp:4.9.3'
+  implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+
+  implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22'
+
+
 
 
 
@@ -61,7 +74,12 @@ useJUnitPlatform()}
 
 jlink {
   imageZip = project.file("${buildDir}/distributions/app-${javafx.platform.classifier}.zip")
-  options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
+  options = ['--strip-debug',
+             '--compress', '2',
+             '--no-header-files',
+             '--no-man-pages',
+             '--add-modules', 'kotlin.stdlib',
+  ]
   launcher {
     name = 'app'
   }

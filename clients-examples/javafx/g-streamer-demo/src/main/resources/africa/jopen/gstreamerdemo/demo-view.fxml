@@ -6,9 +6,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="689.0" prefWidth="1208.0" xmlns="http://javafx.com/javafx/20.0.1"
-           fx:controller="africa.jopen.gstreamerdemo.DemoController" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="689.0" prefWidth="1208.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="africa.jopen.gstreamerdemo.DemoController">
    <children>
       <Label layoutX="14.0" layoutY="22.0" prefHeight="54.0" prefWidth="363.0" text="G stream broadcast example demo" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="22.0">
          <font>
@@ -26,5 +24,10 @@
           <AnchorPane fx:id="AnchorstreamsVids" minHeight="0.0" minWidth="0.0" prefHeight="521.0" prefWidth="1195.0" />
         </content>
       </ScrollPane>
+      <Label fx:id="txtConnectionStatus" layoutX="547.0" layoutY="45.0" prefHeight="25.0" prefWidth="572.0" text="Connection Status" AnchorPane.leftAnchor="547.0" AnchorPane.topAnchor="45.0">
+         <font>
+            <Font name="System Bold" size="16.0" />
+         </font>
+      </Label>
    </children>
 </AnchorPane>
