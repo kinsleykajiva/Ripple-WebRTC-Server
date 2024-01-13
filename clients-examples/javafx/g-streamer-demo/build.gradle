@@ -33,16 +33,21 @@ javafx {
   version = '21'
   modules = ['javafx.controls', 'javafx.fxml', 'javafx.media','javafx.base','javafx.graphics']
 }
+var classifier = ''
+// check if we are on windows
+if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {classifier = 'windows-x86_64'
+} else if (org.gradle.internal.os.OperatingSystem.current().isLinux()) {classifier = 'linux-x86_64'
+} else if (org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {classifier = 'macosx-x86_64'
+}
 
 dependencies {
   implementation('org.controlsfx:controlsfx:11.1.2')
   implementation('org.kordamp.bootstrapfx:bootstrapfx-core:0.4.0')
   implementation 'org.json:json:20231013'
   implementation 'javax.websocket:javax.websocket-api:1.1'
-//  implementation 'log4j:log4j:1.2.17'
-//  implementation 'log4j:apache-log4j-extras:1.2.17'
-//  implementation 'org.apache.logging.log4j:log4j-core:2.22.0'
-//  implementation 'org.apache.logging.log4j:log4j-api:2.22.0'
+
+  implementation "dev.onvoid.webrtc:webrtc-java:0.8.0"
+  implementation group: "dev.onvoid.webrtc", name: "webrtc-java", version: "0.8.0", classifier: classifier
 
   testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")

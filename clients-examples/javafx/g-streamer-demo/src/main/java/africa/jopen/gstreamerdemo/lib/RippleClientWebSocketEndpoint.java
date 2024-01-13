@@ -1,10 +1,6 @@
 package africa.jopen.gstreamerdemo.lib;
 
-import javax.websocket.ClientEndpoint;
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
+import javax.websocket.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,6 +17,12 @@ public class RippleClientWebSocketEndpoint {
 		log.info("WebSocket opened");
 		//session.getAsyncRemote().sendText("Hello from the client");
 		rippleApp.onOpen("WebSocket opened");
+	}
+	
+	@OnClose
+	public void onClose(Session session) {
+		log.info("WebSocket closed");
+		rippleApp.onClose("WebSocket closed");
 	}
 	
 	@OnMessage

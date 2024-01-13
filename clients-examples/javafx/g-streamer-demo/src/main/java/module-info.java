@@ -7,6 +7,7 @@ module africa.jopen.gstreamerdemo {
 	requires java.logging;
 	requires javax.websocket.api;
 	requires org.json;
+	requires webrtc.java;
 //	requires apache.log4j.extras;
 	
 	opens africa.jopen.gstreamerdemo to javafx.fxml;

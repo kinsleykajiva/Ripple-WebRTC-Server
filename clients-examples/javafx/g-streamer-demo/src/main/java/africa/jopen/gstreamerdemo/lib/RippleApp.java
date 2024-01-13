@@ -8,17 +8,22 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import dev.onvoid.webrtc.PeerConnectionObserver;
 
 public class RippleApp {
 	
-	static       Logger  log         = Logger.getLogger(RippleApp.class.getName());
-	public       boolean isDebugging = false;
-	public       boolean isConnected = false;
-	public final String  serverUrl;
-	public final String  clientID;
-	private      Session session;
+	static       Logger                   log             = Logger.getLogger(RippleApp.class.getName());
+	public       boolean                  isDebugging     = false;
+	public       boolean                  isConnected     = false;
+	public final String                   serverUrl;
+	public final String                   clientID;
+	private      Session                  session;
+	private      ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 	
 	public RippleApp(String serverUrl, PluginCallbacks.RootPluginCallBacks rootPluginCallBacks) {
 		serverUrl = RippleUtils.convertToWebSocketUrl(serverUrl);
@@ -33,16 +38,6 @@ public class RippleApp {
 		log.info("RippleApp initialized");
 		log.info("serverUrl: " + serverUrl);
 		log.info("clientID: " + clientID);
-		
-		try {
-			WebSocketContainer            container = ContainerProvider.getWebSocketContainer();
-			RippleClientWebSocketEndpoint endpoint  = new RippleClientWebSocketEndpoint();
-			endpoint.setRippleApp(this);
-			session = container.connectToServer(endpoint, URI.create(this.serverUrl));
-			
-		} catch (DeploymentException | IOException e) {
-			log.log(Level.SEVERE, "Error connecting to server", e);
-		}
 	}
 	
 	public void onMessage(String message) {
@@ -51,6 +46,9 @@ public class RippleApp {
 	
 	public void onOpen(String message) {
 		log.info(message);
+		isConnected = true;
+		// cancell the scheduled reconnect
+		executorService.shutdown();
 	}
 	
 	public void sendMessage(JSONObject message) {
@@ -75,9 +73,31 @@ public class RippleApp {
 		}
 	}
 	
+	public void connect() {
+		try {
+			WebSocketContainer            container = ContainerProvider.getWebSocketContainer();
+			RippleClientWebSocketEndpoint endpoint  = new RippleClientWebSocketEndpoint();
+			endpoint.setRippleApp(this);
+			session = container.connectToServer(endpoint, URI.create(this.serverUrl));
+		} catch (DeploymentException | IOException e) {
+			log.log(Level.SEVERE, "Error connecting to server", e);
+			scheduleReconnect();
+		}
+	}
+	
+	private void scheduleReconnect() {
+        log.info("Scheduling reconnect");
+		executorService.schedule(this::connect, 10, TimeUnit.SECONDS);
+	}
+	
+	public void onClose(String webSocketClosed) {
+		log.info(webSocketClosed);
+		scheduleReconnect();
+	}
 	
 	public void onError(Throwable e) {
-		
 		log.log(Level.SEVERE, "Socket session Error", e);
 	}
+	
+	
 }
