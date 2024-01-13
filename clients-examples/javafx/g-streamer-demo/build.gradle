@@ -31,12 +31,13 @@ application {
 
 javafx {
   version = '21'
-  modules = ['javafx.controls', 'javafx.fxml']
+  modules = ['javafx.controls', 'javafx.fxml', 'javafx.media','javafx.base','javafx.graphics']
 }
 
 dependencies {
   implementation('org.controlsfx:controlsfx:11.1.2')
   implementation('org.kordamp.bootstrapfx:bootstrapfx-core:0.4.0')
+  implementation 'org.json:json:20231013'
 
   testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
