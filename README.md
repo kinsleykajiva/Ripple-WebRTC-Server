@@ -1,6 +1,61 @@
-# ripple-webrtc
+# Ripple-WebRTC-Server
 
-Sample Helidon SE project that includes multiple REST operations.
+<p align="center" width="100%">
+<img src="logo.png">
+</p>
+
+Ripple-WebRTC-Server is a Java-based WebRTC media server built using the Helidon SE framework.  The server  aims to deliver a robust and efficient WebRTC experience.
+The primary goal is to use this app as an Native Image created by [ GraalVM tools](https://github.com/graalvm)
+
+
+The goal of the project is to provide a new alternative  to WebRTC severs powered by java .Application will be easy to set up  and run . Will provide client SDKs to use .
+
+We aim to keep the memory footprint down and Image size to a very small app still giving you the best performance to scale .
+
+Deployment and configuration should easy to get you going.
+
+# Target clients are :
+- Browser base app (Chrome-based,FireFox). (coming Soon)
+- Mobile Apps (Android & IOS) (coming Soon)
+- Desktop Clients (JavaFX,TornadoFX,Flutter,DotNet,QT C++,Electron) (coming Soon)
+
+
+Client Javascript SDK/Lib -  ![Ripple JS](/website/assets/js/rippleApp.js)
+
+
+## For Documentation Please refer to:  ![Docs Page](/docs/index.md)
+
+
+## Features
+
+The Ripple-WebRTC-Server aims to provide the following main features:
+- Broadcast With G-Streamer transcoding
+- Video rooms: Support for creating and joining video rooms (coming soon).
+- Audio rooms: Support for creating and joining audio rooms (coming soon).
+- AppRTC example for video call (coming soon)
+
+[Optional] JVM Memory management has been : `"-XX:+UseG1GC -XX:+AggressiveHeap"` .
+This has been the main set up during development .  `-XX:+UseG1GC` enables the G1 garbage collector for memory optimization, `-XX:+AggressiveHeap` enables aggressive heap deallocation for better memory management
+
+
+Connection Transport is WebSockets
+
+Feel free to explore and contribute to the development of the Ripple-WebRTC-Server.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Build and run
 
