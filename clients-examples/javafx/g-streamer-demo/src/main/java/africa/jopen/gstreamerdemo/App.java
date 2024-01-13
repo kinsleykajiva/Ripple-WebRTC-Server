@@ -29,7 +29,7 @@ public class App extends Application {
 
     private Scene createScene() throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("demo-view.fxml"));
-        return new Scene(fxmlLoader.load(), 320, 240);
+        return new Scene(fxmlLoader.load(), 1300, 740);
     }
 
     public static void main(String[] args) {

@@ -24,7 +24,7 @@
           <AnchorPane fx:id="AnchorstreamsVids" minHeight="0.0" minWidth="0.0" prefHeight="521.0" prefWidth="1195.0" />
         </content>
       </ScrollPane>
-      <Label fx:id="txtConnectionStatus" layoutX="547.0" layoutY="45.0" prefHeight="25.0" prefWidth="572.0" text="Connection Status" AnchorPane.leftAnchor="547.0" AnchorPane.topAnchor="45.0">
+      <Label fx:id="txtConnectionStatus" layoutX="547.0" layoutY="32.0" prefHeight="38.0" prefWidth="572.0" text="Connection Status" AnchorPane.leftAnchor="547.0" AnchorPane.topAnchor="32.0">
          <font>
             <Font name="System Bold" size="16.0" />
          </font>
