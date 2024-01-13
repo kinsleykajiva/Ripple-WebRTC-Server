@@ -4,7 +4,9 @@ module africa.jopen.gstreamerdemo {
 
     requires org.controlsfx.controls;
     requires org.kordamp.bootstrapfx.core;
-
-    opens africa.jopen.gstreamerdemo to javafx.fxml;
+	requires java.logging;
+//	requires apache.log4j.extras;
+	
+	opens africa.jopen.gstreamerdemo to javafx.fxml;
     exports africa.jopen.gstreamerdemo;
 }
