@@ -17,7 +17,7 @@ public class App extends Application {
     public void start(Stage stage) {
         try {
             Scene scene = createScene();
-            stage.setTitle("Hello!");
+            stage.setTitle("GStreamer Demo");
             stage.setScene(scene);
             stage.show();
             log.info("Hello!");
