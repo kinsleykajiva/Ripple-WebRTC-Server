@@ -1,6 +1,5 @@
 package africa.jopen.gstreamerdemo.lib;
 
-import africa.jopen.gstreamerdemo.App;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,13 +13,58 @@ public class RippleUtils {
 	
 	static Logger log = Logger.getLogger(RippleUtils.class.getName());
 	
-	private static final String ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	private static final String ALPHABET      = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	private static final int    ALPHABET_SIZE = ALPHABET.length();
 	private static final Random RANDOM        = new Random();
-    protected static String IdGenerator() {
-        UUID uuid = UUID.randomUUID();
-	    return uuid.toString().replaceAll("-", "") + System.nanoTime();
-    }
+	
+	protected static String IdGenerator() {
+		UUID uuid = UUID.randomUUID();
+		return uuid.toString().replaceAll("-", "") + System.nanoTime();
+	}
+	
+	public static String convertToWebSocketUrl(String url) {
+		if (url == null || url.isEmpty()) return "";
+		if (url.startsWith("http://")) return url.replace("http://", "ws://");
+		if (url.startsWith("https://")) return url.replace("https://", "wss://");
+		return "";
+	}
+	
+	public static String getWebSocketUrl(String url) {
+		if (url == null || url.isEmpty()) return "";
+		if (url.startsWith("ws://")) return url;
+		if (url.startsWith("wss://")) return url;
+		return "";
+	}
+	
+	public static String getWebSocketProtocol(String url) {
+		if (url == null || url.isEmpty()) return "";
+		if (url.startsWith("ws://")) return "ws";
+		if (url.startsWith("wss://")) return "wss";
+		return "";
+	}
+	
+	public static String getWebSocketHost(String url) {
+		if (url == null || url.isEmpty()) return "";
+		if (url.startsWith("ws://")) return url.substring(5);
+		if (url.startsWith("wss://")) return url.substring(6);
+		return "";
+	}
+	
+	public static String getWebSocketPort(String url) {
+		if (url == null || url.isEmpty()) return "";
+		if (url.startsWith("ws://")) return "";
+		if (url.startsWith("wss://")) return "";
+		return "";
+	}
+	
+	public static String convertFromWebSocketUrl(String url) {
+		if (url == null || url.isEmpty()) return "";
+		if (url.startsWith("ws://")) return url.replace("ws://", "http://");
+		if (url.startsWith("wss://")) return url.replace("wss://", "https://");
+		return "";
+		
+	}
+	
 	public static boolean isJson(String str) {
 		try {
 			new JSONObject(str);
@@ -33,10 +77,11 @@ public class RippleUtils {
 		}
 		return true;
 	}
+	
 	protected static String uniqueIDGenerator(String seed, int maxSize) {
-		LocalTime time       = LocalTime.now();
-		String    timeString = String.format("%02d%02d%02d", time.getHour(), time.getMinute(), time.getSecond());
-		String dateTimeString = (seed + timeString + RANDOM.nextInt(10000)).substring(0, 12);
+		LocalTime time           = LocalTime.now();
+		String    timeString     = String.format("%02d%02d%02d", time.getHour(), time.getMinute(), time.getSecond());
+		String    dateTimeString = (seed + timeString + RANDOM.nextInt(10000)).substring(0, 12);
 		
 		StringBuilder uniID = new StringBuilder();
 		for (int i = 0; i < maxSize; i++) {

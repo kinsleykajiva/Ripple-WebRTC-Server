@@ -20,7 +20,13 @@ public class RippleApp {
 	public final String  clientID;
 	private      Session session;
 	
-	public RippleApp(String serverUrl) {
+	public RippleApp(String serverUrl, PluginCallbacks.RootPluginCallBacks rootPluginCallBacks) {
+		serverUrl = RippleUtils.convertToWebSocketUrl(serverUrl);
+		if (serverUrl.endsWith("/")) {
+			serverUrl = serverUrl + "websocket/client";
+		} else {
+			serverUrl = serverUrl + "/websocket/client";
+		}
 		this.serverUrl = serverUrl;
 		String uniqueID = RippleUtils.uniqueIDGenerator("", 22);
 		this.clientID = RippleUtils.IdGenerator() + uniqueID;
@@ -52,11 +58,11 @@ public class RippleApp {
 			log.warning("Message is null, nothing to send");
 			return;
 		}
-		if(!isConnected) {
+		if (!isConnected) {
 			log.warning("Not connected,Failed to send message");
 			return;
 		}
-		if(message.toString().isEmpty()) {
+		if (message.toString().isEmpty()) {
 			log.warning("Message is empty, nothing to send");
 			return;
 		}
