@@ -1,6 +1,9 @@
 package africa.jopen.gstreamerdemo.lib;
 
 import africa.jopen.gstreamerdemo.App;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.time.LocalTime;
 import java.util.Random;
@@ -18,6 +21,18 @@ public class RippleUtils {
         UUID uuid = UUID.randomUUID();
 	    return uuid.toString().replaceAll("-", "") + System.nanoTime();
     }
+	public static boolean isJson(String str) {
+		try {
+			new JSONObject(str);
+		} catch (JSONException ex) {
+			try {
+				new JSONArray(str);
+			} catch (JSONException ex1) {
+				return false;
+			}
+		}
+		return true;
+	}
 	protected static String uniqueIDGenerator(String seed, int maxSize) {
 		LocalTime time       = LocalTime.now();
 		String    timeString = String.format("%02d%02d%02d", time.getHour(), time.getMinute(), time.getSecond());
