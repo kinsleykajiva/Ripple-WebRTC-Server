@@ -1,45 +1,48 @@
 package africa.jopen.gstreamerdemo.lib;
 
-import javax.websocket.*;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@ClientEndpoint
-public class RippleClientWebSocketEndpoint {
-	
-	static Logger log = Logger.getLogger(RippleClientWebSocketEndpoint.class.getName());
-	private RippleApp rippleApp;
-	public void setRippleApp(RippleApp rippleApp) {
-		this.rippleApp = rippleApp;
-	}
-	@OnOpen
-	public void onOpen(final Session session) {
-		log.info("WebSocket opened");
-		//session.getAsyncRemote().sendText("Hello from the client");
-		rippleApp.onOpen("WebSocket opened");
-	}
-	
-	@OnClose
-	public void onClose(Session session) {
-		log.info("WebSocket closed");
-		rippleApp.onClose("WebSocket closed");
-	}
-	
-	@OnMessage
-	public void onMessage(final String message) {
-		log.info("Received msg: " + message);
-		if(message == null || message.isEmpty()) return;
-		if(!RippleUtils.isJson(message)) return;
-		rippleApp.onMessage(message);
-		
-	}
-	
-	
-	
-	@OnError
-	public void onError(Throwable e) {
-		e.printStackTrace();
-		log.log(Level.SEVERE, "Error", e);
-		rippleApp.onError(e);
-	}
+import okhttp3.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+public class RippleClientWebSocketEndpoint extends WebSocketListener {
+    static Logger log = Logger.getLogger(RippleClientWebSocketEndpoint.class.getName());
+    private RippleApp rippleApp;
+
+    public void setRippleApp(RippleApp rippleApp) {
+        if (rippleApp == null) {
+            throw new IllegalArgumentException("RippleApp cannot be null");
+        }
+        this.rippleApp = rippleApp;
+    }
+
+    @Override
+    public void onOpen(WebSocket webSocket, Response response) {
+        log.info("WebSocket opened");
+        rippleApp.onOpen("WebSocket opened");
+    }
+
+    @Override
+    public void onMessage(WebSocket webSocket, String text) {
+        log.info("Received msg: " + text);
+        if(text == null || text.isEmpty()) return;
+        if(!RippleUtils.isJson(text)) return;
+        rippleApp.onMessage(text);
+    }
+
+    @Override
+    public void onFailure(WebSocket webSocket, Throwable t, Response response) {
+        t.printStackTrace();
+        log.log(Level.SEVERE, "Error", t);
+        rippleApp.onError(t);
+    }
+
+    @Override
+    public void onClosed(WebSocket webSocket, int code, String reason) {
+        log.info("WebSocket closed");
+        rippleApp.onClose("WebSocket closed");
+    }
 }

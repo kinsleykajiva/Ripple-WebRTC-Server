@@ -44,7 +44,10 @@ dependencies {
   implementation('org.controlsfx:controlsfx:11.1.2')
   implementation('org.kordamp.bootstrapfx:bootstrapfx-core:0.4.0')
   implementation 'org.json:json:20231013'
-  implementation 'javax.websocket:javax.websocket-api:1.1'
+  implementation 'com.squareup.okhttp3:okhttp:4.9.3'
+
+
+
 
   implementation "dev.onvoid.webrtc:webrtc-java:0.8.0"
   implementation group: "dev.onvoid.webrtc", name: "webrtc-java", version: "0.8.0", classifier: classifier

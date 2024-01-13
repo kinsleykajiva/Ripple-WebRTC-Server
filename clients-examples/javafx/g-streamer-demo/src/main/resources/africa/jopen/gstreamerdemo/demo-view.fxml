@@ -1,16 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.VBox?>
-
 <?import javafx.scene.control.Button?>
-<VBox alignment="CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="africa.jopen.gstreamerdemo.DemoController">
-  <padding>
-    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
-  </padding>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
 
-  <Label fx:id="welcomeText"/>
-  <Button text="Hello!" onAction="#onHelloButtonClick"/>
-</VBox>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="689.0" prefWidth="1208.0" xmlns="http://javafx.com/javafx/20.0.1"
+           fx:controller="africa.jopen.gstreamerdemo.DemoController" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Label layoutX="14.0" layoutY="22.0" prefHeight="54.0" prefWidth="363.0" text="G stream broadcast example demo" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="22.0">
+         <font>
+            <Font size="22.0" />
+         </font>
+      </Label>
+      <Button fx:id="btnStartStreaming" layoutX="398.0" layoutY="41.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="113.0" text="Start A Stream" />
+      <Label layoutX="14.0" layoutY="83.0" prefHeight="65.0" prefWidth="1141.0" text="This is aan example of how to receive streams via WebRTC.This demo show how to receive streams , so this client can get mutiple streams .Each stream is handled as a thread on the client ." wrapText="true">
+         <font>
+            <Font size="16.0" />
+         </font>
+      </Label>
+      <ScrollPane fx:id="ScrolllStreamsVids" layoutX="5.0" layoutY="158.0" prefHeight="524.0" prefWidth="1199.0" AnchorPane.bottomAnchor="7.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="4.0" AnchorPane.topAnchor="158.0">
+        <content>
+          <AnchorPane fx:id="AnchorstreamsVids" minHeight="0.0" minWidth="0.0" prefHeight="521.0" prefWidth="1195.0" />
+        </content>
+      </ScrollPane>
+   </children>
+</AnchorPane>

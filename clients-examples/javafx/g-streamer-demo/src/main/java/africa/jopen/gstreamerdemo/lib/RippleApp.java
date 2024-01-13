@@ -1,29 +1,26 @@
 package africa.jopen.gstreamerdemo.lib;
 
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.WebSocket;
 import org.json.JSONObject;
 
-import javax.websocket.ContainerProvider;
-import javax.websocket.DeploymentException;
-import javax.websocket.Session;
-import javax.websocket.WebSocketContainer;
-import java.io.IOException;
-import java.net.URI;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import dev.onvoid.webrtc.PeerConnectionObserver;
 
 public class RippleApp {
 	
-	static       Logger                   log             = Logger.getLogger(RippleApp.class.getName());
-	public       boolean                  isDebugging     = false;
-	public       boolean                  isConnected     = false;
-	public final String                   serverUrl;
-	public final String                   clientID;
-	private      Session                  session;
-	private      ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+	static       Logger                              log             = Logger.getLogger(RippleApp.class.getName());
+	public       boolean                             isDebugging     = false;
+	public       boolean                             isConnected     = false;
+	public final String                              serverUrl;
+	public final String                              clientID;
+	private      WebSocket                           webSocket;
+	private      PluginCallbacks.RootPluginCallBacks rootPluginCallBacks;
+	private      ScheduledExecutorService            executorService = Executors.newSingleThreadScheduledExecutor();
 	
 	public RippleApp(String serverUrl, PluginCallbacks.RootPluginCallBacks rootPluginCallBacks) {
 		serverUrl = RippleUtils.convertToWebSocketUrl(serverUrl);
@@ -38,6 +35,7 @@ public class RippleApp {
 		log.info("RippleApp initialized");
 		log.info("serverUrl: " + serverUrl);
 		log.info("clientID: " + clientID);
+		this.rootPluginCallBacks = rootPluginCallBacks;
 	}
 	
 	public void onMessage(String message) {
@@ -66,27 +64,20 @@ public class RippleApp {
 		}
 		log.info("Sending message");
 		log.info(message.toString());
-		try {
-			session.getBasicRemote().sendText(message.toString());
-		} catch (IOException e) {
-			log.log(Level.SEVERE, "Error sending message", e);
-		}
+		webSocket.send(message.toString());
 	}
 	
 	public void connect() {
-		try {
-			WebSocketContainer            container = ContainerProvider.getWebSocketContainer();
-			RippleClientWebSocketEndpoint endpoint  = new RippleClientWebSocketEndpoint();
-			endpoint.setRippleApp(this);
-			session = container.connectToServer(endpoint, URI.create(this.serverUrl));
-		} catch (DeploymentException | IOException e) {
-			log.log(Level.SEVERE, "Error connecting to server", e);
-			scheduleReconnect();
-		}
+		
+		OkHttpClient                  client   = new OkHttpClient();
+		Request                       request  = new Request.Builder().url(serverUrl).build();
+		RippleClientWebSocketEndpoint listener = new RippleClientWebSocketEndpoint();
+		listener.setRippleApp(this);
+		webSocket = client.newWebSocket(request, listener);
 	}
 	
 	private void scheduleReconnect() {
-        log.info("Scheduling reconnect");
+		log.info("Scheduling reconnect");
 		executorService.schedule(this::connect, 10, TimeUnit.SECONDS);
 	}
 	
