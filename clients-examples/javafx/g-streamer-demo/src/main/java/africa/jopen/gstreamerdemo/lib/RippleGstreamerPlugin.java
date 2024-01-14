@@ -7,11 +7,14 @@ import dev.onvoid.webrtc.media.video.VideoTrack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 @ApiStatus.NonExtendable
@@ -19,14 +22,23 @@ public class RippleGstreamerPlugin extends RipplePlugin {
 	static        Logger          log        = Logger.getLogger(RippleApp.class.getName());
 	private final List<Integer>  threadRefs = new ArrayList<>();
 	private final Map<Integer,VideoView> VideoViews = new HashMap<>();
+	private       ExecutorService        executor   = Executors.newVirtualThreadPerTaskExecutor();
+	private RippleApp rippleApp;
 	
-	public RippleGstreamerPlugin() {
+	public RippleGstreamerPlugin(RippleApp rippleApp) {
 		log.info("RippleGstreamerPlugin created");
+		this.rippleApp = rippleApp;
 	}
 	
 	
-	protected void startBroadCast() {
+	protected RipplePeerConnection startBroadCast(int threadRef) {
 		log.info("startBroadCast");
+		var peerConnection = new RipplePeerConnection(threadRef,rippleApp);
+		var json = new JSONObject();
+		json.put("requestType", "startBroadCast");
+		json.put("threadRef", threadRef);
+		rippleApp.sendMessage(json);
+		return peerConnection;
 	}
 	
 	public void renderThreadUI() {

@@ -2,7 +2,6 @@ package africa.jopen.gstreamerdemo.lib;
 
 import africa.jopen.gstreamerdemo.lib.utils.VideoView;
 import dev.onvoid.webrtc.media.MediaStreamTrack;
-import dev.onvoid.webrtc.media.video.VideoFrame;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.WebSocket;
@@ -18,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static africa.jopen.gstreamerdemo.lib.RipplePeerConnection.REMOTE_OFFER_STRING_SDP_MAP;
+import static africa.jopen.gstreamerdemo.lib.RipplePeerConnection.setRemoteOfferStringSdp;
 
 public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 	
@@ -30,10 +29,11 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 	private       WebSocket                              webSocket;
 	private final PluginCallbacks.RootPluginCallBacks    rootPluginCallBacks;
 	private final ScheduledExecutorService               executorService    = Executors.newSingleThreadScheduledExecutor();
+	private final ExecutorService                        perTaskExecutor    = Executors.newVirtualThreadPerTaskExecutor();
 	private final HashMap<Integer, RipplePeerConnection> peerConnectionsMap = new HashMap<>();
-
-	private       PluginCallbacks.FeaturesAvailable      FEATURE_IN_USE;
-	private       RipplePlugin                           ripplePlugin;
+	
+	private PluginCallbacks.FeaturesAvailable FEATURE_IN_USE;
+	private RipplePlugin                      ripplePlugin;
 	
 	
 	public RippleApp(String serverUrl, PluginCallbacks.RootPluginCallBacks rootPluginCallBacks, PluginCallbacks.FeaturesAvailable feature) {
@@ -58,7 +58,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 		message.put("requestType", "newThread");
 		message.put("feature", this.FEATURE_IN_USE.toString());
 		message.put("data", new JSONObject().put("file", file));
-		message.put("transaction", RippleUtils.uniqueIDGenerator("transaction",12));
+		message.put("transaction", RippleUtils.uniqueIDGenerator("transaction", 12));
 		message.put("clientID", clientID);
 		
 	}
@@ -67,23 +67,17 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 		JSONObject message = new JSONObject();
 		message.put("requestType", "remember");
 		message.put("clientID", clientID);
-		
-		// Create a new virtual thread executor
-		try (ExecutorService virtualExecutor = Executors.newVirtualThreadPerTaskExecutor()) {
-			
-			// Schedule the task to run every 30 seconds
-			virtualExecutor.submit(() -> {
-				while (true) {
-					sendMessage(message);
-					try {
-						TimeUnit.SECONDS.sleep(30);
-					} catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
-						break;
-					}
+		perTaskExecutor.submit(() -> {
+			while (true) {
+				sendMessage(message);
+				try {
+					TimeUnit.SECONDS.sleep(30);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					break;
 				}
-			});
-		}
+			}
+		});
 	}
 	
 	public void onMessage(final String message) {
@@ -95,11 +89,11 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 		
 		if (success && plugin != null) {
 			String pluginEventType = plugin.optString("eventType", null);
-			if(pluginEventType == null){
+			if (pluginEventType == null) {
 				return;
 			}
-			if(pluginEventType.equals("webrtc")){
-				REMOTE_OFFER_STRING_SDP_MAP.put(plugin.getInt("threadRef"),plugin.getString("sdp"));
+			if (pluginEventType.equals("webrtc")) {
+				setRemoteOfferStringSdp(plugin.getInt("threadRef"), plugin.getString("sdp"));
 			}
 		}
 		if (success && eventType != null) {
@@ -108,9 +102,12 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 					if (FEATURE_IN_USE == PluginCallbacks.FeaturesAvailable.G_STREAM) {
 						if (ripplePlugin != null) {
 							if (plugin.has("position")) {
-								VideoView videoView = ripplePlugin.addThread(plugin.getInt("position"));
-								if(ripplePlugin instanceof RippleGstreamerPlugin){
-									((RippleGstreamerPlugin) ripplePlugin).startBroadCast();
+								int       threadRef = plugin.getInt("threadRef");
+								VideoView videoView = ripplePlugin.addThread(threadRef);
+								if (ripplePlugin instanceof RippleGstreamerPlugin) {
+									
+									peerConnectionsMap.put(threadRef, ((RippleGstreamerPlugin) ripplePlugin).startBroadCast(threadRef));
+									
 								}
 								
 								
@@ -123,7 +120,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 				case "register":
 					System.out.println("Registered");
 					if (FEATURE_IN_USE == PluginCallbacks.FeaturesAvailable.G_STREAM) {
-						ripplePlugin = new RippleGstreamerPlugin();
+						ripplePlugin = new RippleGstreamerPlugin(this);
 					}
 					startToRemindServerOfMe();
 					break;
@@ -143,6 +140,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 		sendMessage(new JSONObject().put("requestType", "register").put("clientID", clientID));
 	}
 	
+	@NonBlocking
 	public void sendMessage(JSONObject message) {
 		if (message == null) {
 			log.warning("Message is null, nothing to send");
@@ -157,11 +155,12 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 			return;
 		}
 		
-		message.put("transaction", RippleUtils.uniqueIDGenerator("transaction",12));
+		message.put("transaction", RippleUtils.uniqueIDGenerator("transaction", 12));
 		message.put("clientID", clientID);
 		log.info("Sending message");
 		log.info(message.toString());
-		webSocket.send(message.toString());
+//		webSocket.send(message.toString());
+		perTaskExecutor.submit(() -> webSocket.send(message.toString()));
 	}
 	
 	public void connect() {
@@ -215,20 +214,22 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 	
 	@Override
 	public void onTrack(MediaStreamTrack track, int threadRef) {
-		if (track == null){
+		if (track == null) {
 			return;
 		}
-		if(ripplePlugin ==null){
+		if (ripplePlugin == null) {
 			return;
 		}
-		if(FEATURE_IN_USE == PluginCallbacks.FeaturesAvailable.G_STREAM && ripplePlugin instanceof RippleGstreamerPlugin){
+		if (FEATURE_IN_USE == PluginCallbacks.FeaturesAvailable.G_STREAM && ripplePlugin instanceof RippleGstreamerPlugin) {
 			
-			((RippleGstreamerPlugin) ripplePlugin).onTrack(track,threadRef);
+			((RippleGstreamerPlugin) ripplePlugin).onTrack(track, threadRef);
 		}
-
+		
 	}
 	
-	@Override @Nullable @NonBlocking
+	@Override
+	@Nullable
+	@NonBlocking
 	public void notify(@Nullable String jsonMessage) {
 		if (jsonMessage == null) {
 			return;
