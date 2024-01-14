@@ -1,5 +1,6 @@
 package africa.jopen.gstreamerdemo.lib;
 
+import javafx.application.Platform;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -8,6 +9,8 @@ import java.time.LocalTime;
 import java.util.Random;
 import java.util.UUID;
 import java.util.logging.Logger;
+
+import static java.util.Objects.isNull;
 
 public class RippleUtils {
 	
@@ -80,6 +83,30 @@ public class RippleUtils {
 			}
 		}
 		return true;
+	}
+	/**
+	 * Run this Runnable in the JavaFX Application Thread. This method can be
+	 * called whether or not the current thread is the JavaFX Application
+	 * Thread.
+	 *
+	 * @param runnable The code to be executed in the JavaFX Application Thread.
+	 */
+	public static void invoke(Runnable runnable) {
+		if (isNull(runnable)) {
+			return;
+		}
+		
+		try {
+			if (Platform.isFxApplicationThread()) {
+				runnable.run();
+			}
+			else {
+				Platform.runLater(runnable);
+			}
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	protected static String uniqueIDGenerator(String seed, int maxSize) {

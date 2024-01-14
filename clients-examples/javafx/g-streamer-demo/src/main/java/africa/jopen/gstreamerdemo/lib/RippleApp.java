@@ -1,10 +1,14 @@
 package africa.jopen.gstreamerdemo.lib;
 
+import africa.jopen.gstreamerdemo.lib.utils.VideoView;
+import dev.onvoid.webrtc.media.MediaStreamTrack;
+import dev.onvoid.webrtc.media.video.VideoFrame;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.WebSocket;
 import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -12,18 +16,22 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class RippleApp {
+public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 	
-	static        Logger                              log             = Logger.getLogger(RippleApp.class.getName());
-	public        boolean                             isDebugging     = false;
-	public        boolean                             isConnected     = false;
-	public final  String                              serverUrl;
-	public final  String                              clientID;
-	private       WebSocket                           webSocket;
-	private final PluginCallbacks.RootPluginCallBacks rootPluginCallBacks;
-	private final ScheduledExecutorService            executorService = Executors.newSingleThreadScheduledExecutor();
+	static        Logger                                 log                = Logger.getLogger(RippleApp.class.getName());
+	public        boolean                                isDebugging        = false;
+	public        boolean                                isConnected        = false;
+	public final  String                                 serverUrl;
+	public final  String                                 clientID;
+	private       WebSocket                              webSocket;
+	private final PluginCallbacks.RootPluginCallBacks    rootPluginCallBacks;
+	private final ScheduledExecutorService               executorService    = Executors.newSingleThreadScheduledExecutor();
+	private final HashMap<Integer, RipplePeerConnection> peerConnectionsMap = new HashMap<>();
+	private       PluginCallbacks.FeaturesAvailable      FEATURE_IN_USE;
+	private       RipplePlugin                           ripplePlugin;
 	
-	public RippleApp(String serverUrl, PluginCallbacks.RootPluginCallBacks rootPluginCallBacks) {
+	
+	public RippleApp(String serverUrl, PluginCallbacks.RootPluginCallBacks rootPluginCallBacks, PluginCallbacks.FeaturesAvailable feature) {
 		serverUrl = RippleUtils.convertToWebSocketUrl(serverUrl);
 		if (serverUrl.endsWith("/")) {
 			serverUrl = serverUrl + "websocket/client";
@@ -31,6 +39,7 @@ public class RippleApp {
 			serverUrl = serverUrl + "/websocket/client";
 		}
 		this.serverUrl = serverUrl;
+		this.FEATURE_IN_USE = feature;
 		String uniqueID = RippleUtils.uniqueIDGenerator(RippleUtils.nonAlphaNumeric(System.getProperty("user.name")), 22);
 		this.clientID = RippleUtils.IdGenerator() + uniqueID;
 		log.info("RippleApp initialized");
@@ -38,6 +47,7 @@ public class RippleApp {
 		log.info("clientID: " + clientID);
 		this.rootPluginCallBacks = rootPluginCallBacks;
 	}
+	
 	private void startToRemindServerOfMe() {
 		JSONObject message = new JSONObject();
 		message.put("requestType", "remember");
@@ -71,9 +81,26 @@ public class RippleApp {
 		if (success && eventType != null) {
 			switch (eventType) {
 				case "newThread":
+					if (FEATURE_IN_USE == PluginCallbacks.FeaturesAvailable.G_STREAM) {
+						if (ripplePlugin != null) {
+							if (plugin.has("position")) {
+								VideoView videoView = ripplePlugin.addThread(plugin.getInt("position"));
+								if(ripplePlugin instanceof RippleGstreamerPlugin){
+									((RippleGstreamerPlugin) ripplePlugin).startBroadCast();
+								}
+								
+								
+							}
+							
+						}
+					}
+					
 					break;
 				case "register":
 					System.out.println("Registered");
+					if (FEATURE_IN_USE == PluginCallbacks.FeaturesAvailable.G_STREAM) {
+						ripplePlugin = new RippleGstreamerPlugin();
+					}
 					startToRemindServerOfMe();
 					break;
 				default:
@@ -105,6 +132,9 @@ public class RippleApp {
 			log.warning("Message is empty, nothing to send");
 			return;
 		}
+		
+		message.put("transaction", RippleUtils.uniqueIDGenerator("transaction",12));
+		message.put("clientID", clientID);
 		log.info("Sending message");
 		log.info(message.toString());
 		webSocket.send(message.toString());
@@ -147,4 +177,32 @@ public class RippleApp {
 	}
 	
 	
+	@Override
+	public void IceCandidate(String message) {
+		JSONObject messageObject = new JSONObject(message);
+		messageObject.put("requestType", "iceCandidate");
+		sendMessage(messageObject);
+	}
+	
+	@Override
+	public void onTrack(MediaStreamTrack track) {
+	
+	}
+	
+	@Override
+	public void onTrack(MediaStreamTrack track, int threadRef) {
+		if (track == null){
+			return;
+		}
+		if(ripplePlugin ==null){
+			return;
+		}
+		if(FEATURE_IN_USE == PluginCallbacks.FeaturesAvailable.G_STREAM && ripplePlugin instanceof RippleGstreamerPlugin){
+			
+			((RippleGstreamerPlugin) ripplePlugin).onTrack(track,threadRef);
+		}
+
+	}
+	
+
 }
