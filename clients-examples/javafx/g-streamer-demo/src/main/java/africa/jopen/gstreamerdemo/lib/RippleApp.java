@@ -6,6 +6,8 @@ import dev.onvoid.webrtc.media.video.VideoFrame;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.WebSocket;
+import org.jetbrains.annotations.NonBlocking;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -15,6 +17,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static africa.jopen.gstreamerdemo.lib.RipplePeerConnection.REMOTE_OFFER_STRING_SDP_MAP;
 
 public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 	
@@ -27,7 +31,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 	private final PluginCallbacks.RootPluginCallBacks    rootPluginCallBacks;
 	private final ScheduledExecutorService               executorService    = Executors.newSingleThreadScheduledExecutor();
 	private final HashMap<Integer, RipplePeerConnection> peerConnectionsMap = new HashMap<>();
-	private final HashMap<Integer, String> remoteOfferStringSDPMap = new HashMap<>();
+
 	private       PluginCallbacks.FeaturesAvailable      FEATURE_IN_USE;
 	private       RipplePlugin                           ripplePlugin;
 	
@@ -95,7 +99,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 				return;
 			}
 			if(pluginEventType.equals("webrtc")){
-				remoteOfferStringSDPMap.put(plugin.getInt("threadRef"),plugin.getString("sdp"));
+				REMOTE_OFFER_STRING_SDP_MAP.put(plugin.getInt("threadRef"),plugin.getString("sdp"));
 			}
 		}
 		if (success && eventType != null) {
@@ -224,5 +228,17 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 
 	}
 	
-
+	@Override @Nullable @NonBlocking
+	public void notify(@Nullable String jsonMessage) {
+		if (jsonMessage == null) {
+			return;
+		}
+		if (jsonMessage.isEmpty()) {
+			return;
+		}
+		JSONObject message = new JSONObject(jsonMessage);
+		sendMessage(message);
+	}
+	
+	
 }

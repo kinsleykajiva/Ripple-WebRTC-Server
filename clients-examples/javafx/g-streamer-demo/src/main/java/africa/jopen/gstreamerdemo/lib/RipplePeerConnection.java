@@ -6,14 +6,18 @@ import dev.onvoid.webrtc.media.MediaStreamTrack;
 import org.jetbrains.annotations.ApiStatus;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
 @ApiStatus.NonExtendable
 public class RipplePeerConnection implements PeerConnectionObserver {
-	private PluginCallbacks.WebRTCPeerEvents webRTCPeerEvents;
-	private int                              threadRef;
-	private PeerConnectionFactory            peerConnectionFactory;
-	private RTCPeerConnection                peerConnection;
+	private             PluginCallbacks.WebRTCPeerEvents webRTCPeerEvents;
+	private             int                              threadRef;
+	private             PeerConnectionFactory            peerConnectionFactory;
+	private             RTCPeerConnection                peerConnection;
+	public static final HashMap<Integer, String>         REMOTE_OFFER_STRING_SDP_MAP = new HashMap<>();
 	
 	public static RTCIceServer getIceServers() {
 		RTCIceServer stunServer = new RTCIceServer();
@@ -26,7 +30,6 @@ public class RipplePeerConnection implements PeerConnectionObserver {
 		
 		RTCConfiguration config = new RTCConfiguration();
 		config.iceServers.add(getIceServers());
-		
 		return config;
 	}
 	
@@ -37,8 +40,64 @@ public class RipplePeerConnection implements PeerConnectionObserver {
 		peerConnection = peerConnectionFactory.createPeerConnection(getRTCConfig(), this);
 	}
 	
-	public void createAnswer() {
+	public void createAnswer() throws ExecutionException, InterruptedException {
 		log.info("createAnswer " + threadRef);
+		RTCSessionDescription rtcSessionDescription = new RTCSessionDescription(RTCSdpType.OFFER, REMOTE_OFFER_STRING_SDP_MAP.get(threadRef));
+		
+		CompletableFuture<Void>                  SessionDescriptionObserverFuture       = new CompletableFuture<>();
+		CompletableFuture<RTCSessionDescription> CreateSessionDescriptionObserverFuture = new CompletableFuture<>();
+		
+		SetSessionDescriptionObserver setSessionDescriptionObserver = new SetSessionDescriptionObserver() {
+			@Override
+			public void onSuccess() {
+				log.info("setRemoteDescription onSuccess");
+				SessionDescriptionObserverFuture.complete(null);
+			}
+			
+			@Override
+			public void onFailure(String error) {
+				SessionDescriptionObserverFuture.completeExceptionally(new RuntimeException("setRemoteDescription failed with error: " + error));
+			}
+		};
+		peerConnection.setRemoteDescription(rtcSessionDescription, setSessionDescriptionObserver);
+		
+		SessionDescriptionObserverFuture.get();
+		
+		RTCAnswerOptions answerOptions = new RTCAnswerOptions();
+		CreateSessionDescriptionObserver createSessionDescriptionObserver = new CreateSessionDescriptionObserver() {
+			
+			@Override
+			public void onSuccess(RTCSessionDescription description) {
+				CreateSessionDescriptionObserverFuture.complete(description);
+			}
+			
+			@Override
+			public void onFailure(String error) {
+				CreateSessionDescriptionObserverFuture.completeExceptionally(new RuntimeException("createAnswer failed with error: " + error));
+			}
+		};
+		peerConnection.createAnswer(answerOptions, createSessionDescriptionObserver);
+		var                     answer                              = CreateSessionDescriptionObserverFuture.get();
+		CompletableFuture<Void> SetSessionDescriptionObserverFuture = new CompletableFuture<>();
+		peerConnection.setLocalDescription(answer, new SetSessionDescriptionObserver() {
+			@Override
+			public void onSuccess() {
+				log.info("setLocalDescription onSuccess");
+				SetSessionDescriptionObserverFuture.complete(null);
+			}
+			
+			@Override
+			public void onFailure(String error) {
+				log.info("setLocalDescription onFailure");
+				SetSessionDescriptionObserverFuture.completeExceptionally(new RuntimeException("setLocalDescription failed with error: " + error));
+			}
+		});
+		SetSessionDescriptionObserverFuture.get();
+		JSONObject message = new JSONObject();
+		message.put("requestType", "answer");
+		message.put("threadRef", threadRef);
+		message.put("answer", answer.sdp);
+		webRTCPeerEvents.notify(message.toString());
 		
 	}
 	
