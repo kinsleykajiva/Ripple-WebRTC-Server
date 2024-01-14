@@ -48,6 +48,16 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 		this.rootPluginCallBacks = rootPluginCallBacks;
 	}
 	
+	public void requestNewThread(String file) {
+		JSONObject message = new JSONObject();
+		message.put("requestType", "newThread");
+		message.put("feature", this.FEATURE_IN_USE.toString());
+		message.put("data", new JSONObject().put("file", file));
+		message.put("transaction", RippleUtils.uniqueIDGenerator("transaction",12));
+		message.put("clientID", clientID);
+		
+	}
+	
 	private void startToRemindServerOfMe() {
 		JSONObject message = new JSONObject();
 		message.put("requestType", "remember");

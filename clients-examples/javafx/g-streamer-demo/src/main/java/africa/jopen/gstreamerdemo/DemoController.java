@@ -17,14 +17,40 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class DemoController implements Initializable, PluginCallbacks.GstreamerPluginCallBack {
 	
 	static Logger log = Logger.getLogger(DemoController.class.getName());
 	
-	private RippleApp rippleApp;
+	private       RippleApp    rippleApp;
+	private final List<String> mediaStreamFiles = Arrays.asList(
+			"Shakespeare.mp4",
+			"HeartAndSoulRiddimInstrumental.mp4",
+			"MellowSleazyTmanXpressKwelinyeKeynote.mp4",
+			"TheMessageRiddimMixDonCorleon.mp4"
+	);
+	
+	private Set<String> chosenElements = new HashSet<>();
+	private Random      random         = new Random();
+	
+	public String pickRandomElement() {
+		if (chosenElements.size() == mediaStreamFiles.size()) {
+			chosenElements.clear();
+		}
+		
+		int    randomIndex   = random.nextInt(mediaStreamFiles.size());
+		String chosenElement = mediaStreamFiles.get(randomIndex);
+		
+		while (chosenElements.contains(chosenElement)) {
+			randomIndex = (randomIndex + 1) % mediaStreamFiles.size();
+			chosenElement = mediaStreamFiles.get(randomIndex);
+		}
+		
+		chosenElements.add(chosenElement);
+		return chosenElement;
+	}
 	
 	@FXML
 	private AnchorPane AnchorstreamsVids;
@@ -36,12 +62,12 @@ public class DemoController implements Initializable, PluginCallbacks.GstreamerP
 	private Button btnStartStreaming;
 	
 	@FXML
-	private GridPane GridstreamsVids;
+	private       GridPane GridstreamsVids;
 	@FXML
-	private Label    txtConnectionStatus;
-	private int currentColumn = 0;
-	private int currentRow = 0;
-	private final int maxColumns = 2; // change this to the maximum number of columns you want
+	private       Label    txtConnectionStatus;
+	private       int      currentColumn = 0;
+	private       int      currentRow    = 0;
+	private final int      maxColumns    = 2; // change this to the maximum number of columns you want
 	
 	
 	@Override
@@ -50,8 +76,11 @@ public class DemoController implements Initializable, PluginCallbacks.GstreamerP
 		txtConnectionStatus.setText("Disconnected");
 		txtConnectionStatus.setStyle("-fx-text-fill: red;");
 		btnStartStreaming.setOnMouseClicked(event -> {
-		
-		
+			
+			var fileMedia = pickRandomElement();
+			log.info("fileMedia: " + fileMedia);
+			rippleApp.requestNewThread(fileMedia);
+			
 		});
 		
 		
@@ -62,7 +91,6 @@ public class DemoController implements Initializable, PluginCallbacks.GstreamerP
 			
 		}, 2);
 	}
-	
 	
 	
 	@Override
@@ -111,11 +139,12 @@ public class DemoController implements Initializable, PluginCallbacks.GstreamerP
 	
 	}
 	
-	@Override @Blocking
+	@Override
+	@Blocking
 	public void onStreamUIUpdates(@Nullable VideoView videoView) {
-		if(videoView ==  null){
+		if (videoView == null) {
 			// means remove the videoView from the UI
-		}else{
+		} else {
 			// means add the videoView to the UI
 			GridPane.setHgrow(videoView, Priority.ALWAYS);
 			GridPane.setVgrow(videoView, Priority.ALWAYS);

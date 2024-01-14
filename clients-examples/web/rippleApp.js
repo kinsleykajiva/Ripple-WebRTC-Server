@@ -607,7 +607,6 @@ const RippleSDK = {
                 if (success && pluginEventType) {
                     if (pluginEventType === 'webrtc') {
                         RippleSDK.app.webRTC.remoteOfferStringSDPMap.set(messageObject.position, plugin.clientSDP);
-
                         await RippleSDK.app.webRTC.createAnswer(messageObject.position);
 
                     }
