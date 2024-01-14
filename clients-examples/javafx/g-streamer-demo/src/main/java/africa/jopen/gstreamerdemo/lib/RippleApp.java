@@ -27,6 +27,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 	private final PluginCallbacks.RootPluginCallBacks    rootPluginCallBacks;
 	private final ScheduledExecutorService               executorService    = Executors.newSingleThreadScheduledExecutor();
 	private final HashMap<Integer, RipplePeerConnection> peerConnectionsMap = new HashMap<>();
+	private final HashMap<Integer, String> remoteOfferStringSDPMap = new HashMap<>();
 	private       PluginCallbacks.FeaturesAvailable      FEATURE_IN_USE;
 	private       RipplePlugin                           ripplePlugin;
 	
@@ -88,6 +89,15 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 		boolean          success       = messageObject.optBoolean("success", false);
 		JSONObject       plugin        = messageObject.optJSONObject("plugin", null);
 		
+		if (success && plugin != null) {
+			String pluginEventType = plugin.optString("eventType", null);
+			if(pluginEventType == null){
+				return;
+			}
+			if(pluginEventType.equals("webrtc")){
+				remoteOfferStringSDPMap.put(plugin.getInt("threadRef"),plugin.getString("sdp"));
+			}
+		}
 		if (success && eventType != null) {
 			switch (eventType) {
 				case "newThread":

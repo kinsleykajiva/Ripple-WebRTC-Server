@@ -3,7 +3,6 @@ package africa.jopen.gstreamerdemo.lib;
 import dev.onvoid.webrtc.*;
 import dev.onvoid.webrtc.media.MediaStream;
 import dev.onvoid.webrtc.media.MediaStreamTrack;
-import dev.onvoid.webrtc.media.video.VideoTrack;
 import org.jetbrains.annotations.ApiStatus;
 import org.json.JSONObject;
 
@@ -13,10 +12,34 @@ import java.util.logging.Logger;
 public class RipplePeerConnection implements PeerConnectionObserver {
 	private PluginCallbacks.WebRTCPeerEvents webRTCPeerEvents;
 	private int                              threadRef;
+	private PeerConnectionFactory            peerConnectionFactory;
+	private RTCPeerConnection                peerConnection;
+	
+	public static RTCIceServer getIceServers() {
+		RTCIceServer stunServer = new RTCIceServer();
+		stunServer.urls.add("stun:stunserver.org:3478");
+		stunServer.urls.add("stun:webrtc.encmed.cn:5349");
+		return stunServer;
+	}
+	
+	public static RTCConfiguration getRTCConfig() {
+		
+		RTCConfiguration config = new RTCConfiguration();
+		config.iceServers.add(getIceServers());
+		
+		return config;
+	}
 	
 	public RipplePeerConnection(int threadRef, PluginCallbacks.WebRTCPeerEvents webRTCPeerEvents) {
 		this.threadRef = threadRef;
 		this.webRTCPeerEvents = webRTCPeerEvents;
+		peerConnectionFactory = new PeerConnectionFactory();
+		peerConnection = peerConnectionFactory.createPeerConnection(getRTCConfig(), this);
+	}
+	
+	public void createAnswer() {
+		log.info("createAnswer " + threadRef);
+		
 	}
 	
 	static Logger log = Logger.getLogger(RipplePeerConnection.class.getName());
@@ -60,11 +83,11 @@ public class RipplePeerConnection implements PeerConnectionObserver {
 	@Override
 	public void onTrack(RTCRtpTransceiver transceiver) {
 		PeerConnectionObserver.super.onTrack(transceiver);
-		if(transceiver == null){
+		if (transceiver == null) {
 			return;
 		}
 		MediaStreamTrack track = transceiver.getReceiver().getTrack();
-		if(track == null){
+		if (track == null) {
 			return;
 		}
 		webRTCPeerEvents.onTrack(track, threadRef);
