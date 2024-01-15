@@ -82,10 +82,10 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 	
 	public void onMessage(final String message) {
 		log.info("Received message: " + message);
-		final JSONObject messageObject = new JSONObject(message);
-		String           eventType     = messageObject.optString("eventType", null);
-		boolean          success       = messageObject.optBoolean("success", false);
-		JSONObject       plugin        = messageObject.optJSONObject("plugin", null);
+		JSONObject messageObject = new JSONObject(message);
+		String     eventType     = messageObject.optString("eventType", null);
+		boolean    success       = messageObject.optBoolean("success", false);
+		JSONObject plugin        = messageObject.optJSONObject("plugin", null);
 		
 		if (success && plugin != null) {
 			String pluginEventType = plugin.optString("eventType", null);
@@ -101,7 +101,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 				case "newThread":
 					if (FEATURE_IN_USE == PluginCallbacks.FeaturesAvailable.G_STREAM_BROADCASTER) {
 						
-						if (ripplePlugin != null ) {
+						if (ripplePlugin != null) {
 							if (messageObject.has("position")) {
 								int       threadRef = messageObject.getInt("position");
 								VideoView videoView = ripplePlugin.addThread(threadRef);
@@ -110,7 +110,6 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 									peerConnectionsMap.put(threadRef, ((RippleGstreamerPlugin) ripplePlugin).startBroadCast(threadRef));
 									
 								}
-								
 								
 							}
 							
