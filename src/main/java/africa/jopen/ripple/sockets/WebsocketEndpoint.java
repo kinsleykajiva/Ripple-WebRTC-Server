@@ -178,7 +178,7 @@ public class WebsocketEndpoint implements WsListener {
 							log.info("client: " + client);
 							if (Objects.nonNull(client)) {
 								client.setDebugSession(isDebugSession);
-								client.replyToRemembering(transaction);
+								//client.replyToRemembering(transaction);
 							} else {
 								log.info("Client not found");
 							}

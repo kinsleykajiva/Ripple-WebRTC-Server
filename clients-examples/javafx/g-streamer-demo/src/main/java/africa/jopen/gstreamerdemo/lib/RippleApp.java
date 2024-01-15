@@ -158,8 +158,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 		
 		message.put("transaction", RippleUtils.uniqueIDGenerator("transaction", 12));
 		message.put("clientID", clientID);
-		log.info("Sending message");
-		log.info(message.toString());
+//		log.info(message.toString());
 //		webSocket.send(message.toString());
 		perTaskExecutor.submit(() -> webSocket.send(message.toString()));
 	}

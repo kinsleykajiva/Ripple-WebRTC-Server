@@ -170,6 +170,9 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 			while (isCompleted[0]) {
 				long duration = pipe.queryDuration(TimeUnit.SECONDS);
 				long position = pipe.queryPosition(TimeUnit.SECONDS);
+				if (position == 0) {
+					continue;
+				}
 				int progress = (int) ((position / (double) duration) * 100);
 				
 				long minutesMax = duration / 60;

@@ -24,8 +24,8 @@
     </appender>
 
 
-<!--    <appender name="ERROR" class="org.apache.log4j.RollingFileAppender">-->
-    <appender name="ERROR" class="africa.jopen.ripple.utils.ApacheColorConsoleAppender">
+    <appender name="ERROR" class="org.apache.log4j.RollingFileAppender">
+<!--    <appender name="ERROR" class="africa.jopen.ripple.utils.ApacheColorConsoleAppender">-->
         <param name="File" value="./logs/rippleServerError.log"/>
         <param name="MaxFileSize" value="5000KB"/>
         <param name="MaxBackupIndex" value="1"/>
