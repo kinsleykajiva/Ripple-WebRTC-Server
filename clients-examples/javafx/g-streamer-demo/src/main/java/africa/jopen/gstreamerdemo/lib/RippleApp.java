@@ -60,7 +60,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 		message.put("data", new JSONObject().put("file", file));
 		message.put("transaction", RippleUtils.uniqueIDGenerator("transaction", 12));
 		message.put("clientID", clientID);
-		
+		sendMessage(message);
 	}
 	
 	private void startToRemindServerOfMe() {
@@ -93,16 +93,17 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 				return;
 			}
 			if (pluginEventType.equals("webrtc")) {
-				setRemoteOfferStringSdp(plugin.getInt("threadRef"), plugin.getString("sdp"));
+				setRemoteOfferStringSdp(messageObject.getInt("position"), plugin.getString("sdp"));
 			}
 		}
 		if (success && eventType != null) {
 			switch (eventType) {
 				case "newThread":
-					if (FEATURE_IN_USE == PluginCallbacks.FeaturesAvailable.G_STREAM) {
-						if (ripplePlugin != null) {
-							if (plugin.has("position")) {
-								int       threadRef = plugin.getInt("threadRef");
+					if (FEATURE_IN_USE == PluginCallbacks.FeaturesAvailable.G_STREAM_BROADCASTER) {
+						
+						if (ripplePlugin != null ) {
+							if (messageObject.has("position")) {
+								int       threadRef = messageObject.getInt("position");
 								VideoView videoView = ripplePlugin.addThread(threadRef);
 								if (ripplePlugin instanceof RippleGstreamerPlugin) {
 									
@@ -119,7 +120,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 					break;
 				case "register":
 					System.out.println("Registered");
-					if (FEATURE_IN_USE == PluginCallbacks.FeaturesAvailable.G_STREAM) {
+					if (FEATURE_IN_USE == PluginCallbacks.FeaturesAvailable.G_STREAM_BROADCASTER) {
 						ripplePlugin = new RippleGstreamerPlugin(this);
 					}
 					startToRemindServerOfMe();
@@ -220,7 +221,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 		if (ripplePlugin == null) {
 			return;
 		}
-		if (FEATURE_IN_USE == PluginCallbacks.FeaturesAvailable.G_STREAM && ripplePlugin instanceof RippleGstreamerPlugin) {
+		if (FEATURE_IN_USE == PluginCallbacks.FeaturesAvailable.G_STREAM_BROADCASTER && ripplePlugin instanceof RippleGstreamerPlugin) {
 			
 			((RippleGstreamerPlugin) ripplePlugin).onTrack(track, threadRef);
 		}
