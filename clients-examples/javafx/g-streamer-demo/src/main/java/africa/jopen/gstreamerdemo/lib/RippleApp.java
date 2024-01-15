@@ -86,24 +86,27 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 		String     eventType     = messageObject.optString("eventType", null);
 		boolean    success       = messageObject.optBoolean("success", false);
 		JSONObject plugin        = messageObject.optJSONObject("plugin", null);
-		
-		if (success && plugin != null) {
+		int        threadRef     = messageObject.optInt("position", 0);
+		if (plugin != null) {
 			String pluginEventType = plugin.optString("eventType", null);
 			if (pluginEventType == null) {
 				return;
 			}
 			if (pluginEventType.equals("webrtc")) {
-				setRemoteOfferStringSdp(messageObject.getInt("position"), plugin.getString("sdp"));
+				setRemoteOfferStringSdp(threadRef, plugin.getString("sdp"));
 			}
 		}
-		if (success && eventType != null) {
+		
+		if (eventType != null) {
 			switch (eventType) {
 				case "newThread":
+					if(threadRef == 0) {
+						break;
+					}
 					if (FEATURE_IN_USE == PluginCallbacks.FeaturesAvailable.G_STREAM_BROADCASTER) {
 						
 						if (ripplePlugin != null) {
 							if (messageObject.has("position")) {
-								int       threadRef = messageObject.getInt("position");
 								VideoView videoView = ripplePlugin.addThread(threadRef);
 								if (ripplePlugin instanceof RippleGstreamerPlugin) {
 									

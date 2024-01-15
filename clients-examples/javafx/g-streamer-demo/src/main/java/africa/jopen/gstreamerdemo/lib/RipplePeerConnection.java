@@ -13,10 +13,9 @@ import java.util.logging.Logger;
 
 @ApiStatus.NonExtendable
 public class RipplePeerConnection implements PeerConnectionObserver {
-	private              PluginCallbacks.WebRTCPeerEvents webRTCPeerEvents;
-	private              int                              threadRef;
-	private              PeerConnectionFactory            peerConnectionFactory;
-	private              RTCPeerConnection                peerConnection;
+	private final        PluginCallbacks.WebRTCPeerEvents webRTCPeerEvents;
+	private final        int                              threadRef;
+	private final        RTCPeerConnection                peerConnection;
 	private static final HashMap<Integer, String>         REMOTE_OFFER_STRING_SDP_MAP = new HashMap<>();
 	
 	public static RTCIceServer getIceServers() {
@@ -36,19 +35,19 @@ public class RipplePeerConnection implements PeerConnectionObserver {
 	public RipplePeerConnection(int threadRef, PluginCallbacks.WebRTCPeerEvents webRTCPeerEvents) {
 		this.threadRef = threadRef;
 		this.webRTCPeerEvents = webRTCPeerEvents;
-		peerConnectionFactory = new PeerConnectionFactory();
+		PeerConnectionFactory peerConnectionFactory = new PeerConnectionFactory();
 		peerConnection = peerConnectionFactory.createPeerConnection(getRTCConfig(), this);
 	}
 	
 	
 	public void addIceCandidatePeerConnection(String sdpMid, int sdpMLineIndex, String sdp) {
-		var candidate = new RTCIceCandidate(sdpMid, sdpMLineIndex,sdp);
+		var candidate = new RTCIceCandidate(sdpMid, sdpMLineIndex, sdp);
 		peerConnection.addIceCandidate(candidate);
 	}
 	
 	@Blocking
 	public void consumeAnswer(RTCSessionDescription rtcSessionDescription) {
-		CompletableFuture<Void>                  SetSessionDescriptionObserverFuture       = new CompletableFuture<>();
+		CompletableFuture<Void> SetSessionDescriptionObserverFuture = new CompletableFuture<>();
 		
 		peerConnection.setRemoteDescription(rtcSessionDescription, new SetSessionDescriptionObserver() {
 			@Override
@@ -65,6 +64,7 @@ public class RipplePeerConnection implements PeerConnectionObserver {
 		});
 		SetSessionDescriptionObserverFuture.join();
 	}
+	
 	@Blocking
 	public void createOffer() {
 		var offerOption = new RTCOfferOptions();
