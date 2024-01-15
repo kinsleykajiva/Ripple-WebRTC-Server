@@ -92,8 +92,21 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 			if (pluginEventType == null) {
 				return;
 			}
+			if(threadRef == 0) {
+				return;
+			}
+			if (pluginEventType.equals("iceCandidates")) {
+				JSONObject iceCandidate = plugin.optJSONObject("iceCandidates", null);
+				if (iceCandidate != null) {
+					return;
+				}
+				var candidate = iceCandidate.getString("candidate");
+				var sdpMLineIndex = iceCandidate.getInt("sdpMLineIndex");
+				peerConnectionsMap.get(threadRef).addIceCandidatePeerConnection(candidate, sdpMLineIndex);
+			}
 			if (pluginEventType.equals("webrtc")) {
-				setRemoteOfferStringSdp(threadRef, plugin.getString("sdp"));
+				setRemoteOfferStringSdp(threadRef, plugin.getString("clientSDP"));
+				peerConnectionsMap.get(threadRef).createAnswer();
 			}
 		}
 		
@@ -160,9 +173,9 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 		
 		message.put("transaction", RippleUtils.uniqueIDGenerator("transaction", 12));
 		message.put("clientID", clientID);
-//		log.info(message.toString());
-//		webSocket.send(message.toString());
-		perTaskExecutor.submit(() -> webSocket.send(message.toString()));
+		log.info(message.toString());
+		webSocket.send(message.toString());
+		//perTaskExecutor.submit(() -> webSocket.send(message.toString()));
 	}
 	
 	public void connect() {

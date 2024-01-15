@@ -39,9 +39,24 @@ public class RipplePeerConnection implements PeerConnectionObserver {
 		peerConnection = peerConnectionFactory.createPeerConnection(getRTCConfig(), this);
 	}
 	
+	public String getSdpMidFromCandidate(String candidate) {
+		String sdpMid = null;
+		String[] candidateParts = candidate.split(" ");
+		
+		for (int i = 0; i < candidateParts.length; i++) {
+			if (candidateParts[i].equals("sdpMid")) {
+				sdpMid = candidateParts[i + 1];
+				break;
+			}
+		}
+		
+		return sdpMid;
+	}
 	
-	public void addIceCandidatePeerConnection(String sdpMid, int sdpMLineIndex, String sdp) {
-		var candidate = new RTCIceCandidate(sdpMid, sdpMLineIndex, sdp);
+	public void addIceCandidatePeerConnection(String iceCandidates, int sdpMLineIndex) {
+		String sdpMid    = getSdpMidFromCandidate(iceCandidates);
+		String sdp       = iceCandidates;
+		var    candidate = new RTCIceCandidate(sdpMid, sdpMLineIndex, sdp);
 		peerConnection.addIceCandidate(candidate);
 	}
 	
@@ -104,6 +119,7 @@ public class RipplePeerConnection implements PeerConnectionObserver {
 	
 	public void createAnswer() {
 		log.info("Creating answer for threadRef: " + threadRef);
+		log.info("xxxxxCreating answer for threadRef: " + getRemoteOfferStringSdp(threadRef));
 		RTCSessionDescription rtcSessionDescription = new RTCSessionDescription(RTCSdpType.OFFER, getRemoteOfferStringSdp(threadRef));
 		
 		CompletableFuture<Void>                  SessionDescriptionObserverFuture       = new CompletableFuture<>();
@@ -129,6 +145,7 @@ public class RipplePeerConnection implements PeerConnectionObserver {
 				
 				@Override
 				public void onSuccess(RTCSessionDescription description) {
+					log.info("xxxxxCreateSessionDescriptionObserverFuture onSuccess");
 					CreateSessionDescriptionObserverFuture.complete(description);
 				}
 				
@@ -167,6 +184,7 @@ public class RipplePeerConnection implements PeerConnectionObserver {
 	
 	public static String getRemoteOfferStringSdp(int threadRef) {
 		return REMOTE_OFFER_STRING_SDP_MAP.get(threadRef);
+		
 	}
 	
 	public static void setRemoteOfferStringSdp(int threadRef, String sdp) {
@@ -199,10 +217,14 @@ public class RipplePeerConnection implements PeerConnectionObserver {
 			return;
 		}
 		JSONObject message = new JSONObject();
+		
 		message.put("sdpMid", rtcIceCandidate.sdpMid);
+//		message.put("candidate", rtcIceCandidate.candidate);
 		message.put("sdpMLineIndex", rtcIceCandidate.sdpMLineIndex);
 		message.put("sdp", rtcIceCandidate.sdp);
 		message.put("threadRef", threadRef);
+		message.put("requestType", "iceCandidate");
+		
 		webRTCPeerEvents.IceCandidate(message.toString());
 	}
 	
