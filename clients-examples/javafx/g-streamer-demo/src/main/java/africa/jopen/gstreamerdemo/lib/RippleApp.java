@@ -120,10 +120,11 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 						
 						if (ripplePlugin != null) {
 							if (messageObject.has("position")) {
-								VideoView videoView = ripplePlugin.addThread(threadRef);
+								
 								if (ripplePlugin instanceof RippleGstreamerPlugin) {
 									
 									peerConnectionsMap.put(threadRef, ((RippleGstreamerPlugin) ripplePlugin).startBroadCast(threadRef));
+									VideoView videoView = ripplePlugin.addThread(threadRef);
 									
 								}
 								

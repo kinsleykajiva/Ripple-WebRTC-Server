@@ -58,11 +58,14 @@ public class RippleGstreamerPlugin extends RipplePlugin {
 	public VideoView addThread(int threadRef) {
 		log.info("addThread");
 		threadRefs.add(threadRef);
-		addUIVideoView(buildVideoView(threadRef),threadRef);
-		return null;
+	 addUIVideoView(buildVideoView(threadRef),threadRef);
+	 return  VideoViews.get(threadRef);
 	}
 	
-
+	public Map<Integer, VideoView> getVideoViews() {
+		return VideoViews;
+	}
+	
 	@Blocking
 	protected void addUIVideoView(@NotNull VideoView videoView,int threadRef) {
 		VideoViews.put(threadRef,videoView);

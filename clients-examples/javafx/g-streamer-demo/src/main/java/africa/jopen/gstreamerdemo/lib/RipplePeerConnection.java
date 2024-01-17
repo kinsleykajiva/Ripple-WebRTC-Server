@@ -211,7 +211,7 @@ public class RipplePeerConnection implements PeerConnectionObserver {
 	}
 	
 	@Override
-	public void onIceCandidate(RTCIceCandidate rtcIceCandidate) {
+	public void onIceCandidate( RTCIceCandidate rtcIceCandidate ) {
 		if (rtcIceCandidate == null) {
 			log.info("End of candidates");
 			return;
@@ -219,12 +219,18 @@ public class RipplePeerConnection implements PeerConnectionObserver {
 		JSONObject message = new JSONObject();
 		
 		message.put("sdpMid", rtcIceCandidate.sdpMid);
-//		message.put("candidate", rtcIceCandidate.candidate);
+		message.put("candidate", rtcIceCandidate.sdp);
 		message.put("sdpMLineIndex", rtcIceCandidate.sdpMLineIndex);
 		message.put("sdp", rtcIceCandidate.sdp);
 		message.put("threadRef", threadRef);
 		message.put("requestType", "iceCandidate");
+		/*IceCandidateMessage iceCandidateMessage = new IceCandidateMessage();
 		
+		iceCandidateMessage.setSdp(rtcIceCandidate.sdp);
+		iceCandidateMessage.setSdpMid(rtcIceCandidate.sdpMid);
+		iceCandidateMessage.setSdpMLineIndex(rtcIceCandidate.sdpMLineIndex);
+		iceCandidateMessage.*/
+		log.info("Sending ice candidate: " + message.toString());
 		webRTCPeerEvents.IceCandidate(message.toString());
 	}
 	
@@ -245,6 +251,7 @@ public class RipplePeerConnection implements PeerConnectionObserver {
 		}
 		webRTCPeerEvents.onTrack(track, threadRef);
 		
+		// same email id to a pipe lines , associate tables.
 		
 	}
 }
