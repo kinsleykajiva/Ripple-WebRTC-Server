@@ -15,33 +15,46 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
+/**
+ * This class represents a WebSocket endpoint that implements the WsListener interface.
+ * It manages a list of clients and provides methods for handling WebSocket events such as
+ * opening a session, closing a session, and receiving a message.
+ * It also includes a method for starting a scheduled task that removes orphan clients from the list.
+ */
 public class WebsocketEndpoint implements WsListener {
 	
 	static        Logger              log         = Logger.getLogger(WebsocketEndpoint.class.getName());
 	//	private final MessageQueue messageQueue = MessageQueue.instance();
 	private final MutableList<Client> clientsList = Lists.mutable.empty();
-	private final Timer               timer       = new Timer();
 	
+	/**
+	 * This method starts a scheduled task that periodically checks for orphan clients in the clients list.
+	 * An orphan client is one that is no longer active or connected.
+	 * The task runs at a fixed rate, specified by the rememberTimeOutInSeconds configuration.
+	 * If an orphan client is found, it is removed from the clients list.
+	 */
 	public void startOrphansCron() {
-		TimerTask task = new TimerTask() {
-			@Override
-			public void run() {
+		try (ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor()) {
+			final Runnable task = () -> {
 				try {
-					clientsList.removeIf(Client::isClientOrphan);
+					synchronized (clientsList) {
+						clientsList.removeIf(Client::isClientOrphan);
+					}
 				} catch (Exception e) {
 					log.error("Error: " + e.getMessage(), e);
 				}
-			}
-		};
-		
-		long period = XUtils.MAIN_CONFIG_MODEL.session().rememberTimeOutInSeconds() == 0 ? 120 : XUtils.MAIN_CONFIG_MODEL.session().rememberTimeOutInSeconds();
-		timer.scheduleAtFixedRate(task, 60 * 1000, period * 1000);
+			};
+			
+			long period = XUtils.MAIN_CONFIG_MODEL.session().rememberTimeOutInSeconds() == 0 ? 120 : XUtils.MAIN_CONFIG_MODEL.session().rememberTimeOutInSeconds();
+			executor.scheduleAtFixedRate(task, 60, period, TimeUnit.SECONDS);
+		}
 	}
 	
-	private Client getClientById( String clientID ) {
+	private synchronized Client getClientById( String clientID ) {
 		return clientsList.detect(client -> client.getClientID().equals(clientID));
 	}
 	
@@ -456,7 +469,6 @@ public class WebsocketEndpoint implements WsListener {
 							client.setDebugSession(isDebugSession);
 							
 							clientsList.add(client);
-							
 							session.send(
 									new JSONObject()
 											.put("success", true)
