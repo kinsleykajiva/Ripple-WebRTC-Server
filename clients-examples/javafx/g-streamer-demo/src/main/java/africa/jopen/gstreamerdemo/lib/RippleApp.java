@@ -2,6 +2,7 @@ package africa.jopen.gstreamerdemo.lib;
 
 import africa.jopen.gstreamerdemo.lib.utils.VideoView;
 import dev.onvoid.webrtc.media.MediaStreamTrack;
+import javafx.application.Platform;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.WebSocket;
@@ -36,7 +37,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 	private RipplePlugin                      ripplePlugin;
 	
 	
-	public RippleApp(String serverUrl, PluginCallbacks.RootPluginCallBacks rootPluginCallBacks, PluginCallbacks.FeaturesAvailable feature) {
+	public RippleApp( String serverUrl, PluginCallbacks.RootPluginCallBacks rootPluginCallBacks, PluginCallbacks.FeaturesAvailable feature ) {
 		serverUrl = RippleUtils.convertToWebSocketUrl(serverUrl);
 		if (serverUrl.endsWith("/")) {
 			serverUrl = serverUrl + "websocket/client";
@@ -53,7 +54,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 		this.rootPluginCallBacks = rootPluginCallBacks;
 	}
 	
-	public void requestNewThread(String file) {
+	public void requestNewThread( String file ) {
 		JSONObject message = new JSONObject();
 		message.put("requestType", "newThread");
 		message.put("feature", this.FEATURE_IN_USE.toString());
@@ -80,7 +81,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 		});
 	}
 	
-	public void onMessage(final String message) {
+	public void onMessage( final String message ) {
 		log.info("Received message: " + message);
 		JSONObject messageObject = new JSONObject(message);
 		String     eventType     = messageObject.optString("eventType", null);
@@ -92,7 +93,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 			if (pluginEventType == null) {
 				return;
 			}
-			if(threadRef == 0) {
+			if (threadRef == 0) {
 				return;
 			}
 			if (pluginEventType.equals("iceCandidates")) {
@@ -100,7 +101,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 				if (iceCandidate != null) {
 					return;
 				}
-				var candidate = iceCandidate.getString("candidate");
+				var candidate     = iceCandidate.getString("candidate");
 				var sdpMLineIndex = iceCandidate.getInt("sdpMLineIndex");
 				peerConnectionsMap.get(threadRef).addIceCandidatePeerConnection(candidate, sdpMLineIndex);
 			}
@@ -113,7 +114,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 		if (eventType != null) {
 			switch (eventType) {
 				case "newThread":
-					if(threadRef == 0) {
+					if (threadRef == 0) {
 						break;
 					}
 					if (FEATURE_IN_USE == PluginCallbacks.FeaturesAvailable.G_STREAM_BROADCASTER) {
@@ -125,6 +126,10 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 									
 									peerConnectionsMap.put(threadRef, ((RippleGstreamerPlugin) ripplePlugin).startBroadCast(threadRef));
 									VideoView videoView = ripplePlugin.addThread(threadRef);
+									if (this.rootPluginCallBacks instanceof PluginCallbacks.GstreamerPluginCallBack) {
+										Platform.runLater(() -> ((PluginCallbacks.GstreamerPluginCallBack) this.rootPluginCallBacks).onStreamUIUpdates(videoView));
+										
+									}
 									
 								}
 								
@@ -148,7 +153,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 		}
 	}
 	
-	public void onOpen(String message) {
+	public void onOpen( String message ) {
 		log.info(message);
 		isConnected = true;
 		// cancell the scheduled reconnect
@@ -158,7 +163,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 	}
 	
 	@NonBlocking
-	public void sendMessage(JSONObject message) {
+	public void sendMessage( JSONObject message ) {
 		if (message == null) {
 			log.warning("Message is null, nothing to send");
 			return;
@@ -200,36 +205,36 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 		}, 10);
 	}
 	
-	public void runAfterDelay(Runnable task, long delay) {
+	public void runAfterDelay( Runnable task, long delay ) {
 		executorService.schedule(task, delay, TimeUnit.SECONDS);
 	}
 	
-	public void onClose(String webSocketClosed) {
+	public void onClose( String webSocketClosed ) {
 		log.info(webSocketClosed);
 		scheduleReconnect();
 		rootPluginCallBacks.onClientClosed();
 	}
 	
-	public void onError(Throwable e) {
+	public void onError( Throwable e ) {
 		log.log(Level.SEVERE, "Socket session Error", e);
 		rootPluginCallBacks.onClientError(e);
 	}
 	
 	
 	@Override
-	public void IceCandidate(String message) {
+	public void IceCandidate( String message ) {
 		JSONObject messageObject = new JSONObject(message);
 		messageObject.put("requestType", "iceCandidate");
 		sendMessage(messageObject);
 	}
 	
 	@Override
-	public void onTrack(MediaStreamTrack track) {
+	public void onTrack( MediaStreamTrack track ) {
 	
 	}
 	
 	@Override
-	public void onTrack(MediaStreamTrack track, int threadRef) {
+	public void onTrack( MediaStreamTrack track, int threadRef ) {
 		if (track == null) {
 			return;
 		}
@@ -246,7 +251,7 @@ public class RippleApp implements PluginCallbacks.WebRTCPeerEvents {
 	@Override
 	@Nullable
 	@NonBlocking
-	public void notify(@Nullable String jsonMessage) {
+	public void notify( @Nullable String jsonMessage ) {
 		if (jsonMessage == null) {
 			return;
 		}

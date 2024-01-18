@@ -118,8 +118,7 @@ public class RipplePeerConnection implements PeerConnectionObserver {
 	}
 	
 	public void createAnswer() {
-		log.info("Creating answer for threadRef: " + threadRef);
-		log.info("xxxxxCreating answer for threadRef: " + getRemoteOfferStringSdp(threadRef));
+		
 		RTCSessionDescription rtcSessionDescription = new RTCSessionDescription(RTCSdpType.OFFER, getRemoteOfferStringSdp(threadRef));
 		
 		CompletableFuture<Void>                  SessionDescriptionObserverFuture       = new CompletableFuture<>();
@@ -145,7 +144,6 @@ public class RipplePeerConnection implements PeerConnectionObserver {
 				
 				@Override
 				public void onSuccess(RTCSessionDescription description) {
-					log.info("xxxxxCreateSessionDescriptionObserverFuture onSuccess");
 					CreateSessionDescriptionObserverFuture.complete(description);
 				}
 				

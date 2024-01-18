@@ -6,12 +6,12 @@ import africa.jopen.gstreamerdemo.lib.utils.VideoView;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -142,6 +142,7 @@ public class DemoController implements Initializable, PluginCallbacks.GstreamerP
 	@Override
 	@Blocking
 	public void onStreamUIUpdates(@Nullable VideoView videoView) {
+		
 		if (videoView == null) {
 			// means remove the videoView from the UI
 		} else {
@@ -150,6 +151,15 @@ public class DemoController implements Initializable, PluginCallbacks.GstreamerP
 			GridPane.setVgrow(videoView, Priority.ALWAYS);
 			GridPane.setFillWidth(videoView, true);
 			GridPane.setFillHeight(videoView, true);
+			
+			// Set padding and margin to zero
+			GridPane.setMargin(videoView, new Insets(0));
+			videoView.setPadding(new Insets(0));
+			
+			// Add a border to the videoView
+			BorderStroke borderStroke = new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT);
+			videoView.setBorder(new Border(borderStroke));
+			
 			GridstreamsVids.add(videoView, currentColumn, currentRow);
 			
 			// Update currentColumn and currentRow for the next VideoView

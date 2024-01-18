@@ -47,7 +47,9 @@ public class RippleGstreamerPlugin extends RipplePlugin {
 	public VideoView buildVideoView(int threadRef) {
 		VideoView videoView = new VideoView();
 		videoView.setId("videoView_" + threadRef);
-		videoView.setPrefSize(320, 240);
+		videoView.setPrefSize(720, 480);
+		// set pref size for 720px
+		videoView.setMaxSize(180, 480);
 		
 		
 		return videoView;
@@ -55,11 +57,11 @@ public class RippleGstreamerPlugin extends RipplePlugin {
 	
 	@Override
 	@Blocking
-	public VideoView addThread(int threadRef) {
+	public VideoView addThread( int threadRef ) {
 		log.info("addThread");
 		threadRefs.add(threadRef);
-	 addUIVideoView(buildVideoView(threadRef),threadRef);
-	 return  VideoViews.get(threadRef);
+		addUIVideoView(buildVideoView(threadRef), threadRef);
+		return VideoViews.get(threadRef);
 	}
 	
 	public Map<Integer, VideoView> getVideoViews() {
