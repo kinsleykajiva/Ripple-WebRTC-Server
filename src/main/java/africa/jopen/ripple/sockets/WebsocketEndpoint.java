@@ -15,42 +15,38 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.Objects;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class WebsocketEndpoint implements WsListener {
 	
-	static        Logger                   log         = Logger.getLogger(WebsocketEndpoint.class.getName());
+	static        Logger              log         = Logger.getLogger(WebsocketEndpoint.class.getName());
 	//	private final MessageQueue messageQueue = MessageQueue.instance();
-	private final MutableList<Client>      clientsList = Lists.mutable.empty();
-	private final ScheduledExecutorService scheduler   = Executors.newScheduledThreadPool(1);
+	private final MutableList<Client> clientsList = Lists.mutable.empty();
+	private final Timer               timer       = new Timer();
 	
 	public void startOrphansCron() {
-		final Runnable task = () -> {
-			try {
-				//clientsList.detect(client-> client.isClientOrphan())
-				clientsList.removeIf(Client::isClientOrphan);
-			} catch (Exception e) {
-				// Handle exception
-				e.printStackTrace();
+		TimerTask task = new TimerTask() {
+			@Override
+			public void run() {
+				try {
+					clientsList.removeIf(Client::isClientOrphan);
+				} catch (Exception e) {
+					log.error("Error: " + e.getMessage(), e);
+				}
 			}
 		};
 		
 		long period = XUtils.MAIN_CONFIG_MODEL.session().rememberTimeOutInSeconds() == 0 ? 120 : XUtils.MAIN_CONFIG_MODEL.session().rememberTimeOutInSeconds();
-		scheduler.scheduleAtFixedRate(task, 60, period, TimeUnit.SECONDS);
+		timer.scheduleAtFixedRate(task, 60 * 1000, period * 1000);
 	}
 	
-	public MutableList<Client> getClientsList() {
-		return clientsList;
-	}
-	
-	private Client getClientById(String clientID) {
+	private Client getClientById( String clientID ) {
 		return clientsList.detect(client -> client.getClientID().equals(clientID));
 	}
 	
 	@Override
-	public void onMessage(WsSession session, String text, boolean last) {
+	public void onMessage( WsSession session, String text, boolean last ) {
 		log.info("Received message: " + text);
 		var transaction    = "";
 		var isDebugSession = false;
@@ -83,7 +79,36 @@ public class WebsocketEndpoint implements WsListener {
 								log.info("Client not found");
 								break;
 							}
+							
+							if (!jsonObject.has("threadRef")) {
+								log.info("Required threadRef not found,Invalid request");
+								session.send(
+										new JSONObject()
+												.put("success", false)
+												.put("eventType", jsonObject.getString("requestType"))
+												.put("accessAuth", "GENERAL")
+												.put("message", "Required threadRef not found,Invalid request")
+												.put("transaction", transaction)
+												.put("clientID", jsonObject.getString("clientID"))
+												.toString()
+										, last);
+								
+								break;
+							}
 							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
+							if (Objects.isNull(plugin)) {
+								session.send(
+										new JSONObject()
+												.put("success", false)
+												.put("eventType", jsonObject.getString("requestType"))
+												.put("accessAuth", "GENERAL")
+												.put("message", "Required threadRef Value not found,Reference error")
+												.put("transaction", transaction)
+												.put("clientID", jsonObject.getString("clientID"))
+												.toString()
+										, last);
+								break;
+							}
 							plugin.setTransaction(transaction);
 							plugin.decreaseVolume();
 							break;
@@ -93,7 +118,37 @@ public class WebsocketEndpoint implements WsListener {
 								log.info("Client not found");
 								break;
 							}
+							
+							
+							if (!jsonObject.has("threadRef")) {
+								log.info("Required threadRef not found,Invalid request");
+								session.send(
+										new JSONObject()
+												.put("success", false)
+												.put("eventType", jsonObject.getString("requestType"))
+												.put("accessAuth", "GENERAL")
+												.put("message", "Required threadRef not found,Invalid request")
+												.put("transaction", transaction)
+												.put("clientID", jsonObject.getString("clientID"))
+												.toString()
+										, last);
+								
+								break;
+							}
 							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
+							if (Objects.isNull(plugin)) {
+								session.send(
+										new JSONObject()
+												.put("success", false)
+												.put("eventType", jsonObject.getString("requestType"))
+												.put("accessAuth", "GENERAL")
+												.put("message", "Required threadRef Value not found,Reference error")
+												.put("transaction", transaction)
+												.put("clientID", jsonObject.getString("clientID"))
+												.toString()
+										, last);
+								break;
+							}
 							plugin.setTransaction(transaction);
 							plugin.increaseVolume();
 							break;
@@ -104,7 +159,36 @@ public class WebsocketEndpoint implements WsListener {
 								log.info("Client not found");
 								break;
 							}
+							
+							if (!jsonObject.has("threadRef")) {
+								log.info("Required threadRef not found,Invalid request");
+								session.send(
+										new JSONObject()
+												.put("success", false)
+												.put("eventType", jsonObject.getString("requestType"))
+												.put("accessAuth", "GENERAL")
+												.put("message", "Required threadRef not found,Invalid request")
+												.put("transaction", transaction)
+												.put("clientID", jsonObject.getString("clientID"))
+												.toString()
+										, last);
+								
+								break;
+							}
 							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
+							if (Objects.isNull(plugin)) {
+								session.send(
+										new JSONObject()
+												.put("success", false)
+												.put("eventType", jsonObject.getString("requestType"))
+												.put("accessAuth", "GENERAL")
+												.put("message", "Required threadRef Value not found,Reference error")
+												.put("transaction", transaction)
+												.put("clientID", jsonObject.getString("clientID"))
+												.toString()
+										, last);
+								break;
+							}
 							plugin.setTransaction(transaction);
 							plugin.pauseTransmission();
 							break;
@@ -113,7 +197,35 @@ public class WebsocketEndpoint implements WsListener {
 								log.info("Client not found");
 								break;
 							}
+							if (!jsonObject.has("threadRef")) {
+								log.info("Required threadRef not found,Invalid request");
+								session.send(
+										new JSONObject()
+												.put("success", false)
+												.put("eventType", jsonObject.getString("requestType"))
+												.put("accessAuth", "GENERAL")
+												.put("message", "Required threadRef not found,Invalid request")
+												.put("transaction", transaction)
+												.put("clientID", jsonObject.getString("clientID"))
+												.toString()
+										, last);
+								
+								break;
+							}
 							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
+							if (Objects.isNull(plugin)) {
+								session.send(
+										new JSONObject()
+												.put("success", false)
+												.put("eventType", jsonObject.getString("requestType"))
+												.put("accessAuth", "GENERAL")
+												.put("message", "Required threadRef Value not found,Reference error")
+												.put("transaction", transaction)
+												.put("clientID", jsonObject.getString("clientID"))
+												.toString()
+										, last);
+								break;
+							}
 							plugin.setTransaction(transaction);
 							plugin.resumeTransmission();
 							break;
@@ -123,7 +235,66 @@ public class WebsocketEndpoint implements WsListener {
 								log.info("Client not found");
 								break;
 							}
+							if (!jsonObject.has("candidate")) {
+								log.info("Required candidate not found,Invalid request");
+								session.send(
+										new JSONObject()
+												.put("success", false)
+												.put("eventType", jsonObject.getString("requestType"))
+												.put("accessAuth", "GENERAL")
+												.put("message", "Required candidate not found,Invalid request")
+												.put("transaction", transaction)
+												.put("clientID", jsonObject.getString("clientID"))
+												.toString()
+										, last);
+								
+								break;
+							}
+							if (!jsonObject.has("sdpMLineIndex")) {
+								log.info("Required sdpMLineIndex not found,Invalid request");
+								session.send(
+										new JSONObject()
+												.put("success", false)
+												.put("eventType", jsonObject.getString("requestType"))
+												.put("accessAuth", "GENERAL")
+												.put("message", "Required sdpMLineIndex not found,Invalid request")
+												.put("transaction", transaction)
+												.put("clientID", jsonObject.getString("clientID"))
+												.toString()
+										, last);
+								
+								break;
+							}
+							
+							if (!jsonObject.has("threadRef")) {
+								log.info("Required threadRef not found,Invalid request");
+								session.send(
+										new JSONObject()
+												.put("success", false)
+												.put("eventType", jsonObject.getString("requestType"))
+												.put("accessAuth", "GENERAL")
+												.put("message", "Required threadRef not found,Invalid request")
+												.put("transaction", transaction)
+												.put("clientID", jsonObject.getString("clientID"))
+												.toString()
+										, last);
+								
+								break;
+							}
 							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
+							if (Objects.isNull(plugin)) {
+								session.send(
+										new JSONObject()
+												.put("success", false)
+												.put("eventType", jsonObject.getString("requestType"))
+												.put("accessAuth", "GENERAL")
+												.put("message", "Required threadRef Value not found,Reference error")
+												.put("transaction", transaction)
+												.put("clientID", jsonObject.getString("clientID"))
+												.toString()
+										, last);
+								break;
+							}
 							plugin.setTransaction(transaction);
 							plugin.handleIceSdp(jsonObject.getString("candidate"), jsonObject.getInt("sdpMLineIndex"));
 							
@@ -135,7 +306,53 @@ public class WebsocketEndpoint implements WsListener {
 								log.info("Client not found");
 								break;
 							}
+							if (!jsonObject.has("answer")) {
+								log.info("Required answer not found,Invalid request");
+								session.send(
+										new JSONObject()
+												.put("success", false)
+												.put("eventType", jsonObject.getString("requestType"))
+												.put("accessAuth", "GENERAL")
+												.put("message", "Required answer not found,Invalid request")
+												.put("transaction", transaction)
+												.put("clientID", jsonObject.getString("clientID"))
+												.toString()
+										, last);
+								
+								break;
+							}
+							
+							
+							if (!jsonObject.has("threadRef")) {
+								log.info("Required threadRef not found,Invalid request");
+								session.send(
+										new JSONObject()
+												.put("success", false)
+												.put("eventType", jsonObject.getString("requestType"))
+												.put("accessAuth", "GENERAL")
+												.put("message", "Required threadRef not found,Invalid request")
+												.put("transaction", transaction)
+												.put("clientID", jsonObject.getString("clientID"))
+												.toString()
+										, last);
+								
+								break;
+							}
 							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
+							
+							if (Objects.isNull(plugin)) {
+								session.send(
+										new JSONObject()
+												.put("success", false)
+												.put("eventType", jsonObject.getString("requestType"))
+												.put("accessAuth", "GENERAL")
+												.put("message", "Required threadRef Value not found,Reference error")
+												.put("transaction", transaction)
+												.put("clientID", jsonObject.getString("clientID"))
+												.toString()
+										, last);
+								break;
+							}
 							plugin.setTransaction(transaction);
 							plugin.handleSdp(jsonObject.getString("answer"));
 							break;
@@ -144,7 +361,35 @@ public class WebsocketEndpoint implements WsListener {
 								log.info("Client not found");
 								break;
 							}
+							if (!jsonObject.has("threadRef")) {
+								log.info("Required threadRef not found,Invalid request");
+								session.send(
+										new JSONObject()
+												.put("success", false)
+												.put("eventType", jsonObject.getString("requestType"))
+												.put("accessAuth", "GENERAL")
+												.put("message", "Required threadRef not found,Invalid request")
+												.put("transaction", transaction)
+												.put("clientID", jsonObject.getString("clientID"))
+												.toString()
+										, last);
+								
+								break;
+							}
 							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
+							if (Objects.isNull(plugin)) {
+								session.send(
+										new JSONObject()
+												.put("success", false)
+												.put("eventType", jsonObject.getString("requestType"))
+												.put("accessAuth", "GENERAL")
+												.put("message", "Required threadRef Value not found,Reference error")
+												.put("transaction", transaction)
+												.put("clientID", jsonObject.getString("clientID"))
+												.toString()
+										, last);
+								break;
+							}
 							plugin.setTransaction(transaction);
 							plugin.startCall();
 							break;
@@ -254,7 +499,7 @@ public class WebsocketEndpoint implements WsListener {
 	}
 	
 	@Override
-	public void onClose(WsSession session, int status, String reason) {
+	public void onClose( WsSession session, int status, String reason ) {
 		log.info("Session closed: " + session);
 		log.info("Session reason: " + reason);
 		clientsList.detect(client -> client.getWsSession().equals(session)).setWsSession(null);
@@ -262,13 +507,13 @@ public class WebsocketEndpoint implements WsListener {
 	}
 	
 	@Override
-	public void onError(WsSession session, Throwable t) {
+	public void onError( WsSession session, Throwable t ) {
 		log.trace("Session error: " + session, t);
 		WsListener.super.onError(session, t);
 	}
 	
 	@Override
-	public void onOpen(WsSession session) {
+	public void onOpen( WsSession session ) {
 		
 		log.info("Session opened: " + session);
 		WsListener.super.onOpen(session);
