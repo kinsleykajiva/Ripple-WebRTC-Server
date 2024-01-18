@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 public class WebsocketEndpoint implements WsListener {
 	
 	static        Logger              log         = Logger.getLogger(WebsocketEndpoint.class.getName());
-	//	private final MessageQueue messageQueue = MessageQueue.instance();
 	private final MutableList<Client> clientsList = Lists.mutable.empty();
 	
 	/**
@@ -511,10 +510,11 @@ public class WebsocketEndpoint implements WsListener {
 	}
 	
 	@Override
-	public void onClose( WsSession session, int status, String reason ) {
-		log.info("Session closed: " + session);
-		log.info("Session reason: " + reason);
-		clientsList.detect(client -> client.getWsSession().equals(session)).setWsSession(null);
+	public  void onClose( WsSession session, int status, String reason ) {
+		log.info("Session closed: " + session+ " Session reason: " + reason);
+		synchronized (clientsList) {
+			clientsList.detect(client -> client.getWsSession().equals(session)).setWsSession(null);
+		}
 		WsListener.super.onClose(session, status, reason);
 	}
 	
