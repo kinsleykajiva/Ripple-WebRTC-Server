@@ -79,6 +79,7 @@ public class WebsocketEndpoint implements WsListener {
 				if (jsonObject.has("clientID")) {
 					client = getClientById(jsonObject.getString("clientID"));
 					
+					
 					switch (jsonObject.getString("requestType")) {
 						case "offer":
 							if (Objects.isNull(client)) {
@@ -87,159 +88,46 @@ public class WebsocketEndpoint implements WsListener {
 							}
 							break;
 						case "decreaseVolume":
-							if (Objects.isNull(client)) {
-								log.info("Client not found");
-								break;
+							if (!Objects.isNull(client)
+									&& jsonObject.has("feature")
+									&& jsonObject.getString("feature").equals("G_STREAM_BROADCAST")
+							) {
+								WebRTCGStreamerPlugInEventsHandler.decreaseVolume(session, client, jsonObject, transaction, last);
 							}
 							
-							if (!jsonObject.has("threadRef")) {
-								log.info("Required threadRef not found,Invalid request");
-								session.send(
-										new JSONObject()
-												.put("success", false)
-												.put("eventType", jsonObject.getString("requestType"))
-												.put("accessAuth", "GENERAL")
-												.put("message", "Required threadRef not found,Invalid request")
-												.put("transaction", transaction)
-												.put("clientID", jsonObject.getString("clientID"))
-												.toString()
-										, last);
-								
-								break;
-							}
-							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
-							if (Objects.isNull(plugin)) {
-								session.send(
-										new JSONObject()
-												.put("success", false)
-												.put("eventType", jsonObject.getString("requestType"))
-												.put("accessAuth", "GENERAL")
-												.put("message", "Required threadRef Value not found,Reference error")
-												.put("transaction", transaction)
-												.put("clientID", jsonObject.getString("clientID"))
-												.toString()
-										, last);
-								break;
-							}
-							plugin.setTransaction(transaction);
-							plugin.decreaseVolume();
+							
 							break;
 						
 						case "increaseVolume":
-							if (Objects.isNull(client)) {
-								log.info("Client not found");
-								break;
+							if (!Objects.isNull(client)
+									&& jsonObject.has("feature")
+									&& jsonObject.getString("feature").equals("G_STREAM_BROADCAST")
+							) {
+								WebRTCGStreamerPlugInEventsHandler.increaseVolume(session, client, jsonObject, transaction, last);
 							}
 							
 							
-							if (!jsonObject.has("threadRef")) {
-								log.info("Required threadRef not found,Invalid request");
-								session.send(
-										new JSONObject()
-												.put("success", false)
-												.put("eventType", jsonObject.getString("requestType"))
-												.put("accessAuth", "GENERAL")
-												.put("message", "Required threadRef not found,Invalid request")
-												.put("transaction", transaction)
-												.put("clientID", jsonObject.getString("clientID"))
-												.toString()
-										, last);
-								
-								break;
-							}
-							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
-							if (Objects.isNull(plugin)) {
-								session.send(
-										new JSONObject()
-												.put("success", false)
-												.put("eventType", jsonObject.getString("requestType"))
-												.put("accessAuth", "GENERAL")
-												.put("message", "Required threadRef Value not found,Reference error")
-												.put("transaction", transaction)
-												.put("clientID", jsonObject.getString("clientID"))
-												.toString()
-										, last);
-								break;
-							}
-							plugin.setTransaction(transaction);
-							plugin.increaseVolume();
 							break;
 						
 						
 						case "pause":
-							if (Objects.isNull(client)) {
-								log.info("Client not found");
-								break;
+							if (!Objects.isNull(client)
+									&& jsonObject.has("feature")
+									&& jsonObject.getString("feature").equals("G_STREAM_BROADCAST")
+							) {
+								WebRTCGStreamerPlugInEventsHandler.pause(session, client, jsonObject, transaction, last);
 							}
 							
-							if (!jsonObject.has("threadRef")) {
-								log.info("Required threadRef not found,Invalid request");
-								session.send(
-										new JSONObject()
-												.put("success", false)
-												.put("eventType", jsonObject.getString("requestType"))
-												.put("accessAuth", "GENERAL")
-												.put("message", "Required threadRef not found,Invalid request")
-												.put("transaction", transaction)
-												.put("clientID", jsonObject.getString("clientID"))
-												.toString()
-										, last);
-								
-								break;
-							}
-							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
-							if (Objects.isNull(plugin)) {
-								session.send(
-										new JSONObject()
-												.put("success", false)
-												.put("eventType", jsonObject.getString("requestType"))
-												.put("accessAuth", "GENERAL")
-												.put("message", "Required threadRef Value not found,Reference error")
-												.put("transaction", transaction)
-												.put("clientID", jsonObject.getString("clientID"))
-												.toString()
-										, last);
-								break;
-							}
-							plugin.setTransaction(transaction);
-							plugin.pauseTransmission();
+							
 							break;
 						case "resume":
-							if (Objects.isNull(client)) {
-								log.info("Client not found");
-								break;
+							if (!Objects.isNull(client)
+									&& jsonObject.has("feature")
+									&& jsonObject.getString("feature").equals("G_STREAM_BROADCAST")
+							) {
+								WebRTCGStreamerPlugInEventsHandler.resume(session, client, jsonObject, transaction, last);
 							}
-							if (!jsonObject.has("threadRef")) {
-								log.info("Required threadRef not found,Invalid request");
-								session.send(
-										new JSONObject()
-												.put("success", false)
-												.put("eventType", jsonObject.getString("requestType"))
-												.put("accessAuth", "GENERAL")
-												.put("message", "Required threadRef not found,Invalid request")
-												.put("transaction", transaction)
-												.put("clientID", jsonObject.getString("clientID"))
-												.toString()
-										, last);
-								
-								break;
-							}
-							plugin = client.getWebRTCStreamMap().get(jsonObject.getInt("threadRef"));
-							if (Objects.isNull(plugin)) {
-								session.send(
-										new JSONObject()
-												.put("success", false)
-												.put("eventType", jsonObject.getString("requestType"))
-												.put("accessAuth", "GENERAL")
-												.put("message", "Required threadRef Value not found,Reference error")
-												.put("transaction", transaction)
-												.put("clientID", jsonObject.getString("clientID"))
-												.toString()
-										, last);
-								break;
-							}
-							plugin.setTransaction(transaction);
-							plugin.resumeTransmission();
+							
 							break;
 						case "iceCandidate":
 							
@@ -510,8 +398,8 @@ public class WebsocketEndpoint implements WsListener {
 	}
 	
 	@Override
-	public  void onClose( WsSession session, int status, String reason ) {
-		log.info("Session closed: " + session+ " Session reason: " + reason);
+	public void onClose( WsSession session, int status, String reason ) {
+		log.info("Session closed: " + session + " Session reason: " + reason);
 		synchronized (clientsList) {
 			clientsList.detect(client -> client.getWsSession().equals(session)).setWsSession(null);
 		}
