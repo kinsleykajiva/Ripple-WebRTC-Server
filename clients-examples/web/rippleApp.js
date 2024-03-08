@@ -1,7 +1,7 @@
 'use strict';
 const RippleSDK = {
     serverUrl                   : '',
-    serverName                   : '',
+    serverName                  : '',
     timeZone                    : Intl.DateTimeFormat().resolvedOptions().timeZone,
     clientID                    : '',
     isDebugSession              : false,
@@ -13,11 +13,11 @@ const RippleSDK = {
         isVideoAccessRequired       : false,
         hasAccessToVideoPermission  : false,
         hasAccessToAudioPermission  : false,
-        maxRetries: 10,
+        maxRetries                  : 10,
         remindServerTimeoutInSeconds: 50 ,
-        reminderInterval  : null,
-        mediaUI:{
-          renderGroupParentId:""
+        reminderInterval            : null,
+        mediaUI                     :{
+                        renderGroupParentId:""
         },
         webRTC:{
             EVENT_NAMES : {
@@ -90,6 +90,7 @@ const RippleSDK = {
                     requestType: 'answer',
                     transaction: RippleSDK.utils.uniqueIDGenerator("transaction", 12),
                     threadRef  : threadRef,
+                    feature      : RippleSDK.utils.threadRefsInUseMap.get(threadRef).feature,
                     answer     : answer.sdp
                 };
                 RippleSDK.transports.websocket.webSocketSendAction(body);
@@ -255,6 +256,7 @@ const RippleSDK = {
                                     requestType  : 'iceCandidate',
                                     transaction  : RippleSDK.utils.uniqueIDGenerator("transaction",12),
                                     threadRef    : threadRef,
+                                    feature      : RippleSDK.utils.threadRefsInUseMap.get(threadRef).feature,
                                     candidate    : ev.candidate.candidate,
                                     sdpMid       : ev.candidate.sdpMid,
                                     sdpMLineIndex: ev.candidate.sdpMLineIndex
@@ -666,10 +668,15 @@ const RippleSDK = {
                 if (success && eventType) {
                     switch (eventType) {
                         case "newThread":
+                            RippleSDK.utils.threadRefsInUseMap.set(messageObject.position, {
+                                feature: messageObject.feature,
+                                accessAuth: messageObject.accessAuth,
+                            });
                             RippleSDK.app.features.streaming.threads.push(messageObject.position);
                             RippleSDK.app.features.streaming.functions.startBroadCast(messageObject.position);
                             // renderThreadUI
                             RippleSDK.app.features.streaming.functions.renderThreadUI(messageObject.position);
+
                             break;
                         case "register":
                             RippleSDK.app.startToRemindServerOfMe();
@@ -798,6 +805,7 @@ const RippleSDK = {
         info              : console.info.bind(console),
         trace             : console.trace.bind(console),
         assert            : console.assert.bind(console),
+        threadRefsInUseMap:new Map(),
         convertToWebSocketUrl: (url) => {
             if (url.startsWith('https://')) {
                 return url.replace('https://', 'wss://');

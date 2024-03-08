@@ -220,13 +220,14 @@ public class Client implements CommonAbout {
 		}
 	}
 	
-	public void replyToNewThreadRequest(final String transaction, final int position) {
+	public void replyToNewThreadRequest(final String transaction, final int position,String feature) {
 		Instant now = Instant.now();
 		onUpdateLastTimeStamp(now.toEpochMilli());
 		var response = new JSONObject();
 		response.put("clientID", clientID);
 		response.put("success", true);
 		response.put("eventType", "newThread");
+		response.put("feature", feature);
 		response.put("transaction", transaction);
 		response.put("position", position);
 		response.put("accessAuth", "GENERAL");
