@@ -153,6 +153,7 @@ public class Main {
 		WebServer server = WebServer.builder()
 				.config(config.get("server"))
 				.routing(Main::routing)
+				.port(XUtils.MAIN_CONFIG_MODEL.serverPort())
 				.addRouting(WsRouting.builder().endpoint("/websocket/client", websocketEndpoint))
 				.build()
 				.start();
