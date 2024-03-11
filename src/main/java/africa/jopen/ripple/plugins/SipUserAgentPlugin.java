@@ -1,7 +1,11 @@
 package africa.jopen.ripple.plugins;
 
+import africa.jopen.ripple.abstractions.PluginAbs;
+import africa.jopen.ripple.interfaces.CommonAbout;
 import africa.jopen.ripple.sockets.WebsocketEndpoint;
+import io.micrometer.common.lang.Nullable;
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 import org.mjsip.media.FlowSpec;
 import org.mjsip.media.MediaDesc;
 import org.mjsip.media.StreamerOptions;
@@ -10,11 +14,15 @@ import org.mjsip.media.rx.JavaxAudioOutput;
 import org.mjsip.media.tx.AudioTransmitter;
 import org.mjsip.media.tx.JavaxAudioInput;
 import org.mjsip.pool.PortPool;
+import org.mjsip.sdp.SdpMessage;
+import org.mjsip.sip.address.GenericURI;
+
 import org.mjsip.sip.address.NameAddress;
 import org.mjsip.sip.address.SipURI;
 import org.mjsip.sip.call.DTMFInfo;
 import org.mjsip.sip.call.NotImplementedServer;
 import org.mjsip.sip.call.OptionsServer;
+import org.mjsip.sip.config.NameAddressHandler;
 import org.mjsip.sip.message.SipMethods;
 import org.mjsip.sip.provider.SipId;
 import org.mjsip.sip.provider.SipKeepAlive;
@@ -31,7 +39,9 @@ import org.mjsip.ua.streamer.NativeStreamerFactory;
 import org.mjsip.ua.streamer.StreamerFactory;
 import org.zoolu.net.SocketAddress;
 
-public class SipUserAgentPlugin implements UserAgentListener {
+import java.time.Instant;
+
+public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 	protected RegisteringUserAgent ua;
 	protected SipProvider sip_provider;
 	protected UAConfig _uaConfig;
@@ -47,15 +57,18 @@ public class SipUserAgentPlugin implements UserAgentListener {
 	protected static final String UA_OUTGOING_CALL="OUTGOING_CALL";
 	/** UA_ONCALL=3 */
 	protected static final String UA_ONCALL="ONCALL";
-	String call_state=UA_IDLE;
-	
-	
-	public SipUserAgentPlugin(SipProvider sip_provider, PortPool portPool, UAConfig uaConfig, UIConfig uiConfig, MediaOptions mediaConfig) {
+	String call_state=UA_IDLE;private String transaction = "";
+	private final CommonAbout commonAbout;
+//	protected RegisteringUserAgent ua;
+private       Integer     thisObjectPositionAddress;
+	public SipUserAgentPlugin(CommonAbout commonAbout,final Integer thisObjectPositionAddress, SipProvider sip_provider, PortPool portPool, UAConfig uaConfig, UIConfig uiConfig, MediaOptions mediaConfig) {
+		setTransaction("0");
+		this.commonAbout = commonAbout;
 		this.sip_provider=sip_provider;
 		_uaConfig=uaConfig;
 		_uiConfig = uiConfig;
 		_mediaConfig = mediaConfig;
-		
+		this.thisObjectPositionAddress = thisObjectPositionAddress;
 		System.out.println("xxxx--"+this.sip_provider.getViaAddress());
 		System.out.println("xxxx--"+this.sip_provider.getBindingIpAddress());
 //		ua=new RegisteringUserAgent(sip_provider, portPool,_uaConfig, this.andThen(clipPlayer()));
@@ -68,7 +81,7 @@ public class SipUserAgentPlugin implements UserAgentListener {
 		log.info("Starting registration -- " + uaConfig.isRegister());
 		if (uaConfig.isRegister()) {
 //			ua.loopRegister(_uaConfig.getExpires(), _uaConfig.getExpires() / 2, _uaConfig.getKeepAliveTime());
-			RegistrationClient rc = new RegistrationClient(sip_provider, uaConfig, new RegistrationLogger());
+			var rc = new RegistrationClient(sip_provider, uaConfig, new RegistrationLogger());
 			if (uiConfig.doUnregisterAll) {
 				rc.unregisterall();
 			}
@@ -80,9 +93,17 @@ public class SipUserAgentPlugin implements UserAgentListener {
 			rc.register(uaConfig.getExpires());
 		}
 		
-
-
-//		ua
+	}
+	public void setTransaction(String transaction) {
+		this.transaction = transaction;
+	}
+	public  void makeOutGoingCall(@Nullable String sdp ){
+		
+		var nameAddress =  org.mjsip.sip.address.NameAddress.parse("sip:alice@example.com");
+		
+		SdpMessage sdpMess =new SdpMessage(sdp);
+		ua.call(nameAddress,sdpMess);
+		changeStatus(UA_OUTGOING_CALL);
 	}
 	
 	
@@ -142,6 +163,9 @@ public class SipUserAgentPlugin implements UserAgentListener {
 	@Override
 	public void onUaRegistrationSucceeded( UserAgent ua, String result ) {
 		System.out.println("Registration succeeded: "+result);
+		
+		
+		
 	}
 	
 	@Override
@@ -231,5 +255,16 @@ public class SipUserAgentPlugin implements UserAgentListener {
 	public UserAgentListener andThen( UserAgentListener other ) {
 		return UserAgentListener.super.andThen(clipPlayer());
 //		return UserAgentListener.super.andThen(other);
+	}
+	
+	@Override
+	public void updateClientLastTimeStamp() {
+		Instant now = Instant.now();
+		commonAbout.onUpdateLastTimeStamp(now.toEpochMilli());
+	}
+	
+	@Override
+	protected void notifyClient(JSONObject pluginData, final Integer objectPosition) {
+		commonAbout.sendMessage(pluginData, objectPosition,FeatureTypes.G_STREAM_BROADCAST);
 	}
 }

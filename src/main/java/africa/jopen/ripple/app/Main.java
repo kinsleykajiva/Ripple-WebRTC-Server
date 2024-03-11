@@ -4,6 +4,7 @@ package africa.jopen.ripple.app;
 
 import africa.jopen.ripple.MessageQueueService;
 import africa.jopen.ripple.models.MainConfigModel;
+import africa.jopen.ripple.plugins.SipUserAgentPlugin;
 import africa.jopen.ripple.services.GreetService;
 import africa.jopen.ripple.sockets.WebsocketEndpoint;
 import africa.jopen.ripple.utils.ConnectionsManager;
@@ -16,6 +17,17 @@ import io.helidon.webserver.http.HttpRouting;
 import io.helidon.webserver.websocket.WsRouting;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.mjsip.config.OptionParser;
+import org.mjsip.pool.PortConfig;
+import org.mjsip.sip.address.SipURI;
+import org.mjsip.sip.provider.SipConfig;
+import org.mjsip.sip.provider.SipProvider;
+import org.mjsip.time.ConfiguredScheduler;
+import org.mjsip.time.SchedulerConfig;
+import org.mjsip.ua.MediaConfig;
+import org.mjsip.ua.UAConfig;
+import org.mjsip.ua.UIConfig;
+import org.zoolu.net.IpAddress;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -161,6 +173,42 @@ public class Main {
 		websocketEndpoint.startOrphansCron();
 		
 		log.info("WEB server is up! http://localhost:" + server.port());
+		
+		
+		SipConfig    sipConfig = new SipConfig();
+		
+//		sipConfig.setDefaultPort(9099);
+		sipConfig.setHostPort(9099);
+//		sipConfig.setre
+		var f=new IpAddress("11514.011.1610.1162");
+//		sipConfig.setBindingIpAddr(f);
+//		sipConfig.seth(9099);
+		UAConfig        uaConfig        = new UAConfig();
+		uaConfig.setAuthRealm("Asterisk");
+		uaConfig.setUser("kinsl1ey-kaji1va1");
+		uaConfig.setDisplayName("kinsley-kajiva");
+		sipConfig.setViaAddr("vaef2ey.com2monreso2lve.com");
+		uaConfig.setAuthPasswd("Ch1bhodhor0");
+		uaConfig.setRegistrar(new SipURI("veaf2ey.com2monreso2lve.com",9099)); // Set the SIP server address
+		SchedulerConfig schedulerConfig = new SchedulerConfig();
+		MediaConfig     mediaConfig     = new MediaConfig();
+		PortConfig      portConfig      = new PortConfig();
+		UIConfig        uiConfig        = new UIConfig();
+		
+		/*OptionParser.parseOptions(args, ".mjsip-ua", sipConfig, uaConfig, schedulerConfig, uiConfig, config);*/
+		//OptionParser.parseOptions(args, ".mjsip-ua", sipConfig, uaConfig, schedulerConfig, uiConfig, config);
+		sipConfig.normalize();
+		uaConfig.normalize(sipConfig);
+		ConfiguredScheduler configuredScheduler = new ConfiguredScheduler(schedulerConfig);
+		var sipPr = new SipProvider(sipConfig,configuredScheduler);
+	
+		SipUserAgentPlugin sipUserAgentPlugin = new SipUserAgentPlugin(
+				sipPr,portConfig.createPool(),uaConfig,uiConfig,mediaConfig
+		);
+//		sipUserAgentPlugin.
+		System.out.println(uaConfig.getProxy());
+		System.out.println(uaConfig.getUserURI());
+		
 		
 //		connectionsManager.setLogMessage("WEB server is up! http://localhost:");
 	}

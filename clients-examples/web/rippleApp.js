@@ -6,7 +6,7 @@ const RippleSDK = {
     clientID                    : '',
     isDebugSession              : false,
     clientTypesAllowed          : ['Firefox', 'Chrome'],
-    featuresAvailable           : Object.freeze({VIDEO_ROOM: 'VIDEO_ROOM',AUDIO_ROOM: 'AUDIO_ROOM',VIDEO_CALL: 'VIDEO_CALL',G_STREAM:'G_STREAM',G_STREAM_BROADCAST:'G_STREAM_BROADCASTER',G_STREAM_BROADCAST_CONSUMER:'G_STREAM_BROADCAST_CONSUMER'}),
+    featuresAvailable           : Object.freeze({VIDEO_ROOM: 'VIDEO_ROOM',AUDIO_ROOM: 'AUDIO_ROOM',VIDEO_CALL: 'VIDEO_CALL',G_STREAM:'G_STREAM',G_STREAM_BROADCAST:'G_STREAM_BROADCASTER',G_STREAM_BROADCAST_CONSUMER:'G_STREAM_BROADCAST_CONSUMER',SIP_GATEWAY:'SIP_GATEWAY'}),
     app               : {
         iceServerArray              : [{urls: 'stun:stun.l.google.com:19302'},{urls: "stun:stun.services.mozilla.com"}],
         isAudioAccessRequired       : false,
@@ -352,6 +352,27 @@ const RippleSDK = {
 
         },
         features:{
+            sipGateway:{
+                registerToSipServer:async (hostAddress,port,)=>{
+                    if(!hostAddress){
+                        RippleSDK.utils.error('registerToSipServer', 'no hostAddress');
+                        return;
+                    }
+                    if(!port){
+                        RippleSDK.utils.error('registerToSipServer', 'no port');
+                        return;
+                    }
+                    const body = {
+                        clientID   : RippleSDK.clientID,
+                        requestType: 'register',
+                        feature    : RippleSDK.featuresAvailable.SIP_GATEWAY,
+                        transaction: RippleSDK.utils.uniqueIDGenerator("transaction", 12),
+                        hostAddress,
+                        port,
+                    };
+                    RippleSDK.transports.websocket.webSocketSendAction(body);
+                } ,
+            },
             streaming:{
                 threads:[],
                 functions:{
