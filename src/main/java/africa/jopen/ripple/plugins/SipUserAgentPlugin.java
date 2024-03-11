@@ -19,9 +19,11 @@ import org.mjsip.sip.message.SipMethods;
 import org.mjsip.sip.provider.SipId;
 import org.mjsip.sip.provider.SipKeepAlive;
 import org.mjsip.sip.provider.SipProvider;
+import org.mjsip.sip.provider.SipStack;
 import org.mjsip.ua.*;
 import org.mjsip.ua.clip.ClipPlayer;
 import org.mjsip.ua.registration.RegistrationClient;
+import org.mjsip.ua.registration.RegistrationLogger;
 import org.mjsip.ua.registration.RegistrationOptions;
 import org.mjsip.ua.streamer.DefaultStreamerFactory;
 import org.mjsip.ua.streamer.DispatchingStreamerFactory;
@@ -53,10 +55,34 @@ public class SipUserAgentPlugin implements UserAgentListener {
 		_uaConfig=uaConfig;
 		_uiConfig = uiConfig;
 		_mediaConfig = mediaConfig;
+		
+		System.out.println("xxxx--"+this.sip_provider.getViaAddress());
+		System.out.println("xxxx--"+this.sip_provider.getBindingIpAddress());
 //		ua=new RegisteringUserAgent(sip_provider, portPool,_uaConfig, this.andThen(clipPlayer()));
 		ua=new RegisteringUserAgent(sip_provider, portPool,_uaConfig, this);
 		_streamerFactory = createStreamerFactory(_mediaConfig, _uaConfig);
 		changeStatus(UA_IDLE);
+//		NameAddress callee = new NameAddress();
+		//ua.call(" ","");
+		log.info("Starting registration");
+		log.info("Starting registration -- " + uaConfig.isRegister());
+		if (uaConfig.isRegister()) {
+//			ua.loopRegister(_uaConfig.getExpires(), _uaConfig.getExpires() / 2, _uaConfig.getKeepAliveTime());
+			RegistrationClient rc = new RegistrationClient(sip_provider, uaConfig, new RegistrationLogger());
+			if (uiConfig.doUnregisterAll) {
+				rc.unregisterall();
+			}
+			
+			if (uiConfig.doUnregister) {
+				rc.unregister();
+			}
+			
+			rc.register(uaConfig.getExpires());
+		}
+		
+
+
+//		ua
 	}
 	
 	
@@ -115,82 +141,85 @@ public class SipUserAgentPlugin implements UserAgentListener {
 	
 	@Override
 	public void onUaRegistrationSucceeded( UserAgent ua, String result ) {
-	
+		System.out.println("Registration succeeded: "+result);
 	}
 	
 	@Override
 	public void onUaRegistrationFailed( UserAgent ua, String result ) {
-	
+		System.out.println("Registration failed: "+result);
 	}
 	
 	@Override
 	public void onUaIncomingCall( UserAgent ua, NameAddress callee, NameAddress caller, MediaDesc[] media_descs ) {
-	
+		System.out.println("Incoming call from: "+caller.toString());
+		changeStatus(UA_INCOMING_CALL);
+//		ua.acceptCall(200);
 	}
 	
 	@Override
 	public void onUaCallIncomingAccepted( UserAgent userAgent ) {
-	
+		System.out.println("Incoming call accepted");
 	}
 	
 	@Override
 	public void onUaIncomingCallTimeout( UserAgent userAgent ) {
-	
+		System.out.println("Incoming call timeout");
 	}
 	
 	@Override
 	public void onUaCallCancelled( UserAgent ua ) {
-	
+		System.out.println("Call cancelled");
 	}
 	
 	@Override
 	public void onUaCallConfirmed( UserAgent userAgent ) {
-	
+		System.out.println("Call confirmed");
 	}
 	
 	@Override
 	public void onUaCallProgress( UserAgent ua ) {
-	
+		System.out.println("Call progress");
 	}
 	
 	@Override
 	public void onUaCallRinging( UserAgent ua ) {
-	
+		System.out.println("Ringing...");
 	}
 	
 	@Override
 	public void onUaCallAccepted( UserAgent ua ) {
 	
+		System.out.println("Call accepted");
 	}
 	
 	@Override
 	public void onUaCallTransferred( UserAgent ua ) {
-	
+		System.out.println("Call transferred");
 	}
 	
 	@Override
 	public void onUaCallFailed( UserAgent ua, String reason ) {
-	
+		System.out.println("Call failed: "+reason);
 	}
 	
 	@Override
 	public void onUaCallClosed( UserAgent ua ) {
-	
+		System.out.println("Call closed");
 	}
 	
 	@Override
 	public void onUaCallRedirected( UserAgent userAgent, NameAddress redirect_to ) {
-	
+		System.out.println("Call redirected");
 	}
 	
 	@Override
 	public void onUaMediaSessionStarted( UserAgent ua, String type, String codec ) {
-	
+		System.out.println("Media session started");
 	}
 	
 	@Override
 	public void onUaMediaSessionStopped( UserAgent ua, String type ) {
-	
+		System.out.println("Media session stopped");
 	}
 	
 	@Override
