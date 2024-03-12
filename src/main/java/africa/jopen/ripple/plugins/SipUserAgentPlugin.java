@@ -2,7 +2,7 @@ package africa.jopen.ripple.plugins;
 
 import africa.jopen.ripple.abstractions.PluginAbs;
 import africa.jopen.ripple.interfaces.CommonAbout;
-import africa.jopen.ripple.sockets.WebsocketEndpoint;
+import africa.jopen.ripple.interfaces.Events;
 import io.micrometer.common.lang.Nullable;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -13,75 +13,101 @@ import org.mjsip.media.rx.AudioReceiver;
 import org.mjsip.media.rx.JavaxAudioOutput;
 import org.mjsip.media.tx.AudioTransmitter;
 import org.mjsip.media.tx.JavaxAudioInput;
+import org.mjsip.pool.PortConfig;
 import org.mjsip.pool.PortPool;
 import org.mjsip.sdp.SdpMessage;
-import org.mjsip.sip.address.GenericURI;
-
 import org.mjsip.sip.address.NameAddress;
 import org.mjsip.sip.address.SipURI;
 import org.mjsip.sip.call.DTMFInfo;
-import org.mjsip.sip.call.NotImplementedServer;
-import org.mjsip.sip.call.OptionsServer;
-import org.mjsip.sip.config.NameAddressHandler;
-import org.mjsip.sip.message.SipMethods;
-import org.mjsip.sip.provider.SipId;
-import org.mjsip.sip.provider.SipKeepAlive;
+import org.mjsip.sip.provider.SipConfig;
 import org.mjsip.sip.provider.SipProvider;
-import org.mjsip.sip.provider.SipStack;
+import org.mjsip.time.ConfiguredScheduler;
+import org.mjsip.time.SchedulerConfig;
 import org.mjsip.ua.*;
 import org.mjsip.ua.clip.ClipPlayer;
 import org.mjsip.ua.registration.RegistrationClient;
 import org.mjsip.ua.registration.RegistrationLogger;
-import org.mjsip.ua.registration.RegistrationOptions;
 import org.mjsip.ua.streamer.DefaultStreamerFactory;
 import org.mjsip.ua.streamer.DispatchingStreamerFactory;
 import org.mjsip.ua.streamer.NativeStreamerFactory;
 import org.mjsip.ua.streamer.StreamerFactory;
-import org.zoolu.net.SocketAddress;
 
 import java.time.Instant;
 
 public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
-	protected RegisteringUserAgent ua;
-	protected SipProvider sip_provider;
-	protected UAConfig _uaConfig;
-	static    Logger   log = Logger.getLogger(SipUserAgentPlugin.class.getName());
-	private UIConfig        _uiConfig;
-	private StreamerFactory _streamerFactory;
-	private MediaOptions    _mediaConfig;
-	/** UA_IDLE=0 */
-	protected static final String UA_IDLE="IDLE";
-	/** UA_INCOMING_CALL=1 */
-	protected static final String UA_INCOMING_CALL="INCOMING_CALL";
-	/** UA_OUTGOING_CALL=2 */
-	protected static final String UA_OUTGOING_CALL="OUTGOING_CALL";
-	/** UA_ONCALL=3 */
-	protected static final String UA_ONCALL="ONCALL";
-	String call_state=UA_IDLE;private String transaction = "";
-	private final CommonAbout commonAbout;
-//	protected RegisteringUserAgent ua;
-private       Integer     thisObjectPositionAddress;
-	public SipUserAgentPlugin(CommonAbout commonAbout,final Integer thisObjectPositionAddress, SipProvider sip_provider, PortPool portPool, UAConfig uaConfig, UIConfig uiConfig, MediaOptions mediaConfig) {
+	protected              RegisteringUserAgent ua;
+	protected              SipProvider sip_provider;
+	protected              UAConfig    uaConfig;
+	static                 Logger          log              = Logger.getLogger(SipUserAgentPlugin.class.getName());
+	private                UIConfig        uiConfig;
+	private                StreamerFactory _streamerFactory;
+	private                MediaOptions    mediaConfig;
+	/**
+	 * UA_IDLE=0
+	 */
+	protected static final String          UA_IDLE          = "IDLE";
+	/**
+	 * UA_INCOMING_CALL=1
+	 */
+	protected static final String               UA_INCOMING_CALL = "INCOMING_CALL";
+	/**
+	 * UA_OUTGOING_CALL=2
+	 */
+	protected static final String               UA_OUTGOING_CALL = "OUTGOING_CALL";
+	/**
+	 * UA_ONCALL=3
+	 */
+	protected static final String               UA_ONCALL        = "ONCALL";
+	String call_state = UA_IDLE;
+	private String transaction = "";
+	private  CommonAbout commonAbout;
+	//	protected RegisteringUserAgent ua;
+	private       Integer     thisObjectPositionAddress;
+	public SipUserAgentPlugin(CommonAbout commonAbout, final Integer thisObjectPositionAddress,
+	                          String realm,String username,String displayName,String password,String host,int port){
 		setTransaction("0");
+		System.out.println("xxxxx SipUserAgentPlugin constructor realm -  " + realm);
+		System.out.println("xxxxx SipUserAgentPlugin constructor username -  " + username);
+		System.out.println("xxxxx SipUserAgentPlugin constructor displayName -  " + displayName);
+		System.out.println("xxxxx SipUserAgentPlugin constructor host -  " + host);
+		System.out.println("xxxxx SipUserAgentPlugin constructor port -  " + port);
+		System.out.println("xxxxx SipUserAgentPlugin constructor password -  " + password);
 		this.commonAbout = commonAbout;
-		this.sip_provider=sip_provider;
-		_uaConfig=uaConfig;
-		_uiConfig = uiConfig;
-		_mediaConfig = mediaConfig;
 		this.thisObjectPositionAddress = thisObjectPositionAddress;
-		System.out.println("xxxx--"+this.sip_provider.getViaAddress());
-		System.out.println("xxxx--"+this.sip_provider.getBindingIpAddress());
-//		ua=new RegisteringUserAgent(sip_provider, portPool,_uaConfig, this.andThen(clipPlayer()));
-		ua=new RegisteringUserAgent(sip_provider, portPool,_uaConfig, this);
-		_streamerFactory = createStreamerFactory(_mediaConfig, _uaConfig);
+		SipConfig sipConfig = new SipConfig();
+		sipConfig.setHostPort(port);
+		UAConfig        uaConfig        = new UAConfig();
+		uaConfig.setAuthRealm(realm);
+		uaConfig.setUser(username);
+		uaConfig.setDisplayName(displayName);
+		sipConfig.setViaAddr(host);
+		uaConfig.setAuthPasswd(password);
+		uaConfig.setRegistrar(new SipURI(host,port)); // Set the SIP server address
+		SchedulerConfig schedulerConfig = new SchedulerConfig();
+		MediaConfig     mediaConfig     = new MediaConfig();
+		PortConfig      portConfig      = new PortConfig();
+		UIConfig        uiConfig        = new UIConfig();
+		sipConfig.normalize();
+		uaConfig.normalize(sipConfig);
+		ConfiguredScheduler configuredScheduler = new ConfiguredScheduler(schedulerConfig);
+		var                 sipPr               = new SipProvider(sipConfig,configuredScheduler);
+		
+		init(sipPr,portConfig.createPool(),uaConfig,uiConfig,mediaConfig);
+	}
+	private void init(  SipProvider sip_provider, PortPool portPool, UAConfig uaConfig, UIConfig uiConfig, MediaOptions mediaConfig ) {
+		
+		this.sip_provider = sip_provider;
+		this.uaConfig = uaConfig;
+		this.uiConfig = uiConfig;
+		this.mediaConfig = mediaConfig;
+		ua = new RegisteringUserAgent(sip_provider, portPool, this.uaConfig, this);
+		_streamerFactory = createStreamerFactory(this.mediaConfig, this.uaConfig);
 		changeStatus(UA_IDLE);
-//		NameAddress callee = new NameAddress();
-		//ua.call(" ","");
 		log.info("Starting registration");
 		log.info("Starting registration -- " + uaConfig.isRegister());
 		if (uaConfig.isRegister()) {
-//			ua.loopRegister(_uaConfig.getExpires(), _uaConfig.getExpires() / 2, _uaConfig.getKeepAliveTime());
-			var rc = new RegistrationClient(sip_provider, uaConfig, new RegistrationLogger());
+			ua.loopRegister(uaConfig.getExpires(), uaConfig.getExpires() / 2, uaConfig.getKeepAliveTime());
+			/*var rc = new RegistrationClient(sip_provider, uaConfig, new RegistrationLogger());
 			if (uiConfig.doUnregisterAll) {
 				rc.unregisterall();
 			}
@@ -90,42 +116,45 @@ private       Integer     thisObjectPositionAddress;
 				rc.unregister();
 			}
 			
-			rc.register(uaConfig.getExpires());
+			rc.register(uaConfig.getExpires());*/
+			
 		}
 		
 	}
-	public void setTransaction(String transaction) {
+	
+	public void setTransaction( String transaction ) {
 		this.transaction = transaction;
 	}
-	public  void makeOutGoingCall(@Nullable String sdp ){
+	
+	public void makeOutGoingCall( @Nullable String sdp ) {
 		
-		var nameAddress =  org.mjsip.sip.address.NameAddress.parse("sip:alice@example.com");
+		var nameAddress = org.mjsip.sip.address.NameAddress.parse("sip:alice@example.com");
 		
-		SdpMessage sdpMess =new SdpMessage(sdp);
-		ua.call(nameAddress,sdpMess);
+		SdpMessage sdpMess = new SdpMessage(sdp);
+		ua.call(nameAddress, sdpMess);
 		changeStatus(UA_OUTGOING_CALL);
 	}
 	
 	
-	
 	private UserAgentListener clipPlayer() {
-		if (!_mediaConfig.isUseRat() && !_uiConfig.noSystemAudio) {
-			return new ClipPlayer(_uiConfig.mediaPath);
+		if (!mediaConfig.isUseRat() && !uiConfig.noSystemAudio) {
+			return new ClipPlayer(uiConfig.mediaPath);
 		}
 		return null;
 	}
-	protected void changeStatus(String state) {
-		call_state=state;
-		log.debug("state: "+call_state);
+	
+	protected void changeStatus( String state ) {
+		call_state = state;
+		log.debug("state: " + call_state);
 	}
 	
-	public StreamerFactory createStreamerFactory(MediaOptions mediaConfig, UAOptions uaConfig) {
+	public StreamerFactory createStreamerFactory( MediaOptions mediaConfig, UAOptions uaConfig ) {
 		DispatchingStreamerFactory factory = new DispatchingStreamerFactory();
 		if (mediaConfig.isAudio()) {
 			if (mediaConfig.isUseRat()) {
 				factory.addFactory("audio", new NativeStreamerFactory(mediaConfig.getAudioMcastSoAddr(), mediaConfig.getBinRat()));
 				
-			}else{
+			} else {
 				FlowSpec.Direction dir = uaConfig.getDirection();
 				
 				AudioTransmitter tx;
@@ -162,20 +191,30 @@ private       Integer     thisObjectPositionAddress;
 	
 	@Override
 	public void onUaRegistrationSucceeded( UserAgent ua, String result ) {
-		System.out.println("Registration succeeded: "+result);
-		
-		
+		System.out.println("Registration succeeded: " + result);
+		JSONObject response = new JSONObject();
+		response.put("message", "Registration succeeded");
+		response.put("registrationMessage", result);
+		response.put(Events.EVENT_TYPE, Events.SIP_REGISTRATION);
+		response.put("feature", FeatureTypes.SIP_GATEWAY.toString());
+		notifyClient(response, this.thisObjectPositionAddress);
 		
 	}
 	
 	@Override
 	public void onUaRegistrationFailed( UserAgent ua, String result ) {
-		System.out.println("Registration failed: "+result);
+		System.out.println("Registration failed: " + result);
+		JSONObject response = new JSONObject();
+		response.put("message", "Registration Failed");
+		response.put("registrationMessage", result);
+		response.put(Events.EVENT_TYPE, Events.SIP_REGISTRATION);
+		response.put("feature", FeatureTypes.SIP_GATEWAY.toString());
+		notifyClient(response, this.thisObjectPositionAddress);
 	}
 	
 	@Override
 	public void onUaIncomingCall( UserAgent ua, NameAddress callee, NameAddress caller, MediaDesc[] media_descs ) {
-		System.out.println("Incoming call from: "+caller.toString());
+		System.out.println("Incoming call from: " + caller.toString());
 		changeStatus(UA_INCOMING_CALL);
 //		ua.acceptCall(200);
 	}
@@ -212,7 +251,7 @@ private       Integer     thisObjectPositionAddress;
 	
 	@Override
 	public void onUaCallAccepted( UserAgent ua ) {
-	
+		
 		System.out.println("Call accepted");
 	}
 	
@@ -223,7 +262,7 @@ private       Integer     thisObjectPositionAddress;
 	
 	@Override
 	public void onUaCallFailed( UserAgent ua, String reason ) {
-		System.out.println("Call failed: "+reason);
+		System.out.println("Call failed: " + reason);
 	}
 	
 	@Override
@@ -264,7 +303,7 @@ private       Integer     thisObjectPositionAddress;
 	}
 	
 	@Override
-	protected void notifyClient(JSONObject pluginData, final Integer objectPosition) {
-		commonAbout.sendMessage(pluginData, objectPosition,FeatureTypes.G_STREAM_BROADCAST);
+	protected void notifyClient( JSONObject pluginData, final Integer objectPosition ) {
+		commonAbout.sendMessage(pluginData, objectPosition, FeatureTypes.SIP_GATEWAY);
 	}
 }

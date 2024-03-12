@@ -167,6 +167,24 @@ public class WebsocketEndpoint implements WsListener {
 								client.setDebugSession(isDebugSession);
 								WebRTCGStreamerPlugInEventsHandler.newThread(session, client, jsonObject, transaction, last);
 							}
+							if (!Objects.isNull(client)
+									&& jsonObject.has("feature")
+									&& jsonObject.getString("feature").equals("SIP_GATEWAY")
+							) {
+								var dataObject  = jsonObject.getJSONObject("data");
+									// hostAddress, username, displayName, userPassword, port, realm
+									String hostAddress  = dataObject.getString("hostAddress");
+									String username     = dataObject.getString("username");
+									String displayName  = dataObject.getString("displayName");
+									String userPassword = dataObject.getString("userPassword");
+									int    port         = dataObject.getInt("port");
+									String realm        = dataObject.getString("realm");
+									int thread =client.createAccessSipUserPlugIn(
+											realm, username, displayName, userPassword, hostAddress, port
+									);
+									client.replyToNewThreadRequest(transaction, thread, jsonObject.getString("feature"));
+								
+							}
 							
 							break;
 						case "remember":
@@ -179,6 +197,7 @@ public class WebsocketEndpoint implements WsListener {
 							}
 							break;
 						case "register":
+							String feature = jsonObject.has("feature") ? jsonObject.getString("feature") : "";
 							boolean isRegistered = clientsList.stream()
 									.anyMatch(client1 -> client1.getClientID().equals(jsonObject.getString("clientID")));
 							if (isRegistered) {
@@ -195,6 +214,7 @@ public class WebsocketEndpoint implements WsListener {
 												.put("success", true)
 												.put("eventType", jsonObject.getString("requestType"))
 												.put("accessAuth", "GENERAL")
+												.put("feature",feature)
 												.put("transaction", transaction)
 												.put("clientID", jsonObject.getString("clientID"))
 												.toString()
@@ -206,15 +226,22 @@ public class WebsocketEndpoint implements WsListener {
 							client.setDebugSession(isDebugSession);
 							
 							clientsList.add(client);
+							
 							session.send(
 									new JSONObject()
 											.put("success", true)
+											.put("feature",feature)
 											.put("eventType", jsonObject.getString("requestType"))
 											.put("accessAuth", "GENERAL")
 											.put("transaction", transaction)
 											.put("clientID", client.getClientID())
 											.toString()
 									, last);
+							
+							
+							
+							
+							
 							break;
 						default:
 							log.info("Unknown request type: " + jsonObject.getString("requestType"));

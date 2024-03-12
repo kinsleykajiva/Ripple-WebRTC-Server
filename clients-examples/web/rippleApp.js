@@ -353,25 +353,7 @@ const RippleSDK = {
         },
         features:{
             sipGateway:{
-                registerToSipServer:async (hostAddress,port,)=>{
-                    if(!hostAddress){
-                        RippleSDK.utils.error('registerToSipServer', 'no hostAddress');
-                        return;
-                    }
-                    if(!port){
-                        RippleSDK.utils.error('registerToSipServer', 'no port');
-                        return;
-                    }
-                    const body = {
-                        clientID   : RippleSDK.clientID,
-                        requestType: 'register',
-                        feature    : RippleSDK.featuresAvailable.SIP_GATEWAY,
-                        transaction: RippleSDK.utils.uniqueIDGenerator("transaction", 12),
-                        hostAddress,
-                        port,
-                    };
-                    RippleSDK.transports.websocket.webSocketSendAction(body);
-                } ,
+                makeCall:(phoneNumber)=>{ },
             },
             streaming:{
                 threads:[],
@@ -624,10 +606,15 @@ const RippleSDK = {
                     messageObject = JSON.parse(messageObject);
                 }
                 const eventType     = messageObject.eventType;
+                const feature     = messageObject.feature;
                 const success       = messageObject.success;
                 const plugin        = messageObject.plugin;
                 let pluginEventType = plugin ? plugin.eventType: null;
                 if (success && pluginEventType) {
+                    if (pluginEventType === 'sipRegistration') {
+
+                    }
+
                     if (pluginEventType === 'webrtc') {
                         RippleSDK.app.webRTC.remoteOfferStringSDPMap.set(messageObject.position, plugin.clientSDP);
                         await RippleSDK.app.webRTC.createAnswer(messageObject.position);
@@ -693,10 +680,17 @@ const RippleSDK = {
                                 feature: messageObject.feature,
                                 accessAuth: messageObject.accessAuth,
                             });
-                            RippleSDK.app.features.streaming.threads.push(messageObject.position);
-                            RippleSDK.app.features.streaming.functions.startBroadCast(messageObject.position);
-                            // renderThreadUI
-                            RippleSDK.app.features.streaming.functions.renderThreadUI(messageObject.position);
+                            if (feature === RippleSDK.featuresAvailable.G_STREAM_BROADCAST ||
+                                feature === RippleSDK.featuresAvailable.G_STREAM) {
+
+                                RippleSDK.app.features.streaming.threads.push(messageObject.position);
+                                RippleSDK.app.features.streaming.functions.startBroadCast(messageObject.position);
+                                // renderThreadUI
+                                RippleSDK.app.features.streaming.functions.renderThreadUI(messageObject.position);
+                            }
+                            if (feature === RippleSDK.featuresAvailable.SIP_GATEWAY) {
+
+                            }
 
                             break;
                         case "register":
@@ -759,7 +753,7 @@ const RippleSDK = {
                 }
                 if(RippleSDK.transports.websocket.socket.readyState !== 1){
                     RippleSDK.utils.log('webSocketSendAction', 'not ready');
-                    return;
+
                 }else{
                     messageObject. isDebugSession= RippleSDK.isDebugSession,
                     messageObject.transaction = RippleSDK.utils.uniqueIDGenerator("transaction",12);

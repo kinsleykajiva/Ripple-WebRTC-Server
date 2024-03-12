@@ -1,6 +1,8 @@
 package africa.jopen.ripple.models;
 
 import africa.jopen.ripple.interfaces.CommonAbout;
+import africa.jopen.ripple.plugins.FeatureTypes;
+import africa.jopen.ripple.plugins.SipUserAgentPlugin;
 import africa.jopen.ripple.plugins.WebRTCGStreamerPlugIn;
 import africa.jopen.ripple.utils.XUtils;
 import io.helidon.websocket.WsSession;
@@ -27,7 +29,8 @@ public class Client implements CommonAbout {
 	private final Logger log = Logger.getLogger(Client.class.getName());
 	
 	private final MutableMap<Integer, WebRTCGStreamerPlugIn> webRTCStreamMap = Maps.mutable.empty();
-	private WsSession wsSession;
+	private final MutableMap<Integer, SipUserAgentPlugin>    sipUserAgentPluginMap = Maps.mutable.empty();
+	private WsSession                                        wsSession;
 	
 	private final MutableList<String> payloads = Lists.mutable.empty();
 	
@@ -40,6 +43,14 @@ public class Client implements CommonAbout {
 		isDebugSession = debugSession;
 	}
 	
+	public int createAccessSipUserPlugIn(String realm,String username,String displayName,String password,String host,int port ) {
+		int position = sipUserAgentPluginMap.size() + 1;
+		
+		SipUserAgentPlugin sipUserAgentPlugin = new SipUserAgentPlugin(this, position,
+				realm, username, displayName, password, host, port);
+		sipUserAgentPluginMap.put(position, sipUserAgentPlugin);
+		return position;
+	}
 	public int createAccessGStreamerPlugIn(MediaFile mediaFile) {
 		int position = webRTCStreamMap.size() + 1;
 		WebRTCGStreamerPlugIn gStreamerPlugIn = new WebRTCGStreamerPlugIn(this, position, mediaFile);
@@ -122,11 +133,12 @@ public class Client implements CommonAbout {
 	}
 	
 	@Override
-	public void sendMessage(JSONObject pluginData, Integer objectPosition) {
+	public void sendMessage(JSONObject pluginData, Integer objectPosition, FeatureTypes featureType) {
 		// Refactored to use object initialization with put method chaining
 		JSONObject response = new JSONObject()
 				.put("clientID", clientID)
 				.put("success", true)
+				.put("feature", featureType.toString())
 				.put("position", objectPosition)
 				.put("plugin", pluginData)
 				.put("accessAuth", "GENERAL")

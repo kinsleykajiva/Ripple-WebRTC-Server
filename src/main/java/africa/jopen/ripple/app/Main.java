@@ -175,14 +175,9 @@ public class Main {
 		log.info("WEB server is up! http://localhost:" + server.port());
 		
 		
-		SipConfig    sipConfig = new SipConfig();
-		
-//		sipConfig.setDefaultPort(9099);
+		/*SipConfig    sipConfig = new SipConfig();
 		sipConfig.setHostPort(9099);
-//		sipConfig.setre
-		var f=new IpAddress("11514.011.1610.1162");
-//		sipConfig.setBindingIpAddr(f);
-//		sipConfig.seth(9099);
+		
 		UAConfig        uaConfig        = new UAConfig();
 		uaConfig.setAuthRealm("Asterisk");
 		uaConfig.setUser("kinsl1ey-kaji1va1");
@@ -194,9 +189,6 @@ public class Main {
 		MediaConfig     mediaConfig     = new MediaConfig();
 		PortConfig      portConfig      = new PortConfig();
 		UIConfig        uiConfig        = new UIConfig();
-		
-		/*OptionParser.parseOptions(args, ".mjsip-ua", sipConfig, uaConfig, schedulerConfig, uiConfig, config);*/
-		//OptionParser.parseOptions(args, ".mjsip-ua", sipConfig, uaConfig, schedulerConfig, uiConfig, config);
 		sipConfig.normalize();
 		uaConfig.normalize(sipConfig);
 		ConfiguredScheduler configuredScheduler = new ConfiguredScheduler(schedulerConfig);
@@ -205,12 +197,8 @@ public class Main {
 		SipUserAgentPlugin sipUserAgentPlugin = new SipUserAgentPlugin(
 				sipPr,portConfig.createPool(),uaConfig,uiConfig,mediaConfig
 		);
-//		sipUserAgentPlugin.
 		System.out.println(uaConfig.getProxy());
-		System.out.println(uaConfig.getUserURI());
-		
-		
-//		connectionsManager.setLogMessage("WEB server is up! http://localhost:");
+		System.out.println(uaConfig.getUserURI());*/
 	}
 	
 	

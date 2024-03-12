@@ -14,6 +14,7 @@ public interface Events {
 	String VOLUME_ADJUSTED_G_STREAM_EVENT   = "volumeAdjustedGstream";
 	String END_OF_STREAM_G_STREAM_EVENT     = "endedGstream";
 	String PAUSE_G_STREAM_EVENT             = "pauseGstream";
+	String SIP_REGISTRATION             = "sipRegistration";
 	String REMEMBER_EVENT                   = "remember";
 	String ERROR_EVENT                      = "error";
 	String SYSTEM_FATAL_ERROR_EVENT         = "fatalError";
