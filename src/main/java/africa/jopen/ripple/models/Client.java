@@ -43,7 +43,11 @@ public class Client implements CommonAbout {
 		isDebugSession = debugSession;
 	}
 	
-	public int createAccessSipUserPlugIn(String realm,String username,String displayName,String password,String host,int port ) {
+	public MutableMap<Integer, SipUserAgentPlugin> getSipUserAgentPluginMap() {
+		return sipUserAgentPluginMap;
+	}
+	
+	public int createAccessSipUserPlugIn( String realm, String username, String displayName, String password, String host, int port ) {
 		int position = sipUserAgentPluginMap.size() + 1;
 		
 		SipUserAgentPlugin sipUserAgentPlugin = new SipUserAgentPlugin(this, position,

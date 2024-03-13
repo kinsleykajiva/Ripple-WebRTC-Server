@@ -135,15 +135,29 @@ const RippleSDK = {
                     threadRef,
                 });
                 const peerConnection = RippleSDK.app.webRTC.peerConnectionsMap.get(threadRef);
-                await peerConnection.createOffer({offerToReceiveVideo: true, offerToReceiveAudio: true})
+                const feature = RippleSDK.utils.threadRefsInUseMap.get(threadRef).feature;
+                let offerObj = {
+                    offerToReceiveVideo: true, offerToReceiveAudio: true
+                }
+                if(feature === RippleSDK.featuresAvailable.SIP_GATEWAY) {
+                    offerObj.offerToReceiveVideo = false;
+                }
+                await peerConnection.createOffer(offerObj)
                     .then(async _sdp=>{
+                            if(feature === RippleSDK.featuresAvailable.SIP_GATEWAY) {
+                                let sdp_ = _sdp.sdp;
+                                // Remove video codecs
+                                sdp_ = sdp_.replace(/m=video[\s\S]*?(?=m=|$)/g, '');
+                                _sdp.sdp = sdp_;
+                            }
                         await peerConnection.setLocalDescription(_sdp);
                         const body = {
                             clientID   : RippleSDK.clientID,
                             requestType: 'offer',
                             transaction: RippleSDK.utils.uniqueIDGenerator("transaction", 12),
                             threadRef  : threadRef,
-                            offer      : _sdp.sdp
+                            offer      : _sdp.sdp,
+                            feature,
                         };
                         RippleSDK.transports.websocket.webSocketSendAction(body);
                         RippleSDK.utils.log('createOffer', 'offer sent to server',body);
@@ -612,7 +626,13 @@ const RippleSDK = {
                 let pluginEventType = plugin ? plugin.eventType: null;
                 if (success && pluginEventType) {
                     if (pluginEventType === 'sipRegistration') {
+                        RippleSDK.app.callbacks.tellClientOnMessage(plugin);
 
+                        // maybe we can create a pear connection here or create when its required!
+                        // RippleSDK.app.webRTC.createPeerConnection(messageObject.position);
+
+                        RippleSDK.app.webRTC.peerConnectionsMap.set(messageObject.position, RippleSDK.app.webRTC.createPeerConnection(messageObject.position));
+                        await RippleSDK.app.webRTC.createOffer(messageObject.position);
                     }
 
                     if (pluginEventType === 'webrtc') {

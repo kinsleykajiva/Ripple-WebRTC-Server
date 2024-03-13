@@ -82,9 +82,15 @@ public class WebsocketEndpoint implements WsListener {
 					
 					switch (jsonObject.getString("requestType")) {
 						case "offer":
-							if (Objects.isNull(client)) {
-								log.info("Client not found");
-								break;
+							
+							if (!Objects.isNull(client)
+									&& jsonObject.has("feature")
+									&& jsonObject.getString("feature").equals("SIP_GATEWAY")
+							) {
+								log.info("offer| " + jsonObject.getString("offer"));
+								// WebRTCGStreamerPlugIn plugin = webRTCStreamMap.get(jsonObject.getInt("threadRef"));
+								var plugin_=client.getSipUserAgentPluginMap().get(jsonObject.getInt("threadRef"));
+								plugin_.makeOutGoingCall(jsonObject.getString("offer"));
 							}
 							break;
 						case "decreaseVolume":
