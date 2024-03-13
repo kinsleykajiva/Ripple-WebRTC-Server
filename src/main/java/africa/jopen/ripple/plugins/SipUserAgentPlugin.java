@@ -3,6 +3,7 @@ package africa.jopen.ripple.plugins;
 import africa.jopen.ripple.abstractions.PluginAbs;
 import africa.jopen.ripple.interfaces.CommonAbout;
 import africa.jopen.ripple.interfaces.Events;
+import com.sun.net.httpserver.Request;
 import io.micrometer.common.lang.Nullable;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -21,6 +22,7 @@ import org.mjsip.sip.address.SipURI;
 import org.mjsip.sip.call.DTMFInfo;
 import org.mjsip.sip.provider.SipConfig;
 import org.mjsip.sip.provider.SipProvider;
+import org.mjsip.sip.provider.SipStack;
 import org.mjsip.time.ConfiguredScheduler;
 import org.mjsip.time.SchedulerConfig;
 import org.mjsip.ua.*;
@@ -91,6 +93,7 @@ public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 		uaConfig.normalize(sipConfig);
 		ConfiguredScheduler configuredScheduler = new ConfiguredScheduler(schedulerConfig);
 		var                 sipPr               = new SipProvider(sipConfig,configuredScheduler);
+//		uaConfig.setSendOnly(true);
 		
 		init(sipPr,portConfig.createPool(),uaConfig,uiConfig,mediaConfig);
 	}
@@ -126,12 +129,32 @@ public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 		this.transaction = transaction;
 	}
 	
+	public String removeOpusCodec(String sdp) {
+    StringBuilder newSdp = new StringBuilder();
+    String[] lines = sdp.split("\\r?\\n");
+    
+    for (String line : lines) {
+        if (!line.contains("opus") && !line.contains("red/48000") && !line.contains("telephone-event")) {
+            newSdp.append(line);
+            newSdp.append("\n");
+        }
+    }
+    
+    return newSdp.toString();
+}
+	
 	public void makeOutGoingCall( @Nullable String sdp ) {
-		
-		var nameAddress = org.mjsip.sip.address.NameAddress.parse("sip:alice@example.com");
-		
+		sdp = sdp.replace("a=rtpmap:111 opus/48000/2\\r\\n", "");
+//		sdp = sdp.replaceAll("a=rtpmap:(\\d+) (G722|PCMU|CN)/8000\\r\\n", "");
+		//sdp = sdp.replaceAll("a=rtpmap:(\\d+) CN/(16000|32000|48000|96000)\\r\\n", "");
+		sdp = removeOpusCodec(sdp);
+		System.out.println("==>"+sdp);
+		var nameAddress = org.mjsip.sip.address.NameAddress.parse("sip:27118695168@vafey.commonresolve.co.za:9099");
+//		IceCandidate j;
 		SdpMessage sdpMess = new SdpMessage(sdp);
+		//uaConfig.setAudioCodecs(new ArrayList<String>(Arrays.asList("PCMU/8000","PCMA/8000")));
 		ua.call(nameAddress, sdpMess);
+		
 		changeStatus(UA_OUTGOING_CALL);
 	}
 	
@@ -195,6 +218,7 @@ public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 		JSONObject response = new JSONObject();
 		response.put("message", "Registration succeeded");
 		response.put("registrationMessage", result);
+		response.put("success", true);
 		response.put(Events.EVENT_TYPE, Events.SIP_REGISTRATION);
 		response.put("feature", FeatureTypes.SIP_GATEWAY.toString());
 		notifyClient(response, this.thisObjectPositionAddress);
@@ -206,6 +230,7 @@ public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 		System.out.println("Registration failed: " + result);
 		JSONObject response = new JSONObject();
 		response.put("message", "Registration Failed");
+		response.put("success", false);
 		response.put("registrationMessage", result);
 		response.put(Events.EVENT_TYPE, Events.SIP_REGISTRATION);
 		response.put("feature", FeatureTypes.SIP_GATEWAY.toString());

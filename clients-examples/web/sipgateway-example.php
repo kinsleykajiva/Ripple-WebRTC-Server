@@ -103,6 +103,7 @@
                 <div class="card" id="sipFormRegistrationDiv">
                     <div class="card-body">
                         <h5 class="card-title">Sip Form</h5>
+                        <h5 class="card-title " id="progressStatus">Status</h5>
 
                         <!-- Horizontal Form -->
                         <form onsubmit="return false;">
@@ -200,6 +201,15 @@
         url: "http://localhost:8080/",
         renderGroupParentId: "",
     });
+
+    const progressStatus = document.getElementById('progressStatus');
+    const sipFormRegistrationDiv = document.getElementById('sipFormRegistrationDiv');
+    const inputHostAddress = document.getElementById('inputHostAddress');
+    const inputUsername = document.getElementById('inputUsername');
+    const inputDisplay = document.getElementById('inputDisplay');
+    const inputUserPassword = document.getElementById('inputUserPassword');
+    const inputPort = document.getElementById('inputPort');
+    const inputRealm = document.getElementById('inputRealm');
     RippleSDK.app.callbacks.tellClientOnClosed = function () {
         console.log("closed");
     }
@@ -208,6 +218,23 @@
     }
     RippleSDK.app.callbacks.tellClientOnMessage = function (message) {
         console.log(message);
+        if(message.success){
+
+        //disable a whole div sipFormRegistrationDiv
+
+        // sipFormRegistrationDiv.style.display = 'none';
+            sipFormRegistrationDiv.style.pointerEvents = "none";
+            sipFormRegistrationDiv.style.opacity = "0.4";
+        progressStatus.innerText = message.message;
+        // add success class
+        progressStatus.classList.add('text-success');
+
+        }else{
+            // add error class
+            progressStatus.classList.add('text-danger');
+            progressStatus.innerText = message.message;
+
+        }
     }
     RippleSDK.app.callbacks.tellClientOnFatalError = function (err) {
         console.error(err);
@@ -215,28 +242,13 @@
     RippleSDK.app.callbacks.tellClientOnWebRtcEvents = function (eventMessage) {
         console.log(eventMessage);
         if (eventMessage) {
-            const subvideoheader = document.getElementById("subvideoheader_" + eventMessage.threadRef);
-            if (subvideoheader) {
-                subvideoheader.innerText = eventMessage.showProgress ? 'Buffering' : 'Playing';
-            }
-        }
-    }
-    RippleSDK.app.callbacks.tellClientOnStreamUIUpdates = function (eventMessage) {
-        console.log(eventMessage);
-        if (eventMessage && eventMessage.threadRef) {
-
 
         }
     }
 
 
-    const sipFormRegistrationDiv = document.getElementById('sipFormRegistrationDiv');
-    const inputHostAddress = document.getElementById('inputHostAddress');
-    const inputUsername = document.getElementById('inputUsername');
-    const inputDisplay = document.getElementById('inputDisplay');
-    const inputUserPassword = document.getElementById('inputUserPassword');
-    const inputPort = document.getElementById('inputPort');
-    const inputRealm = document.getElementById('inputRealm');
+
+
 
 
     function registerSipUser() {
@@ -272,7 +284,8 @@
         const userPassword = inputUserPassword.value;
         const port = inputPort.value;
         const realm = inputRealm.value;
-
+        progressStatus.classList.add('text-success');
+        progressStatus.innerText = "Registering...";
 
         if (RippleSDK.utils.threadRefsInUseMap.length === 0) {
             // streamsVids.innerHTML = "";

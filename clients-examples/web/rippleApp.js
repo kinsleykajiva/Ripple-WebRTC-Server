@@ -142,12 +142,41 @@ const RippleSDK = {
                 if(feature === RippleSDK.featuresAvailable.SIP_GATEWAY) {
                     offerObj.offerToReceiveVideo = false;
                 }
+                function removeOpusCodec(sdp) {
+                    // Split the SDP data into an array of lines
+                    var sdpLines = sdp.split('\n');
+
+                    // Define the start and end of the opus codec section
+                    var opusStartIndex = sdpLines.findIndex(line => line.includes('a=rtpmap:111 opus/48000/2'));
+                    var opusEndIndex = sdpLines.findIndex(line => line === 'a=rtpmap:63 red/48000/2');
+
+                    // If both start and end indices exist, remove the opus codec section
+                    if (opusStartIndex !== -1 && opusEndIndex !== -1) {
+                        sdpLines.splice(opusStartIndex, opusEndIndex - opusStartIndex);
+                    }
+
+                    // Join lines back into a single SDP string
+                    var newSdp = sdpLines.join('\n');
+
+                    return newSdp;
+                }
+
                 await peerConnection.createOffer(offerObj)
                     .then(async _sdp=>{
                             if(feature === RippleSDK.featuresAvailable.SIP_GATEWAY) {
                                 let sdp_ = _sdp.sdp;
                                 // Remove video codecs
                                 sdp_ = sdp_.replace(/m=video[\s\S]*?(?=m=|$)/g, '');
+                                // remove G722/8000 , PCMU/8000  , CN/8000 , CN/16000 , CN/32000 , CN/48000 , CN/96000 and keep PCMA/8000
+                                sdp_ = sdp_.replace(/(a=rtpmap:(\d+)\s(G722|PCMU|CN)\/8000\r\n|a=rtpmap:(\d+)\sCN\/(16000|32000|48000|96000)\r\n)/g, '');
+                                //sdp_ = sdp_.replace(/a=rtpmap:111 opus\/48000\/2\r\n/g, '');
+                                /*sdp_=sdp_.split('\n')
+                                    .filter(line => !line.includes('opus'))
+                                    .join('\n');*/
+                                console.log('1x',sdp_)
+                                // sdp_ = removeOpusCodec(sdp_);
+                                sdp_ = (sdp_).replace('a=rtpmap:111 opus/48000/2\n','');
+                                console.log('1x',sdp_)
                                 _sdp.sdp = sdp_;
                             }
                         await peerConnection.setLocalDescription(_sdp);
