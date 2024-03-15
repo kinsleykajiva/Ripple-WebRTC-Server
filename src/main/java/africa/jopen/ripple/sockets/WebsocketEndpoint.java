@@ -59,7 +59,7 @@ public class WebsocketEndpoint implements WsListener {
 	
 	@Override
 	public void onMessage( WsSession session, String text, boolean last ) {
-		log.info("Received message: " + text);
+		//log.info("Received message: " + text);
 		var transaction    = "";
 		var isDebugSession = false;
 		

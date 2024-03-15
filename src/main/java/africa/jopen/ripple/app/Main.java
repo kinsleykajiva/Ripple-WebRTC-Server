@@ -30,11 +30,13 @@ import org.mjsip.ua.UIConfig;
 import org.zoolu.net.IpAddress;
 
 import java.io.File;
+import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.util.Enumeration;
 
 import static africa.jopen.ripple.utils.XUtils.copyConfigFilesTemplates;
 import static africa.jopen.ripple.utils.XUtils.generateJwtKeys;
@@ -46,21 +48,58 @@ import static africa.jopen.ripple.utils.XUtils.generateJwtKeys;
 public class Main {
 	
 	static Logger log = Logger.getLogger(Main.class.getName());
+	public static   String IP_ADDRESS = "jopen-ripple";
 	
 	/**
 	 * Cannot be instantiated.
 	 */
 	private Main() {
 	}
-	
+	public static String getMyOutboundIPAddress() {
+		try {
+			Socket socket = new Socket("www.google.com", 80);
+			String ip     = socket.getLocalAddress().toString();
+			socket.close();
+			return ip;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "127.0.0.1";
+		}
+	}
 	
 	/**
 	 * Application main entry point.
 	 *
 	 * @param args command line arguments.
 	 */
-	public static void main(String[] args) {
-		log.info("Starting server...");
+	public static void main(String[] args) throws UnknownHostException {
+		IP_ADDRESS = getMyOutboundIPAddress();
+		log.info("Starting server..." + getMyOutboundIPAddress());
+		log.info("Starting server..." + getMyOutboundIPAddress());
+		String ipAddress = Inet4Address.getLocalHost().getHostAddress();
+		IP_ADDRESS = ipAddress;
+		System.out.println("Current IP address: " + ipAddress);
+		
+		String ip;
+		try {
+			Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+			while (interfaces.hasMoreElements()) {
+				NetworkInterface iface = interfaces.nextElement();
+				// Filters out loopback and inactive interfaces
+				if (iface.isLoopback() || !iface.isUp())
+					continue;
+				Enumeration<InetAddress> addresses = iface.getInetAddresses();
+				while (addresses.hasMoreElements()) {
+					InetAddress addr = addresses.nextElement();
+					ip = addr.getHostAddress();
+					System.out.println(iface.getDisplayName() + " " + ip);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
 		var connectionsManager = ConnectionsManager.getInstance();
 		connectionsManager.setBANNER();
 		// load logging configuration

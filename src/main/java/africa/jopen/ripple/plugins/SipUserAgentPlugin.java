@@ -3,6 +3,7 @@ package africa.jopen.ripple.plugins;
 import africa.jopen.ripple.abstractions.PluginAbs;
 import africa.jopen.ripple.interfaces.CommonAbout;
 import africa.jopen.ripple.interfaces.Events;
+import africa.jopen.ripple.utils.XUtils;
 import com.sun.net.httpserver.Request;
 import io.micrometer.common.lang.Nullable;
 import org.apache.log4j.Logger;
@@ -35,6 +36,10 @@ import org.mjsip.ua.streamer.NativeStreamerFactory;
 import org.mjsip.ua.streamer.StreamerFactory;
 
 import java.time.Instant;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static africa.jopen.ripple.app.Main.IP_ADDRESS;
 
 public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 	protected              RegisteringUserAgent ua;
@@ -130,27 +135,177 @@ public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 	}
 	
 	public String removeOpusCodec(String sdp) {
-    StringBuilder newSdp = new StringBuilder();
-    String[] lines = sdp.split("\\r?\\n");
-    
-    for (String line : lines) {
-        if (!line.contains("opus") && !line.contains("red/48000") && !line.contains("telephone-event")) {
-            newSdp.append(line);
-            newSdp.append("\n");
-        }
-    }
-    
-    return newSdp.toString();
-}
+		StringBuilder newSdp = new StringBuilder();
+		String[] lines = sdp.split("\\r?\\n");
+		
+		for (String line : lines) {
+			/*if(line.contains("a=recvonly")){
+				line = line.replace("recvonly", "sendrecv");
+			}*/
+			if(line.contains("s=-")){
+				line = line.replace("s=-", "s=" + uaConfig.getAuthRealm() + " " + XUtils.IdGenerator());
+				
+			}
+			if(line.contains("o=-")){
+				line = line.replace("o=-", "o=" + uaConfig.getUser());
+			}
+			
+			
+			if (line.contains("0.0.0.0")) { // Fix: replace the "0.0.0.0" Ip
+				line = line.replace("0.0.0.0", IP_ADDRESS);
+			}
+			if (line.contains("127.0.0.1")) { // Fix: replace the "0.0.0.0" Ip
+				line = line.replace("127.0.0.1", IP_ADDRESS);
+			}
+			/*if (line.contains("a=fmtp:63 111/111")) { // Fix: replace the fmtp line for "63" payload type. Placeholder fix, adjust according to your requirements
+				line = "a=fmtp:63 appropriate_parameters_for_codecs";
+			}*/
+			/*if (line.contains("a=rtpmap:110 telephone-event/48000")) { // Fix: correct the frequency for telephone-event
+				line = "a=rtpmap:110 telephone-event/8000";
+			}*/
+			if (!line.contains("opus") && !line.contains("red/48000")) {
+				newSdp.append(line);
+				newSdp.append("\n");
+			}
+		}
+		/*newSdp.append("a=rtpmap:101 telephone-event/8000\n");
+		newSdp.append("a=ptime:20\n");
+		newSdp.append("a=maxptime:150\n");*/
+		
+		return newSdp.toString();
+	}
+	
+	private String buildSDP(String orginalSDP){
+		
+		
+		
+		Pattern pattern = Pattern.compile("c=\\S+\\s(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})");
+		Matcher matcher = pattern.matcher(orginalSDP);
+		
+		var newO = "";
+		var cIpAddress = "";
+		
+		if (matcher.find()) {
+			cIpAddress = matcher.group(1);
+			System.out.println("IP Address: " + cIpAddress);
+		}
+		
+		// root 252448895 252448895 IN IP4 127.0.0.1
+		pattern = Pattern.compile("o=(\\S+) (\\d+) (\\d+) \\S+ \\S+ \\S+");
+		matcher = pattern.matcher(orginalSDP);
+		
+		if (matcher.find()) {
+			String username    = matcher.group(1);
+			String sessId      = matcher.group(2);
+			String sessVersion = matcher.group(3);
+			
+			newO= uaConfig.getUser() + " " + sessId + " " + sessVersion + " IN " + " IP4 " + " " + cIpAddress;
+		}
+		
+		
+		
+		
+		
+		return "v=0\n" +
+				"\t\t\t\to="+newO+"\n" +
+				"\t\t\t\ts="+uaConfig.getAuthRealm()+ " "+XUtils.IdGenerator() +" PBX 13.38.1\n" +
+				"\t\t\t\tc=IN IP4 "+cIpAddress+"\n" +
+				"\t\t\t\tt=0 0\n" +
+				"\t\t\t\tm=audio 18426 RTP/AVP 8 101\n" +
+				"\t\t\t\ta=rtpmap:8 PCMA/8000\n" +
+				"\t\t\t\ta=rtpmap:101 telephone-event/8000\n" +
+				"\t\t\t\ta=fmtp:101 0-16\n" +
+				"\t\t\t\ta=ptime:20\n" +
+				"\t\t\t\ta=maxptime:150\n" +
+				"\t\t\t\ta=sendrecv";
+	}
 	
 	public void makeOutGoingCall( @Nullable String sdp ) {
-		sdp = sdp.replace("a=rtpmap:111 opus/48000/2\\r\\n", "");
+	//	sdp = sdp.replace("a=rtpmap:111 opus/48000/2\\r\\n", "");
 //		sdp = sdp.replaceAll("a=rtpmap:(\\d+) (G722|PCMU|CN)/8000\\r\\n", "");
 		//sdp = sdp.replaceAll("a=rtpmap:(\\d+) CN/(16000|32000|48000|96000)\\r\\n", "");
-		sdp = removeOpusCodec(sdp);
-		System.out.println("==>"+sdp);
-		var nameAddress = org.mjsip.sip.address.NameAddress.parse("sip:27118695168@vafey.commonresolve.co.za:9099");
+//		sdp = removeOpusCodec(sdp);
+		System.out.println("==>\n"+sdp);
+		var nameAddress = org.mjsip.sip.address.NameAddress.parse("sip:2710210@vafey.commonresolve.co.za:9099");
 //		IceCandidate j;
+		// Problem - m=audio 9 UDP/TLS/RTP/SAVPF 111 63 9 0 8 13 110 126
+		sdp = """
+				v=0
+				o=- 1237562358473204055 2 IN IP4 127.0.0.1
+				s=Asterisk PBX 13.38.1
+				c=IN IP4 127.0.0.1
+				t=0 0
+				a=group:BUNDLE 0
+				a=extmap-allow-mixed
+				a=msid-semantic: WMS 6e6fd708-1738-406a-bf65-1189b2f13f5c
+				m=audio 18426 RTP/AVP 8 101
+				a=rtcp:9 IN IP4 0.0.0.0
+				a=ice-ufrag:W77c
+				a=ice-pwd:9VEM3zWAsygAj4umZwbAYA+U
+				a=ice-options:trickle
+				a=fingerprint:sha-256 BD:3A:7D:2E:3F:B4:D0:4E:5B:5F:31:BF:61:2D:07:02:98:8E:9E:A5:1E:74:32:18:98:93:1C:25:C4:98:4D:A1
+				a=setup:actpass
+				a=mid:0
+				a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level
+				a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
+				a=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01
+				a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid
+				a=sendrecv
+				a=msid:6e6fd708-1738-406a-bf65-1189b2f13f5c cae3ec4b-eaa0-48fe-815d-a0712f281a26
+				a=rtcp-mux
+				a=rtpmap:111 opus/48000/2
+				a=rtcp-fb:111 transport-cc
+				a=fmtp:111 minptime=10;useinbandfec=1
+				a=rtpmap:63 red/48000/2
+				a=rtpmap:8 PCMA/8000
+				a=rtpmap:101 telephone-event/8000
+				a=fmtp:63 111/111
+				a=rtpmap:8 PCMA/8000
+				a=rtpmap:110 telephone-event/48000
+				a=rtpmap:126 telephone-event/8000
+				a=ssrc:1272389523 cname:vkutGrWRxoZICk6X
+				a=ssrc:1272389523 msid:6e6fd708-1738-406a-bf65-1189b2f13f5c cae3ec4b-eaa0-48fe-815d-a0712f281a26
+				""";
+//		sdp = buildSDP(sdp);
+		var sdp1 = """
+				v=0
+				o=- 1237562358473204055 2 IN IP4 127.0.0.1
+				s=Asterisk PBX 13.38.1
+				t=0 0
+				a=group:BUNDLE 0
+				a=extmap-allow-mixed
+				a=msid-semantic: WMS 6e6fd708-1738-406a-bf65-1189b2f13f5c
+				c=IN IP4 127.0.0.1
+				a=rtcp:9 IN IP4 127.0.0.1
+				a=ice-ufrag:W77c
+				a=ice-pwd:9VEM3zWAsygAj4umZwbAYA+U
+				a=ice-options:trickle
+				a=fingerprint:sha-256 BD:3A:7D:2E:3F:B4:D0:4E:5B:5F:31:BF:61:2D:07:02:98:8E:9E:A5:1E:74:32:18:98:93:1C:25:C4:98:4D:A1
+				a=setup:actpass
+				a=mid:0
+				a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level
+				a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
+				a=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01
+				a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid
+				a=sendrecv
+				a=msid:6e6fd708-1738-406a-bf65-1189b2f13f5c cae3ec4b-eaa0-48fe-815d-a0712f281a26
+				a=rtcp-mux
+				a=rtpmap:111 opus/48000/2
+				a=rtcp-fb:111 transport-cc
+				a=fmtp:111 minptime=10;useinbandfec=1
+				a=rtpmap:63 red/48000/2
+				a=fmtp:63 111/111
+				a=rtpmap:111 opus/48000/2
+				a=rtcp-fb:111 transport-cc
+				a=fmtp:111 minptime=10;useinbandfec=1
+				a=rtpmap:63 red/48000/2
+				a=fmtp:63 111/111
+				a=rtpmap:8 PCMA/8000
+				a=rtpmap:126 telephone-event/8000
+				a=ssrc:1272389523 cname:vkutGrWRxoZICk6X
+				a=ssrc:1272389523 msid:6e6fd708-1738-406a-bf65-1189b2f13f5c cae3ec4b-eaa0-48fe-815d-a0712f281a26
+				""";
+		System.out.println("!!!==>\n"+sdp);
 		SdpMessage sdpMess = new SdpMessage(sdp);
 		//uaConfig.setAudioCodecs(new ArrayList<String>(Arrays.asList("PCMU/8000","PCMA/8000")));
 		ua.call(nameAddress, sdpMess);
