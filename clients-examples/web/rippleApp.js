@@ -120,6 +120,28 @@ const RippleSDK = {
                 });
                 RippleSDK.utils.log('consumeAnswer', 'answer consumed');
 
+            },requestUserMediaPermission:async ()=>{
+                if(RippleSDK.app.isAudioAccessRequired || RippleSDK.app.isVideoAccessRequired){
+                    try {
+                        if(RippleSDK.app.isAudioAccessRequired || RippleSDK.app.isVideoAccessRequired){
+                            const stream = await navigator.mediaDevices.getUserMedia({
+                                audio: RippleSDK.app.isAudioAccessRequired,
+                                video: RippleSDK.app.isVideoAccessRequired
+                            });
+                            RippleSDK.app.webRTC.localStream = stream;
+                            RippleSDK.app.callbacks.tellClientOnMediaAccessPermissionEvent(
+                                RippleSDK.app.isAudioAccessRequired,
+                                RippleSDK.app.isVideoAccessRequired,
+                                stream
+                            );
+                            return stream;
+                        }
+                        return null;
+                    } catch(err) {
+                        RippleSDK.utils.error('requestUserMediaPermission', err);
+                        return null;
+                    }
+                }
             },
             createOffer:async (threadRef)=>{
                 if(!threadRef){
@@ -141,14 +163,17 @@ const RippleSDK = {
                 }
                 if(feature === RippleSDK.featuresAvailable.SIP_GATEWAY) {
                     offerObj.offerToReceiveVideo = false;
+                    RippleSDK.app.isAudioAccessRequired = true;
+                    RippleSDK.app.isVideoAccessRequired = false;
                 }
+                const stream=await RippleSDK.app.webRTC.  requestUserMediaPermission();
                 function removeOpusCodec(sdp) {
                     // Split the SDP data into an array of lines
-                    var sdpLines = sdp.split('\n');
+                    const sdpLines = sdp.split('\n');
 
                     // Define the start and end of the opus codec section
-                    var opusStartIndex = sdpLines.findIndex(line => line.includes('a=rtpmap:111 opus/48000/2'));
-                    var opusEndIndex = sdpLines.findIndex(line => line === 'a=rtpmap:63 red/48000/2');
+                    const opusStartIndex = sdpLines.findIndex(line => line.includes('a=rtpmap:111 opus/48000/2'));
+                    const opusEndIndex = sdpLines.findIndex(line => line === 'a=rtpmap:63 red/48000/2');
 
                     // If both start and end indices exist, remove the opus codec section
                     if (opusStartIndex !== -1 && opusEndIndex !== -1) {
@@ -159,6 +184,9 @@ const RippleSDK = {
                     var newSdp = sdpLines.join('\n');
 
                     return newSdp;
+                }
+                if(stream && feature === RippleSDK.featuresAvailable.SIP_GATEWAY){
+                    stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
                 }
 
                 await peerConnection.createOffer(offerObj)
@@ -754,6 +782,7 @@ const RippleSDK = {
             },
             tellClientOnWebRtcEvents:eventMessage=>{},
             tellClientOnStreamUIUpdates:eventMessage=>{},
+            tellClientOnMediaAccessPermissionEvent:(hasAudio,hasVideo,stream)=>{},
             tellClientOnConnected:null,
             onConnected:()=>{
                 RippleSDK.utils.log('onConnected');
