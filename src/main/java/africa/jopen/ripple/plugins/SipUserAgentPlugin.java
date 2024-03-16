@@ -4,7 +4,6 @@ import africa.jopen.ripple.abstractions.PluginAbs;
 import africa.jopen.ripple.interfaces.CommonAbout;
 import africa.jopen.ripple.interfaces.Events;
 import africa.jopen.ripple.utils.XUtils;
-import com.sun.net.httpserver.Request;
 import io.micrometer.common.lang.Nullable;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -23,13 +22,10 @@ import org.mjsip.sip.address.SipURI;
 import org.mjsip.sip.call.DTMFInfo;
 import org.mjsip.sip.provider.SipConfig;
 import org.mjsip.sip.provider.SipProvider;
-import org.mjsip.sip.provider.SipStack;
 import org.mjsip.time.ConfiguredScheduler;
 import org.mjsip.time.SchedulerConfig;
 import org.mjsip.ua.*;
 import org.mjsip.ua.clip.ClipPlayer;
-import org.mjsip.ua.registration.RegistrationClient;
-import org.mjsip.ua.registration.RegistrationLogger;
 import org.mjsip.ua.streamer.DefaultStreamerFactory;
 import org.mjsip.ua.streamer.DispatchingStreamerFactory;
 import org.mjsip.ua.streamer.NativeStreamerFactory;
@@ -37,24 +33,22 @@ import org.mjsip.ua.streamer.StreamerFactory;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static africa.jopen.ripple.app.Main.IP_ADDRESS;
 import static africa.jopen.ripple.utils.SDPUtils.*;
 
 public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 	protected              RegisteringUserAgent ua;
-	protected              SipProvider sip_provider;
-	protected              UAConfig    uaConfig;
-	static                 Logger          log              = Logger.getLogger(SipUserAgentPlugin.class.getName());
-	private                UIConfig        uiConfig;
-	private                StreamerFactory _streamerFactory;
-	private                MediaOptions    mediaConfig;
+	protected              SipProvider          sip_provider;
+	protected              UAConfig             uaConfig;
+	static                 Logger               log              = Logger.getLogger(SipUserAgentPlugin.class.getName());
+	private                UIConfig             uiConfig;
+	private                StreamerFactory      _streamerFactory;
+	private                MediaOptions         mediaConfig;
 	/**
 	 * UA_IDLE=0
 	 */
-	protected static final String          UA_IDLE          = "IDLE";
+	protected static final String               UA_IDLE          = "IDLE";
 	/**
 	 * UA_INCOMING_CALL=1
 	 */
@@ -68,12 +62,13 @@ public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 	 */
 	protected static final String               UA_ONCALL        = "ONCALL";
 	String call_state = UA_IDLE;
-	private String transaction = "";
-	private  CommonAbout commonAbout;
+	private String      transaction = "";
+	private CommonAbout commonAbout;
 	//	protected RegisteringUserAgent ua;
-	private       Integer     thisObjectPositionAddress;
-	public SipUserAgentPlugin(CommonAbout commonAbout, final Integer thisObjectPositionAddress,
-	                          String realm,String username,String displayName,String password,String host,int port){
+	private Integer     thisObjectPositionAddress;
+	
+	public SipUserAgentPlugin( CommonAbout commonAbout, final Integer thisObjectPositionAddress,
+	                           String realm, String username, String displayName, String password, String host, int port ) {
 		setTransaction("0");
 		System.out.println("xxxxx SipUserAgentPlugin constructor realm -  " + realm);
 		System.out.println("xxxxx SipUserAgentPlugin constructor username -  " + username);
@@ -85,13 +80,13 @@ public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 		this.thisObjectPositionAddress = thisObjectPositionAddress;
 		SipConfig sipConfig = new SipConfig();
 		sipConfig.setHostPort(port);
-		UAConfig        uaConfig        = new UAConfig();
+		UAConfig uaConfig = new UAConfig();
 		uaConfig.setAuthRealm(realm);
 		uaConfig.setUser(username);
 		uaConfig.setDisplayName(displayName);
 		sipConfig.setViaAddr(host);
 		uaConfig.setAuthPasswd(password);
-		uaConfig.setRegistrar(new SipURI(host,port)); // Set the SIP server address
+		uaConfig.setRegistrar(new SipURI(host, port)); // Set the SIP server address
 		SchedulerConfig schedulerConfig = new SchedulerConfig();
 		MediaConfig     mediaConfig     = new MediaConfig();
 		PortConfig      portConfig      = new PortConfig();
@@ -99,13 +94,14 @@ public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 		sipConfig.normalize();
 		uaConfig.normalize(sipConfig);
 		ConfiguredScheduler configuredScheduler = new ConfiguredScheduler(schedulerConfig);
-		var                 sipPr               = new SipProvider(sipConfig,configuredScheduler);
+		var                 sipPr               = new SipProvider(sipConfig, configuredScheduler);
 //		uaConfig.setSendOnly(true);
 		
-		init(sipPr,portConfig.createPool(),uaConfig,uiConfig,mediaConfig);
+		init(sipPr, portConfig.createPool(), uaConfig, uiConfig, mediaConfig);
 	}
-	private void init(  SipProvider sip_provider, PortPool portPool, UAConfig uaConfig, UIConfig uiConfig, MediaOptions mediaConfig ) {
-		
+	
+	private void init( SipProvider sip_provider, PortPool portPool, UAConfig uaConfig, UIConfig uiConfig, MediaOptions mediaConfig ) {
+		//MediaAgent mediaAgent = new MediaAgent(sip_provider, portPool, this.uaConfig, this);
 		this.sip_provider = sip_provider;
 		this.uaConfig = uaConfig;
 		this.uiConfig = uiConfig;
@@ -136,19 +132,19 @@ public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 		this.transaction = transaction;
 	}
 	
-	public String removeOpusCodec(String sdp) {
+	public String removeOpusCodec( String sdp ) {
 		StringBuilder newSdp = new StringBuilder();
-		String[] lines = sdp.split("\\r?\\n");
+		String[]      lines  = sdp.split("\\r?\\n");
 		
 		for (String line : lines) {
 			/*if(line.contains("a=recvonly")){
 				line = line.replace("recvonly", "sendrecv");
 			}*/
-			if(line.contains("s=-")){
+			if (line.contains("s=-")) {
 				line = line.replace("s=-", "s=" + uaConfig.getAuthRealm() + " " + XUtils.IdGenerator());
 				
 			}
-			if(line.contains("o=-")){
+			if (line.contains("o=-")) {
 				line = line.replace("o=-", "o=" + uaConfig.getUser());
 			}
 			
@@ -180,33 +176,33 @@ public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 	
 	public void makeOutGoingCall( @Nullable String sdp ) {
 		
-		var nameAddress = org.mjsip.sip.address.NameAddress.parse("sip:2710210@vafey.commonresolve.co.za:9099");
-		String       ipAddressInOriginLine = extractIPAddressFromOriginLine(sdp)+"\n";
-		String       sessionName           = extractSessionName(sdp)+"\n";
-		var       extractOValues           = extractValuesFromOriginLine(sdp);
-		String       fingerprintValue = extractFingerprintValue(sdp) + "\n";
-		List<String> rtpmapLines      = extractRtpmapLines(sdp);
-		List<String> extmapLines      = extractExtmapLines(sdp);
+		var          nameAddress           = org.mjsip.sip.address.NameAddress.parse("sip:2710210@vafey.commonresolve.co.za:9099");
+		String       ipAddressInOriginLine = extractIPAddressFromOriginLine(sdp) + "\n";
+		String       sessionName           = extractSessionName(sdp) + "\n";
+		var          extractOValues        = extractValuesFromOriginLine(sdp);
+		String       fingerprintValue      = extractFingerprintValue(sdp) + "\n";
+		List<String> rtpmapLines           = extractRtpmapLines(sdp);
+		List<String> extmapLines           = extractExtmapLines(sdp);
 		// Problem - m=audio 9 UDP/TLS/RTP/SAVPF 111 63 9 0 8 13 110 126
-		String o ="- "+ extractOValues.get(0) +  " " + extractOValues.get(1) + " IN IP4 " + ipAddressInOriginLine+"\n";
-		String c="IN IP4 " + ipAddressInOriginLine+"\n" ;
+		String o = "- " + extractOValues.get(0) + " " + extractOValues.get(1) + " IN IP4 " + ipAddressInOriginLine + "\n";
+		String c = "IN IP4 " + ipAddressInOriginLine + "\n";
 		// Problem - m=audio 9 UDP/TLS/RTP/SAVPF 111 63 9 0 8 13 110 126
 		//! not Proud of this solution!
 		sdp = """
 				v=0
-				o="""+o+"""
+				o=""" + o + """
 				s=Asterisk PBX 13.38.1
-				c="""+ c + """
+				c=""" + c + """
 				t=0 0
 				a=group:BUNDLE 0
 				a=extmap-allow-mixed
 				a=msid-semantic: WMS 6e6fd708-1738-406a-bf65-1189b2f13f5c
 				m=audio 18426 RTP/AVP 8 101
-				a=rtcp:9 IN IP4 """+ ipAddressInOriginLine + """
+				a=rtcp:9 IN IP4 """ + ipAddressInOriginLine + """
 				a=ice-ufrag:W77c
 				a=ice-pwd:9VEM3zWAsygAj4umZwbAYA+U
 				a=ice-options:trickle
-				a=fingerprint:"""+ fingerprintValue + """
+				a=fingerprint:""" + fingerprintValue + """
 				a=setup:actpass
 				a=mid:0
 				a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level
@@ -231,8 +227,7 @@ public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 				""";
 		
 		
-		
-		System.out.println("!!!==>\n"+sdp);
+		System.out.println("!!!==>\n" + sdp);
 		SdpMessage sdpMess = new SdpMessage(sdp);
 		//uaConfig.setAudioCodecs(new ArrayList<String>(Arrays.asList("PCMU/8000","PCMA/8000")));
 		ua.call(nameAddress, sdpMess);
@@ -296,6 +291,7 @@ public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 	
 	@Override
 	public void onUaRegistrationSucceeded( UserAgent ua, String result ) {
+		
 		System.out.println("Registration succeeded: " + result);
 		JSONObject response = new JSONObject();
 		response.put("message", "Registration succeeded");
@@ -323,73 +319,177 @@ public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 	public void onUaIncomingCall( UserAgent ua, NameAddress callee, NameAddress caller, MediaDesc[] media_descs ) {
 		System.out.println("Incoming call from: " + caller.toString());
 		changeStatus(UA_INCOMING_CALL);
+		JSONObject response = new JSONObject();
+		response.put("message", "Incoming call from");
+		response.put("success", true);
+		response.put("caller",
+				new JSONObject()
+						.put("displayName", caller.getDisplayName())
+						.put("address", caller.getAddress())
+		);
+		response.put("callee",
+				new JSONObject()
+						.put("displayName", callee.getDisplayName())
+						.put("address", callee.getAddress())
+		);
+		response.put(Events.EVENT_TYPE, Events.SIP_CALL_INCOMING);
+		response.put("feature", FeatureTypes.SIP_GATEWAY.toString());
+		notifyClient(response, this.thisObjectPositionAddress);
 //		ua.acceptCall(200);
 	}
 	
 	@Override
 	public void onUaCallIncomingAccepted( UserAgent userAgent ) {
 		System.out.println("Incoming call accepted");
+		JSONObject response = new JSONObject();
+		response.put("message", "Incoming call accepted");
+		response.put("success", true);
+		response.put(Events.EVENT_TYPE, Events.SIP_CALL_INCOMING_ACCEPTED);
+		response.put("feature", FeatureTypes.SIP_GATEWAY.toString());
+		notifyClient(response, this.thisObjectPositionAddress);
 	}
 	
 	@Override
 	public void onUaIncomingCallTimeout( UserAgent userAgent ) {
 		System.out.println("Incoming call timeout");
+		JSONObject response = new JSONObject();
+		response.put("message", "Incoming call timeout");
+		response.put("success", true);
+		response.put(Events.EVENT_TYPE, Events.SIP_CALL_INCOMING_TIME_OUT);
+		response.put("feature", FeatureTypes.SIP_GATEWAY.toString());
+		notifyClient(response, this.thisObjectPositionAddress);
 	}
 	
 	@Override
 	public void onUaCallCancelled( UserAgent ua ) {
 		System.out.println("Call cancelled");
+		JSONObject response = new JSONObject();
+		response.put("message", "Call cancelled");
+		response.put("success", true);
+		response.put(Events.EVENT_TYPE, Events.SIP_CALL_CANCELLED);
+		response.put("feature", FeatureTypes.SIP_GATEWAY.toString());
+		notifyClient(response, this.thisObjectPositionAddress);
 	}
 	
 	@Override
 	public void onUaCallConfirmed( UserAgent userAgent ) {
 		System.out.println("Call confirmed");
+		JSONObject response = new JSONObject();
+		response.put("message", "Call confirmed");
+		response.put("success", true);
+		response.put(Events.EVENT_TYPE, Events.SIP_CALL_ON_CONFIRMED);
+		response.put("feature", FeatureTypes.SIP_GATEWAY.toString());
+		notifyClient(response, this.thisObjectPositionAddress);
 	}
 	
 	@Override
 	public void onUaCallProgress( UserAgent ua ) {
 		System.out.println("Call progress");
+		
+		
+		JSONObject response = new JSONObject();
+		response.put("message", "Call progress");
+		response.put("success", true);
+		response.put(Events.EVENT_TYPE, Events.SIP_CALL_PROGRESS);
+		response.put("feature", FeatureTypes.SIP_GATEWAY.toString());
+		notifyClient(response, this.thisObjectPositionAddress);
 	}
 	
 	@Override
 	public void onUaCallRinging( UserAgent ua ) {
 		System.out.println("Ringing...");
+		JSONObject response = new JSONObject();
+		response.put("message", "Ringing");
+		response.put("success", true);
+		response.put(Events.EVENT_TYPE, Events.SIP_CALL_RINGING);
+		response.put("feature", FeatureTypes.SIP_GATEWAY.toString());
+		notifyClient(response, this.thisObjectPositionAddress);
 	}
 	
 	@Override
 	public void onUaCallAccepted( UserAgent ua ) {
 		
 		System.out.println("Call accepted");
+		JSONObject response = new JSONObject();
+		response.put("message", "Call accepted");
+		response.put("success", true);
+		response.put(Events.EVENT_TYPE, Events.SIP_CALL_ACCEPTED);
+		response.put("feature", FeatureTypes.SIP_GATEWAY.toString());
+		notifyClient(response, this.thisObjectPositionAddress);
 	}
 	
 	@Override
 	public void onUaCallTransferred( UserAgent ua ) {
 		System.out.println("Call transferred");
+		JSONObject response = new JSONObject();
+		response.put("message", "Call transferred");
+		response.put("success", true);
+		response.put(Events.EVENT_TYPE, Events.SIP_CALL_TRANSFERED);
+		response.put("feature", FeatureTypes.SIP_GATEWAY.toString());
+		notifyClient(response, this.thisObjectPositionAddress);
 	}
 	
 	@Override
 	public void onUaCallFailed( UserAgent ua, String reason ) {
 		System.out.println("Call failed: " + reason);
+		JSONObject response = new JSONObject();
+		response.put("message", "Call failed " + reason);
+		response.put("success", true);
+		response.put(Events.EVENT_TYPE, Events.SIP_CALL_FAILED);
+		response.put("feature", FeatureTypes.SIP_GATEWAY.toString());
+		notifyClient(response, this.thisObjectPositionAddress);
 	}
 	
 	@Override
 	public void onUaCallClosed( UserAgent ua ) {
 		System.out.println("Call closed");
+		JSONObject response = new JSONObject();
+		response.put("message", "Call closed");
+		response.put("success", true);
+		response.put(Events.EVENT_TYPE, Events.SIP_CALL_ENDED);
+		response.put("feature", FeatureTypes.SIP_GATEWAY.toString());
+		notifyClient(response, this.thisObjectPositionAddress);
 	}
 	
 	@Override
 	public void onUaCallRedirected( UserAgent userAgent, NameAddress redirect_to ) {
 		System.out.println("Call redirected");
+		JSONObject response = new JSONObject();
+		response.put("message", "Call redirected");
+		response.put("success", true);
+		response.put("redirect", new JSONObject()
+				.put("displayName",redirect_to.getDisplayName())
+				.put("address",redirect_to.getAddress())
+		);
+		response.put(Events.EVENT_TYPE, Events.SIP_CALL_REDIRECT);
+		response.put("feature", FeatureTypes.SIP_GATEWAY.toString());
+		notifyClient(response, this.thisObjectPositionAddress);
 	}
 	
 	@Override
 	public void onUaMediaSessionStarted( UserAgent ua, String type, String codec ) {
-		System.out.println("Media session started");
+		System.out.println("Media session started for " + type + "\n\n with codec " + codec);
+		JSONObject response = new JSONObject();
+		response.put("message", "Call Media session");
+		response.put("success", true);
+		response.put("codec", codec);
+		response.put("type", type);
+		response.put(Events.EVENT_TYPE, Events.SIP_CALL_MEDIA_STARTED);
+		response.put("feature", FeatureTypes.SIP_GATEWAY.toString());
+		notifyClient(response, this.thisObjectPositionAddress);
 	}
 	
 	@Override
 	public void onUaMediaSessionStopped( UserAgent ua, String type ) {
 		System.out.println("Media session stopped");
+		JSONObject response = new JSONObject();
+		response.put("message", "Call session stopped");
+		response.put("success", true);
+		response.put("type", type);
+		response.put(Events.EVENT_TYPE, Events.SIP_CALL_MEDIA_STOPPED);
+		response.put("feature", FeatureTypes.SIP_GATEWAY.toString());
+		notifyClient(response, this.thisObjectPositionAddress);
+		
 	}
 	
 	@Override
@@ -399,8 +499,8 @@ public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 	
 	@Override
 	public UserAgentListener andThen( UserAgentListener other ) {
-		return UserAgentListener.super.andThen(clipPlayer());
-//		return UserAgentListener.super.andThen(other);
+		//return UserAgentListener.super.andThen(clipPlayer());
+		return UserAgentListener.super.andThen(other);
 	}
 	
 	@Override
