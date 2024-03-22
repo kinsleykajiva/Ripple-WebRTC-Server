@@ -1,6 +1,8 @@
 package africa.jopen.ripple.models;
 
 import africa.jopen.ripple.interfaces.CommonAbout;
+import africa.jopen.ripple.plugins.FeatureTypes;
+import africa.jopen.ripple.plugins.SipUserAgentPlugin;
 import africa.jopen.ripple.plugins.WebRTCGStreamerPlugIn;
 import africa.jopen.ripple.utils.XUtils;
 import io.helidon.websocket.WsSession;
@@ -15,47 +17,58 @@ import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Iterator;
+import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class Client implements CommonAbout {
-	private final String              clientID;
-	private final MutableList<String> transactions   = Lists.mutable.empty();
-	private       long                lastTimeStamp  = System.currentTimeMillis();
-	private       boolean isDebugSession = false;
-	private final Logger  log            = Logger.getLogger(Client.class.getName());
+	private final String clientID;
+	private final MutableList<String> transactions = Lists.mutable.empty();
+	private long lastTimeStamp = System.currentTimeMillis();
+	private boolean isDebugSession = false;
+	private final Logger log = Logger.getLogger(Client.class.getName());
 	
 	private final MutableMap<Integer, WebRTCGStreamerPlugIn> webRTCStreamMap = Maps.mutable.empty();
+	private final MutableMap<Integer, SipUserAgentPlugin>    sipUserAgentPluginMap = Maps.mutable.empty();
+	private WsSession                                        wsSession;
+	
+	private final MutableList<String> payloads = Lists.mutable.empty();
 	
 	public Client(String clientID) {
-		if (clientID == null || clientID.equals("null") || clientID.isEmpty()) {
-			this.clientID = XUtils.IdGenerator();
-		} else {
-			this.clientID = clientID;
-		}
-		
+		// Refactored to use ternary operator for better readability
+		this.clientID = clientID == null || clientID.equals("null") || clientID.isEmpty() ? XUtils.IdGenerator() : clientID;
 	}
 	
 	public void setDebugSession(boolean debugSession) {
 		isDebugSession = debugSession;
 	}
 	
+	public MutableMap<Integer, SipUserAgentPlugin> getSipUserAgentPluginMap() {
+		return sipUserAgentPluginMap;
+	}
+	
+	public int createAccessSipUserPlugIn( String realm, String username, String displayName, String password, String host, int port ) {
+		int position = sipUserAgentPluginMap.size() + 1;
+		
+		SipUserAgentPlugin sipUserAgentPlugin = new SipUserAgentPlugin(this, position,
+				realm, username, displayName, password, host, port);
+		sipUserAgentPluginMap.put(position, sipUserAgentPlugin);
+		return position;
+	}
 	public int createAccessGStreamerPlugIn(MediaFile mediaFile) {
-		var position        = webRTCStreamMap.size() + 1;
-		var gStreamerPlugIn = new WebRTCGStreamerPlugIn(this, position, mediaFile);
+		int position = webRTCStreamMap.size() + 1;
+		WebRTCGStreamerPlugIn gStreamerPlugIn = new WebRTCGStreamerPlugIn(this, position, mediaFile);
 		webRTCStreamMap.put(position, gStreamerPlugIn);
 		return position;
 	}
-	
 	
 	public MutableMap<Integer, WebRTCGStreamerPlugIn> getWebRTCStreamMap() {
 		return webRTCStreamMap;
 	}
 	
-	private WsSession wsSession;
-	
 	public String getClientID() {
 		return clientID;
 	}
-	
 	
 	/**
 	 * Sets the WebSocket session for this client.
@@ -67,7 +80,7 @@ public class Client implements CommonAbout {
 	public void setWsSession(WsSession wsSession) {
 		this.wsSession = wsSession;
 		if (wsSession != null) {
-			// Iterate over the payloads using an Iterator
+			
 			Iterator<String> iterator = payloads.iterator();
 			while (iterator.hasNext()) {
 				String payload = iterator.next();
@@ -79,11 +92,9 @@ public class Client implements CommonAbout {
 		}
 	}
 	
-	public MutableList getTransactions() {
+	public MutableList<String> getTransactions() {
 		return transactions;
 	}
-	
-	private MutableList<String> payloads = Lists.mutable.empty();
 	
 	public long getLastTimeStamp() {
 		return lastTimeStamp;
@@ -108,30 +119,34 @@ public class Client implements CommonAbout {
 	 * @return true if the client is an orphan, false otherwise.
 	 */
 	public boolean isClientOrphan() {
-		Instant  lastActiveTime          = Instant.ofEpochMilli(lastTimeStamp);
+		Instant lastActiveTime = Instant.ofEpochMilli(lastTimeStamp);
 		Duration durationSinceLastActive = Duration.between(lastActiveTime, Instant.now());
-		
-		if (XUtils.MAIN_CONFIG_MODEL.session().rememberTimeOutInSeconds() == 0) {
-			return durationSinceLastActive.getSeconds() > 120;
-		}
-		return durationSinceLastActive.getSeconds() > XUtils.MAIN_CONFIG_MODEL.session().rememberTimeOutInSeconds();
+		// Refactored to simplify the condition using ternary operator and method extraction
+		int rememberTimeOutInSeconds = XUtils.MAIN_CONFIG_MODEL.session().rememberTimeOutInSeconds();
+		return isClientOrphanBasedOnTimeout(durationSinceLastActive, rememberTimeOutInSeconds);
+	}
+	
+	// Extracted method for better readability
+	private boolean isClientOrphanBasedOnTimeout(Duration durationSinceLastActive, int rememberTimeOutInSeconds) {
+		return rememberTimeOutInSeconds == 0 ? durationSinceLastActive.getSeconds() > 120 : durationSinceLastActive.getSeconds() > rememberTimeOutInSeconds;
 	}
 	
 	@Override
-	public void onUpdateLastTimeStamp(final long timeStamp) {
+	public void onUpdateLastTimeStamp(long timeStamp) {
 		updateLastTimeStamp(timeStamp);
 	}
 	
-	
 	@Override
-	public void sendMessage(final JSONObject pluginData, final Integer objectPosition) {
-		var response = new JSONObject();
-		response.put("clientID", clientID);
-		response.put("success", true);
-		response.put("position", objectPosition);
-		response.put("plugin", pluginData);
-		response.put("accessAuth", "GENERAL");
-		response.put("lastSeen", lastTimeStamp);
+	public void sendMessage(JSONObject pluginData, Integer objectPosition, FeatureTypes featureType) {
+		// Refactored to use object initialization with put method chaining
+		JSONObject response = new JSONObject()
+				.put("clientID", clientID)
+				.put("success", true)
+				.put("feature", featureType.toString())
+				.put("position", objectPosition)
+				.put("plugin", pluginData)
+				.put("accessAuth", "GENERAL")
+				.put("lastSeen", lastTimeStamp);
 		
 		attemptToSendMessage(response);
 		if (isDebugSession) {
@@ -139,24 +154,8 @@ public class Client implements CommonAbout {
 		}
 	}
 	
-	/**
-	 * Attempts to send a message to the client. If the WebSocket session is not available,
-	 * the message is stored in a list to be sent later when the session becomes available.
-	 *
-	 * @param jsonObject The message to be sent to the client. This is a JSON object.
-	 * @throws UncheckedIOException If an I/O error occurs when trying to send the message.
-	 */
 	private void attemptToSendMessage(JSONObject jsonObject) {
-		try {
-			if (wsSession != null) {
-				wsSession.send(jsonObject.toString(), true);
-			} else {
-				payloads.add(jsonObject.toString());
-			}
-		} catch (UncheckedIOException e) {
-			log.error(e.getMessage());
-			payloads.add(jsonObject.toString());
-		}
+		attemptToSendMessage(jsonObject.toString(), false);
 	}
 	
 	/**
@@ -189,71 +188,81 @@ public class Client implements CommonAbout {
 	public void replyToRemembering(String transaction) {
 		Instant now = Instant.now();
 		onUpdateLastTimeStamp(now.toEpochMilli());
-		var response = new JSONObject();
-		response.put("clientID", clientID);
-		response.put("success", true);
-		response.put("eventType", "remember");
-		response.put("transaction", transaction);
-		response.put("accessAuth", "GENERAL");
-		response.put("lastSeen", lastTimeStamp);
+		// Refactored to use object initialization with put method chaining
+		JSONObject response = new JSONObject()
+				.put("clientID", clientID)
+				.put("success", true)
+				.put("eventType", "remember")
+				.put("transaction", transaction)
+				.put("accessAuth", "GENERAL")
+				.put("lastSeen", lastTimeStamp);
+		
 		attemptToSendMessage(response);
 		if (isDebugSession) {
 			log.info(response.toString());
 		}
 	}
 	
-	public void replyToNewThreadInvalidRequest(final String transaction, final int position) {
+	public void replyToNewThreadInvalidRequest(String transaction, int position) {
 		Instant now = Instant.now();
 		onUpdateLastTimeStamp(now.toEpochMilli());
-		var response = new JSONObject();
-		response.put("clientID", clientID);
-		response.put("success", false);
-		response.put("message", "Invalid request");
-		response.put("eventType", "newThread");
-		response.put("transaction", transaction);
-		response.put("position", position);
-		response.put("accessAuth", "GENERAL");
-		response.put("lastSeen", lastTimeStamp);
+		// Refactored to use object initialization with put method chaining
+		JSONObject response = new JSONObject()
+				.put("clientID", clientID)
+				.put("success", false)
+				.put("message", "Invalid request")
+				.put("eventType", "newThread")
+				.put("transaction", transaction)
+				.put("position", position)
+				.put("accessAuth", "GENERAL")
+				.put("lastSeen", lastTimeStamp);
+		
 		attemptToSendMessage(response);
 		if (isDebugSession) {
 			log.info(response.toString());
 		}
 	}
 	
-	public void replyToNewThreadRequest(final String transaction, final int position) {
+	public void replyToNewThreadRequest(String transaction, int position, String feature) {
 		Instant now = Instant.now();
 		onUpdateLastTimeStamp(now.toEpochMilli());
-		var response = new JSONObject();
-		response.put("clientID", clientID);
-		response.put("success", true);
-		response.put("eventType", "newThread");
-		response.put("transaction", transaction);
-		response.put("position", position);
-		response.put("accessAuth", "GENERAL");
-		response.put("lastSeen", lastTimeStamp);
+		// Refactored to use object initialization with put method chaining
+		JSONObject response = new JSONObject()
+				.put("clientID", clientID)
+				.put("success", true)
+				.put("eventType", "newThread")
+				.put("feature", feature)
+				.put("transaction", transaction)
+				.put("position", position)
+				.put("accessAuth", "GENERAL")
+				.put("lastSeen", lastTimeStamp);
+		
 		attemptToSendMessage(response);
 		if (isDebugSession) {
 			log.info(response.toString());
 		}
 	}
-	
 	
 	public void replyToInvalidRequest(JSONObject jsonObject) {
 		Instant now = Instant.now();
 		onUpdateLastTimeStamp(now.toEpochMilli());
-		var response = new JSONObject();
-		response.put("clientID", clientID);
-		if (!jsonObject.has("transaction")) {
-			response.put("error", "transaction is required");
-			attemptToSendMessage(response);
-		}
-		if (!jsonObject.has("requestType")) {
-			response.put("error", "requestType is required");
-			attemptToSendMessage(response);
-			
-		}
+		JSONObject response = new JSONObject();
+		
+		// Refactored to use method reference and lambda expression
+		handleMissingField(jsonObject, response, "transaction", "transaction is required");
+		handleMissingField(jsonObject, response, "requestType", "requestType is required");
+		
+		attemptToSendMessage(response.put("clientID", clientID));
 		if (isDebugSession) {
 			log.info(response.toString());
+		}
+	}
+	
+	// Refactored to use Predicate functional interface
+	private void handleMissingField(JSONObject jsonObject, JSONObject response, String fieldName, String errorMessage) {
+		Predicate<JSONObject> missingField = json -> !json.has(fieldName);
+		if (missingField.test(jsonObject)) {
+			response.put("error", errorMessage);
 		}
 	}
 }

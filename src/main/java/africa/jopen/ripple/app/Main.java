@@ -4,6 +4,7 @@ package africa.jopen.ripple.app;
 
 import africa.jopen.ripple.MessageQueueService;
 import africa.jopen.ripple.models.MainConfigModel;
+import africa.jopen.ripple.plugins.SipUserAgentPlugin;
 import africa.jopen.ripple.services.GreetService;
 import africa.jopen.ripple.sockets.WebsocketEndpoint;
 import africa.jopen.ripple.utils.ConnectionsManager;
@@ -16,13 +17,26 @@ import io.helidon.webserver.http.HttpRouting;
 import io.helidon.webserver.websocket.WsRouting;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.mjsip.config.OptionParser;
+import org.mjsip.pool.PortConfig;
+import org.mjsip.sip.address.SipURI;
+import org.mjsip.sip.provider.SipConfig;
+import org.mjsip.sip.provider.SipProvider;
+import org.mjsip.time.ConfiguredScheduler;
+import org.mjsip.time.SchedulerConfig;
+import org.mjsip.ua.MediaConfig;
+import org.mjsip.ua.UAConfig;
+import org.mjsip.ua.UIConfig;
+import org.zoolu.net.IpAddress;
 
 import java.io.File;
+import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.util.Enumeration;
 
 import static africa.jopen.ripple.utils.XUtils.copyConfigFilesTemplates;
 import static africa.jopen.ripple.utils.XUtils.generateJwtKeys;
@@ -34,21 +48,58 @@ import static africa.jopen.ripple.utils.XUtils.generateJwtKeys;
 public class Main {
 	
 	static Logger log = Logger.getLogger(Main.class.getName());
+	public static   String IP_ADDRESS = "jopen-ripple";
 	
 	/**
 	 * Cannot be instantiated.
 	 */
 	private Main() {
 	}
-	
+	public static String getMyOutboundIPAddress() {
+		try {
+			Socket socket = new Socket("www.google.com", 80);
+			String ip     = socket.getLocalAddress().toString();
+			socket.close();
+			return ip;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "127.0.0.1";
+		}
+	}
 	
 	/**
 	 * Application main entry point.
 	 *
 	 * @param args command line arguments.
 	 */
-	public static void main(String[] args) {
-		log.info("Starting server...");
+	public static void main(String[] args) throws UnknownHostException {
+		IP_ADDRESS = getMyOutboundIPAddress();
+		log.info("Starting server..." + getMyOutboundIPAddress());
+		log.info("Starting server..." + getMyOutboundIPAddress());
+		String ipAddress = Inet4Address.getLocalHost().getHostAddress();
+		IP_ADDRESS = ipAddress;
+		System.out.println("Current IP address: " + ipAddress);
+		
+		String ip;
+		try {
+			Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+			while (interfaces.hasMoreElements()) {
+				NetworkInterface iface = interfaces.nextElement();
+				// Filters out loopback and inactive interfaces
+				if (iface.isLoopback() || !iface.isUp())
+					continue;
+				Enumeration<InetAddress> addresses = iface.getInetAddresses();
+				while (addresses.hasMoreElements()) {
+					InetAddress addr = addresses.nextElement();
+					ip = addr.getHostAddress();
+					System.out.println(iface.getDisplayName() + " " + ip);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
 		var connectionsManager = ConnectionsManager.getInstance();
 		connectionsManager.setBANNER();
 		// load logging configuration
@@ -153,6 +204,7 @@ public class Main {
 		WebServer server = WebServer.builder()
 				.config(config.get("server"))
 				.routing(Main::routing)
+				.port(XUtils.MAIN_CONFIG_MODEL.serverPort())
 				.addRouting(WsRouting.builder().endpoint("/websocket/client", websocketEndpoint))
 				.build()
 				.start();
@@ -161,7 +213,31 @@ public class Main {
 		
 		log.info("WEB server is up! http://localhost:" + server.port());
 		
-//		connectionsManager.setLogMessage("WEB server is up! http://localhost:");
+		
+		/*SipConfig    sipConfig = new SipConfig();
+		sipConfig.setHostPort(9099);
+		
+		UAConfig        uaConfig        = new UAConfig();
+		uaConfig.setAuthRealm("Asterisk");
+		uaConfig.setUser("kinsl1ey-kaji1va1");
+		uaConfig.setDisplayName("kinsley-kajiva");
+		sipConfig.setViaAddr("vaef2ey.com2monreso2lve.com");
+		uaConfig.setAuthPasswd("Ch1bhodhor0");
+		uaConfig.setRegistrar(new SipURI("veaf2ey.com2monreso2lve.com",9099)); // Set the SIP server address
+		SchedulerConfig schedulerConfig = new SchedulerConfig();
+		MediaConfig     mediaConfig     = new MediaConfig();
+		PortConfig      portConfig      = new PortConfig();
+		UIConfig        uiConfig        = new UIConfig();
+		sipConfig.normalize();
+		uaConfig.normalize(sipConfig);
+		ConfiguredScheduler configuredScheduler = new ConfiguredScheduler(schedulerConfig);
+		var sipPr = new SipProvider(sipConfig,configuredScheduler);
+	
+		SipUserAgentPlugin sipUserAgentPlugin = new SipUserAgentPlugin(
+				sipPr,portConfig.createPool(),uaConfig,uiConfig,mediaConfig
+		);
+		System.out.println(uaConfig.getProxy());
+		System.out.println(uaConfig.getUserURI());*/
 	}
 	
 	

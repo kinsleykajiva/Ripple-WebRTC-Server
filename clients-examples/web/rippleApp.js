@@ -1,23 +1,23 @@
 'use strict';
 const RippleSDK = {
     serverUrl                   : '',
-    serverName                   : '',
+    serverName                  : '',
     timeZone                    : Intl.DateTimeFormat().resolvedOptions().timeZone,
     clientID                    : '',
     isDebugSession              : false,
     clientTypesAllowed          : ['Firefox', 'Chrome'],
-    featuresAvailable           : Object.freeze({VIDEO_ROOM: 'VIDEO_ROOM',AUDIO_ROOM: 'AUDIO_ROOM',VIDEO_CALL: 'VIDEO_CALL',G_STREAM:'G_STREAM',G_STREAM_BROADCAST:'G_STREAM_BROADCASTER',G_STREAM_BROADCAST_CONSUMER:'G_STREAM_BROADCAST_CONSUMER'}),
+    featuresAvailable           : Object.freeze({VIDEO_ROOM: 'VIDEO_ROOM',AUDIO_ROOM: 'AUDIO_ROOM',VIDEO_CALL: 'VIDEO_CALL',G_STREAM:'G_STREAM',G_STREAM_BROADCAST:'G_STREAM_BROADCASTER',G_STREAM_BROADCAST_CONSUMER:'G_STREAM_BROADCAST_CONSUMER',SIP_GATEWAY:'SIP_GATEWAY'}),
     app               : {
         iceServerArray              : [{urls: 'stun:stun.l.google.com:19302'},{urls: "stun:stun.services.mozilla.com"}],
         isAudioAccessRequired       : false,
         isVideoAccessRequired       : false,
         hasAccessToVideoPermission  : false,
         hasAccessToAudioPermission  : false,
-        maxRetries: 10,
+        maxRetries                  : 10,
         remindServerTimeoutInSeconds: 50 ,
-        reminderInterval  : null,
-        mediaUI:{
-          renderGroupParentId:""
+        reminderInterval            : null,
+        mediaUI                     :{
+                        renderGroupParentId:""
         },
         webRTC:{
             EVENT_NAMES : {
@@ -90,6 +90,7 @@ const RippleSDK = {
                     requestType: 'answer',
                     transaction: RippleSDK.utils.uniqueIDGenerator("transaction", 12),
                     threadRef  : threadRef,
+                    feature      : RippleSDK.utils.threadRefsInUseMap.get(threadRef).feature,
                     answer     : answer.sdp
                 };
                 RippleSDK.transports.websocket.webSocketSendAction(body);
@@ -119,6 +120,28 @@ const RippleSDK = {
                 });
                 RippleSDK.utils.log('consumeAnswer', 'answer consumed');
 
+            },requestUserMediaPermission:async ()=>{
+                if(RippleSDK.app.isAudioAccessRequired || RippleSDK.app.isVideoAccessRequired){
+                    try {
+                        if(RippleSDK.app.isAudioAccessRequired || RippleSDK.app.isVideoAccessRequired){
+                            const stream = await navigator.mediaDevices.getUserMedia({
+                                audio: RippleSDK.app.isAudioAccessRequired,
+                                video: RippleSDK.app.isVideoAccessRequired
+                            });
+                            RippleSDK.app.webRTC.localStream = stream;
+                            RippleSDK.app.callbacks.tellClientOnMediaAccessPermissionEvent(
+                                RippleSDK.app.isAudioAccessRequired,
+                                RippleSDK.app.isVideoAccessRequired,
+                                stream
+                            );
+                            return stream;
+                        }
+                        return null;
+                    } catch(err) {
+                        RippleSDK.utils.error('requestUserMediaPermission', err);
+                        return null;
+                    }
+                }
             },
             createOffer:async (threadRef)=>{
                 if(!threadRef){
@@ -134,15 +157,64 @@ const RippleSDK = {
                     threadRef,
                 });
                 const peerConnection = RippleSDK.app.webRTC.peerConnectionsMap.get(threadRef);
-                await peerConnection.createOffer({offerToReceiveVideo: true, offerToReceiveAudio: true})
+                const feature = RippleSDK.utils.threadRefsInUseMap.get(threadRef).feature;
+                let offerObj = {
+                    offerToReceiveVideo: true, offerToReceiveAudio: true
+                }
+                if(feature === RippleSDK.featuresAvailable.SIP_GATEWAY) {
+                    offerObj.offerToReceiveVideo = false;
+                    RippleSDK.app.isAudioAccessRequired = true;
+                    RippleSDK.app.isVideoAccessRequired = false;
+                }
+                const stream=await RippleSDK.app.webRTC.  requestUserMediaPermission();
+                function removeOpusCodec(sdp) {
+                    // Split the SDP data into an array of lines
+                    const sdpLines = sdp.split('\n');
+
+                    // Define the start and end of the opus codec section
+                    const opusStartIndex = sdpLines.findIndex(line => line.includes('a=rtpmap:111 opus/48000/2'));
+                    const opusEndIndex = sdpLines.findIndex(line => line === 'a=rtpmap:63 red/48000/2');
+
+                    // If both start and end indices exist, remove the opus codec section
+                    if (opusStartIndex !== -1 && opusEndIndex !== -1) {
+                        sdpLines.splice(opusStartIndex, opusEndIndex - opusStartIndex);
+                    }
+
+                    // Join lines back into a single SDP string
+                    var newSdp = sdpLines.join('\n');
+
+                    return newSdp;
+                }
+                if(stream && feature === RippleSDK.featuresAvailable.SIP_GATEWAY){
+                    stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+                }
+
+                await peerConnection.createOffer(offerObj)
                     .then(async _sdp=>{
+                            if(feature === RippleSDK.featuresAvailable.SIP_GATEWAY) {
+                                let sdp_ = _sdp.sdp;
+                                // Remove video codecs
+                                sdp_ = sdp_.replace(/m=video[\s\S]*?(?=m=|$)/g, '');
+                                // remove G722/8000 , PCMU/8000  , CN/8000 , CN/16000 , CN/32000 , CN/48000 , CN/96000 and keep PCMA/8000
+                                sdp_ = sdp_.replace(/(a=rtpmap:(\d+)\s(G722|PCMU|CN)\/8000\r\n|a=rtpmap:(\d+)\sCN\/(16000|32000|48000|96000)\r\n)/g, '');
+                                //sdp_ = sdp_.replace(/a=rtpmap:111 opus\/48000\/2\r\n/g, '');
+                                /*sdp_=sdp_.split('\n')
+                                    .filter(line => !line.includes('opus'))
+                                    .join('\n');*/
+                                console.log('1x',sdp_)
+                                // sdp_ = removeOpusCodec(sdp_);
+                                sdp_ = (sdp_).replace('a=rtpmap:111 opus/48000/2\n','');
+                                console.log('1x',sdp_)
+                                _sdp.sdp = sdp_;
+                            }
                         await peerConnection.setLocalDescription(_sdp);
                         const body = {
                             clientID   : RippleSDK.clientID,
                             requestType: 'offer',
                             transaction: RippleSDK.utils.uniqueIDGenerator("transaction", 12),
                             threadRef  : threadRef,
-                            offer      : _sdp.sdp
+                            offer      : _sdp.sdp,
+                            feature,
                         };
                         RippleSDK.transports.websocket.webSocketSendAction(body);
                         RippleSDK.utils.log('createOffer', 'offer sent to server',body);
@@ -255,6 +327,7 @@ const RippleSDK = {
                                     requestType  : 'iceCandidate',
                                     transaction  : RippleSDK.utils.uniqueIDGenerator("transaction",12),
                                     threadRef    : threadRef,
+                                    feature      : RippleSDK.utils.threadRefsInUseMap.get(threadRef).feature,
                                     candidate    : ev.candidate.candidate,
                                     sdpMid       : ev.candidate.sdpMid,
                                     sdpMLineIndex: ev.candidate.sdpMLineIndex
@@ -350,6 +423,9 @@ const RippleSDK = {
 
         },
         features:{
+            sipGateway:{
+                makeCall:(phoneNumber)=>{ },
+            },
             streaming:{
                 threads:[],
                 functions:{
@@ -601,10 +677,21 @@ const RippleSDK = {
                     messageObject = JSON.parse(messageObject);
                 }
                 const eventType     = messageObject.eventType;
+                const feature     = messageObject.feature;
                 const success       = messageObject.success;
                 const plugin        = messageObject.plugin;
                 let pluginEventType = plugin ? plugin.eventType: null;
                 if (success && pluginEventType) {
+                    if (pluginEventType === 'sipRegistration') {
+                        RippleSDK.app.callbacks.tellClientOnMessage(plugin);
+
+                        // maybe we can create a pear connection here or create when its required!
+                        // RippleSDK.app.webRTC.createPeerConnection(messageObject.position);
+
+                        RippleSDK.app.webRTC.peerConnectionsMap.set(messageObject.position, RippleSDK.app.webRTC.createPeerConnection(messageObject.position));
+                        await RippleSDK.app.webRTC.createOffer(messageObject.position);
+                    }
+
                     if (pluginEventType === 'webrtc') {
                         RippleSDK.app.webRTC.remoteOfferStringSDPMap.set(messageObject.position, plugin.clientSDP);
                         await RippleSDK.app.webRTC.createAnswer(messageObject.position);
@@ -666,10 +753,22 @@ const RippleSDK = {
                 if (success && eventType) {
                     switch (eventType) {
                         case "newThread":
-                            RippleSDK.app.features.streaming.threads.push(messageObject.position);
-                            RippleSDK.app.features.streaming.functions.startBroadCast(messageObject.position);
-                            // renderThreadUI
-                            RippleSDK.app.features.streaming.functions.renderThreadUI(messageObject.position);
+                            RippleSDK.utils.threadRefsInUseMap.set(messageObject.position, {
+                                feature: messageObject.feature,
+                                accessAuth: messageObject.accessAuth,
+                            });
+                            if (feature === RippleSDK.featuresAvailable.G_STREAM_BROADCAST ||
+                                feature === RippleSDK.featuresAvailable.G_STREAM) {
+
+                                RippleSDK.app.features.streaming.threads.push(messageObject.position);
+                                RippleSDK.app.features.streaming.functions.startBroadCast(messageObject.position);
+                                // renderThreadUI
+                                RippleSDK.app.features.streaming.functions.renderThreadUI(messageObject.position);
+                            }
+                            if (feature === RippleSDK.featuresAvailable.SIP_GATEWAY) {
+
+                            }
+
                             break;
                         case "register":
                             RippleSDK.app.startToRemindServerOfMe();
@@ -683,6 +782,7 @@ const RippleSDK = {
             },
             tellClientOnWebRtcEvents:eventMessage=>{},
             tellClientOnStreamUIUpdates:eventMessage=>{},
+            tellClientOnMediaAccessPermissionEvent:(hasAudio,hasVideo,stream)=>{},
             tellClientOnConnected:null,
             onConnected:()=>{
                 RippleSDK.utils.log('onConnected');
@@ -731,7 +831,7 @@ const RippleSDK = {
                 }
                 if(RippleSDK.transports.websocket.socket.readyState !== 1){
                     RippleSDK.utils.log('webSocketSendAction', 'not ready');
-                    return;
+
                 }else{
                     messageObject. isDebugSession= RippleSDK.isDebugSession,
                     messageObject.transaction = RippleSDK.utils.uniqueIDGenerator("transaction",12);
@@ -798,6 +898,7 @@ const RippleSDK = {
         info              : console.info.bind(console),
         trace             : console.trace.bind(console),
         assert            : console.assert.bind(console),
+        threadRefsInUseMap:new Map(),
         convertToWebSocketUrl: (url) => {
             if (url.startsWith('https://')) {
                 return url.replace('https://', 'wss://');

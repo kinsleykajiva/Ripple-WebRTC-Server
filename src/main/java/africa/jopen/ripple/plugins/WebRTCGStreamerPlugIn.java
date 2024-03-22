@@ -358,6 +358,6 @@ public class WebRTCGStreamerPlugIn extends PluginAbs {
 	
 	@Override
 	protected void notifyClient(JSONObject pluginData, final Integer objectPosition) {
-		commonAbout.sendMessage(pluginData, objectPosition);
+		commonAbout.sendMessage(pluginData, objectPosition,FeatureTypes.G_STREAM_BROADCAST);
 	}
 }
