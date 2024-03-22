@@ -16,12 +16,14 @@ import org.mjsip.media.tx.AudioTransmitter;
 import org.mjsip.media.tx.JavaxAudioInput;
 import org.mjsip.pool.PortConfig;
 import org.mjsip.pool.PortPool;
+import org.mjsip.sdp.MediaDescriptor;
 import org.mjsip.sdp.SdpMessage;
 import org.mjsip.sip.address.NameAddress;
 import org.mjsip.sip.address.SipURI;
 import org.mjsip.sip.call.DTMFInfo;
 import org.mjsip.sip.provider.SipConfig;
 import org.mjsip.sip.provider.SipProvider;
+import org.mjsip.sip.provider.SipStack;
 import org.mjsip.time.ConfiguredScheduler;
 import org.mjsip.time.SchedulerConfig;
 import org.mjsip.ua.*;
@@ -42,9 +44,9 @@ public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 	protected              SipProvider          sip_provider;
 	protected              UAConfig             uaConfig;
 	static                 Logger               log              = Logger.getLogger(SipUserAgentPlugin.class.getName());
-	private                UIConfig             uiConfig;
-	private                StreamerFactory      _streamerFactory;
-	private                MediaOptions         mediaConfig;
+	private                UIConfig        uiConfig;
+	private                StreamerFactory streamFactory;
+	private                MediaOptions    mediaConfig;
 	/**
 	 * UA_IDLE=0
 	 */
@@ -99,20 +101,26 @@ public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 		
 		init(sipPr, portConfig.createPool(), uaConfig, uiConfig, mediaConfig);
 	}
+	private MediaAgent mediaAgent() {
+		return new MediaAgent(mediaConfig.getMediaDescs(), streamerFactory);
+	}
+	private StreamerFactory streamerFactory;
 	
 	private void init( SipProvider sip_provider, PortPool portPool, UAConfig uaConfig, UIConfig uiConfig, MediaOptions mediaConfig ) {
-		//MediaAgent mediaAgent = new MediaAgent(sip_provider, portPool, this.uaConfig, this);
+		
 		this.sip_provider = sip_provider;
 		this.uaConfig = uaConfig;
 		this.uiConfig = uiConfig;
 		this.mediaConfig = mediaConfig;
 		ua = new RegisteringUserAgent(sip_provider, portPool, this.uaConfig, this);
-		_streamerFactory = createStreamerFactory(this.mediaConfig, this.uaConfig);
+		//streamFactory = createStreamerFactory(this.mediaConfig, this.uaConfig);
+		streamerFactory = createStreamerFactory(mediaConfig, uaConfig);
 		changeStatus(UA_IDLE);
 		log.info("Starting registration");
 		log.info("Starting registration -- " + uaConfig.isRegister());
 		if (uaConfig.isRegister()) {
 			ua.loopRegister(uaConfig.getExpires(), uaConfig.getExpires() / 2, uaConfig.getKeepAliveTime());
+			
 			/*var rc = new RegistrationClient(sip_provider, uaConfig, new RegistrationLogger());
 			if (uiConfig.doUnregisterAll) {
 				rc.unregisterall();
@@ -173,7 +181,14 @@ public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 		return newSdp.toString();
 	}
 	
-	
+	/*public void call(String target_uri) {
+		ua.hangup();
+		//ua.log("CALLING "+target_uri);
+		System.out.println("calling "+target_uri);
+		//if (!ua_profile.audio && !ua_profile.video) ua.log("ONLY SIGNALING, NO MEDIA");
+		ua.call(target_uri,null);
+		changeStatus(UA_OUTGOING_CALL);
+	}*/
 	public void makeOutGoingCall( @Nullable String sdp ) {
 		
 		var          nameAddress           = org.mjsip.sip.address.NameAddress.parse("sip:2710210@vafey.commonresolve.co.za:9099");
@@ -225,14 +240,20 @@ public class SipUserAgentPlugin extends PluginAbs implements UserAgentListener {
 				a=ssrc:1272389523 cname:vkutGrWRxoZICk6X
 				a=ssrc:1272389523 msid:6e6fd708-1738-406a-bf65-1189b2f13f5c cae3ec4b-eaa0-48fe-815d-a0712f281a26
 				""";
+//		SipStack.debug_level=8;
+		//MediaDescriptor audioDesc = new MediaDescriptor(MediaType.AUDIO, 18426);
+	//	var f=createStreamerFactory(this.mediaConfig, this.uaConfig);
+	//	MediaAgent mediaAgent = new MediaAgent(null,f);
 		
-		
-		System.out.println("!!!==>\n" + sdp);
+		//System.out.println("!!!==>\n" + sdp);
 		SdpMessage sdpMess = new SdpMessage(sdp);
-		//uaConfig.setAudioCodecs(new ArrayList<String>(Arrays.asList("PCMU/8000","PCMA/8000")));
-		ua.call(nameAddress, sdpMess);
-		
+//		ua.call(nameAddress,sdpMess );
+		ua.call(nameAddress,sdpMess ,mediaAgent());
 		changeStatus(UA_OUTGOING_CALL);
+//		ua.call(nameAddress, mediaAgent());
+		//mediaAgent();
+		SipStack        stack     = new SipStack();
+		//RtpPacketSource rtpSource = new RtpPacketSource();
 	}
 	
 	
